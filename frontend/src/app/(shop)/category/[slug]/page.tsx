@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { Search, Filter, Grid, List, ChevronDown } from 'lucide-react'
+import { Search, Filter, Grid, List, ChevronDown, Package } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -20,7 +20,7 @@ const mockProducts: Product[] = [
     description: 'Premium noise-cancelling wireless headphones',
     price: 299.99,
     originalPrice: 399.99,
-    images: ['/headphones.jpg'],
+    images: ['/products/wireless-headphones-1.jpg'],
     category: 'electronics',
     slug: 'wireless-headphones',
     stock: 15,
@@ -36,7 +36,7 @@ const mockProducts: Product[] = [
     description: 'Feature-rich smartwatch with health tracking',
     price: 199.99,
     originalPrice: 249.99,
-    images: ['/smartwatch.jpg'],
+    images: ['/products/smart-watch-1.jpg'],
     category: 'electronics',
     slug: 'smart-watch',
     stock: 8,
@@ -50,7 +50,7 @@ const mockProducts: Product[] = [
     name: 'Laptop Stand',
     description: 'Adjustable aluminum laptop stand',
     price: 49.99,
-    images: ['/laptop-stand.jpg'],
+    images: ['/products/laptop-stand-1.jpg'],
     category: 'electronics',
     slug: 'laptop-stand',
     stock: 25,
@@ -63,7 +63,7 @@ const mockProducts: Product[] = [
     name: 'USB-C Hub',
     description: '7-in-1 USB-C hub with multiple ports',
     price: 39.99,
-    images: ['/usb-hub.jpg'],
+    images: ['/products/usb-c-hub-1.jpg'],
     category: 'electronics',
     slug: 'usb-c-hub',
     stock: 30,
@@ -76,7 +76,7 @@ const mockProducts: Product[] = [
     name: 'Wireless Mouse',
     description: 'Ergonomic wireless mouse with precision tracking',
     price: 29.99,
-    images: ['/mouse.jpg'],
+    images: ['/products/wireless-mouse-1.jpg'],
     category: 'electronics',
     slug: 'wireless-mouse',
     stock: 40,
@@ -89,7 +89,7 @@ const mockProducts: Product[] = [
     name: 'Mechanical Keyboard',
     description: 'RGB mechanical keyboard with blue switches',
     price: 89.99,
-    images: ['/keyboard.jpg'],
+    images: ['/products/mechanical-keyboard-1.jpg'],
     category: 'electronics',
     slug: 'mechanical-keyboard',
     stock: 12,
@@ -365,6 +365,16 @@ export default function CategoryPage() {
               {paginatedProducts.map((product) => (
                 viewMode === 'grid' ? (
                   <ProductCard key={product.id} product={product} />
+                ) : (
+                  <Card key={product.id}>
+                    <CardContent className="p-6">
+                      <div className="flex gap-6">
+                        <div className="w-24 h-24 bg-muted rounded-md flex items-center justify-center">
+                          <Package className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold mb-2">{product.name}</h3>
+                          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{product.description}</p>
                           <div className="flex items-center justify-between">
                             <span className="font-bold">{product.price}</span>
                             <Button size="sm">Add to Cart</Button>

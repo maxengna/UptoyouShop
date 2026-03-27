@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useProductStore } from '@/store/product-store'
 import { useEffect } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
 
 // Mock data for demonstration
 const mockProducts = [
@@ -119,21 +121,26 @@ export default function HomePage() {
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {mockCategories.map((category) => (
-            <Card key={category.id} className="group cursor-pointer transition-transform hover:scale-105">
-              <CardHeader className="p-0">
-                <div className="aspect-square bg-muted rounded-t-lg flex items-center justify-center">
-                  <div className="text-4xl font-bold text-muted-foreground">
-                    {category.name.charAt(0)}
+            <Link key={category.id} href={`/category/${category.slug}`}>
+              <Card className="group cursor-pointer transition-transform hover:scale-105">
+                <CardHeader className="p-0">
+                  <div className="relative aspect-square bg-muted rounded-t-lg overflow-hidden">
+                    <Image
+                      src={category.image}
+                      alt={category.name}
+                      fill
+                      className="object-cover transition-transform group-hover:scale-105"
+                    />
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-4 text-center">
-                <CardTitle className="text-lg mb-2">{category.name}</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  {category.productCount} products
-                </p>
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent className="p-4 text-center">
+                  <CardTitle className="text-lg mb-2">{category.name}</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    {category.productCount} products
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       </section>
