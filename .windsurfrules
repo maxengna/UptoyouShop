@@ -1,0 +1,375 @@
+# 🛒 E-Commerce Web App Development Rules
+
+## Project Overview
+
+Build a modern, scalable, SEO-friendly eCommerce platform using Next.js with full responsive design, secure checkout, and admin management.
+
+## Tech Stack Requirements
+
+### Frontend
+
+- **Framework**: Next.js (App Router only - no Pages Router)
+- **Styling**: Tailwind CSS (primary) with CSS Modules when needed
+- **State Management**: Zustand (preferred) or Redux Toolkit
+- **Forms**: React Hook Form + Zod validation
+- **UI Components**: ShadCN/UI components with Headless UI
+
+### Backend
+
+- **API**: Next.js API routes (no separate backend initially)
+- **Database**: PostgreSQL with Prisma ORM
+- **Authentication**: NextAuth.js / Auth.js
+<!-- - **Payments**: Stripe integration -->
+
+<!-- ### Deployment
+- **Hosting**: Vercel
+- **Storage**: Cloudinary for images
+- **Analytics**: Google Analytics GA4 -->
+
+## Code Structure Rules
+
+### Folder Organization
+
+```
+/app
+  /(shop)           # Shop routes group
+    page.tsx        # Homepage
+    product/[slug]/page.tsx
+    category/[slug]/page.tsx
+    cart/page.tsx
+    checkout/page.tsx
+  /(auth)           # Authentication routes
+    login/page.tsx
+    register/page.tsx
+  /(admin)          # Admin routes group
+    dashboard/page.tsx
+    products/page.tsx
+    orders/page.tsx
+  api/              # API routes
+    products/
+    cart/
+    checkout/
+    auth/
+  globals.css
+
+/components
+  ui/               # ShadCN components
+  shop/             # Shop-specific components
+    product-card/
+    product-gallery/
+    cart-drawer/
+  layout/           # Layout components
+  forms/            # Form components
+
+/lib
+  api/              # API utilities
+  utils/            # Helper functions
+  validations/       # Zod schemas
+  constants/        # App constants
+
+/store              # Zustand stores
+  cart-store.ts
+  user-store.ts
+  product-store.ts
+
+/prisma
+  schema.prisma
+  migrations/
+
+/types              # TypeScript definitions
+  product.ts
+  user.ts
+  order.ts
+```
+
+## Development Rules
+
+### 1. Component Guidelines
+
+- Use TypeScript strictly - no `any` types
+- All components must be server components by default, use "use client" only when necessary
+- Follow React naming conventions (PascalCase for components)
+- Use ShadCN/UI components for consistency
+- Implement proper error boundaries
+
+### 2. Styling Rules
+
+- Use Tailwind CSS classes only - no inline styles
+- Follow mobile-first responsive design
+- Use CSS Modules only for complex animations or when Tailwind is insufficient
+- Implement dark mode support from start
+
+### 3. State Management
+
+- Use Zustand for client state management
+- Keep server state in React Query/TanStack Query
+- Local storage for guest cart, database for logged users
+- Implement proper loading and error states
+
+### 4. API Development
+
+- All API routes must use TypeScript
+- Implement proper error handling with status codes
+- Use Zod for request/response validation
+- Implement rate limiting for sensitive endpoints
+- Follow RESTful conventions
+
+### 5. Database Rules
+
+- Use Prisma ORM exclusively
+- All database operations must be through Prisma
+- Implement proper migrations for schema changes
+- Use environment variables for database connection
+
+## Feature Implementation Rules
+
+### 1. Product Management
+
+- All product pages must use SSR/SSG for SEO
+- Implement proper image optimization with next/image
+- Use slug-based URLs: `/product/[slug]`
+- Implement proper caching strategies
+
+### 2. Cart System
+
+- Persist cart in localStorage for guests
+- Sync cart with database for logged users
+- Implement real-time cart updates
+- Support promo codes and discounts
+
+### 3. Checkout Flow
+
+- Multi-step checkout process
+- Support guest checkout
+- Integrate Stripe for payments
+- Implement proper order confirmation
+- Send email notifications
+
+### 4. Authentication
+
+- Use NextAuth.js for authentication
+- Support social login (Google, Facebook)
+- Implement proper session management
+- Password reset functionality
+
+### 5. Admin Panel
+
+- Role-based access control
+- CRUD operations for products
+- Order management system
+- Basic analytics dashboard
+
+## Performance Requirements
+
+### 1. Core Web Vitals
+
+- Target Lighthouse score: 90+
+- Implement proper lazy loading
+- Use next/image for all images
+- Implement code splitting
+
+### 2. SEO Requirements
+
+- Dynamic meta tags for all pages
+- Open Graph tags implementation
+- Structured data (JSON-LD) for products
+- Clean, readable URLs
+
+### 3. Caching Strategy
+
+- Use ISR for product pages
+- Implement proper cache headers
+- CDN optimization through Vercel
+
+## Security Rules
+
+### 1. Authentication & Authorization
+
+- HTTPS everywhere
+- Secure session management
+- Role-based access control
+- Input validation with Zod
+
+### 2. Payment Security
+
+- Never store credit card information
+- Use Stripe Elements for payment forms
+- Implement proper webhook handling
+- PCI compliance considerations
+
+### 3. Data Protection
+
+- Sanitize all user inputs
+- Implement CSRF protection
+- Rate limiting on sensitive endpoints
+- Proper error message handling
+
+## Testing Requirements
+
+### 1. Unit Testing
+
+- Jest for unit tests
+- Test all utility functions
+- Component testing with React Testing Library
+- Minimum 80% code coverage
+
+### 2. Integration Testing
+
+- API endpoint testing
+- Database operation testing
+- Authentication flow testing
+
+### 3. E2E Testing
+
+- Playwright for E2E tests
+- Critical user journey testing
+- Cross-browser compatibility
+
+## Code Quality Rules
+
+### 1. ESLint & Prettier
+
+- Use recommended Next.js ESLint config
+- Prettier for code formatting
+- Pre-commit hooks for code quality
+- No console.log in production code
+
+### 2. TypeScript Rules
+
+- Strict mode enabled
+- Proper type definitions
+- Interface naming conventions
+- Generic types when appropriate
+
+### 3. Git Workflow
+
+- Feature branch development
+- Conventional commit messages
+- Pull request requirements
+- Code review process
+
+## Environment Variables
+
+### Required Variables
+
+```env
+# Database
+DATABASE_URL=
+
+# NextAuth
+NEXTAUTH_URL=
+NEXTAUTH_SECRET=
+
+# OAuth Providers
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+# Stripe
+STRIPE_PUBLIC_KEY=
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+
+# App
+NODE_ENV=
+```
+
+## MVP Scope (Phase 1)
+
+### Must-Have Features
+
+1. Product listing and detail pages
+2. Shopping cart functionality
+3. Checkout with Stripe integration
+4. Basic user authentication
+5. Order management
+6. Basic admin panel
+
+### Nice-to-Have (Phase 2)
+
+1. Wishlist functionality
+2. Product reviews and ratings
+3. Advanced search and filtering
+4. Analytics dashboard
+5. Email marketing integration
+
+<!-- ## Deployment Rules
+
+### 1. Vercel Deployment
+- Automatic deployment on main branch
+- Environment variables management
+- Proper build optimization
+- Error monitoring setup
+
+### 2. Production Considerations
+- Proper logging implementation
+- Error tracking (Sentry)
+- Performance monitoring
+- Backup strategies -->
+
+## Documentation Requirements
+
+### 1. Code Documentation
+
+- JSDoc comments for functions
+- Component prop documentation
+- API endpoint documentation
+- Database schema documentation
+
+### 2. User Documentation
+
+- Admin panel guide
+- API documentation
+- Deployment guide
+- Troubleshooting guide
+
+## Future Enhancement Rules
+
+### 1. Scalability Considerations
+
+- Microservices architecture preparation
+- Database optimization strategies
+- CDN implementation
+- Load balancing considerations
+
+### 2. Advanced Features
+
+- AI recommendations system
+- Live chat support
+- Mobile app (React Native)
+- Internationalization support
+
+## Code Review Checklist
+
+### Before Merge
+
+- [ ] TypeScript compilation successful
+- [ ] All tests passing
+- [ ] ESLint and Prettier checks passed
+- [ ] Responsive design verified
+- [ ] Accessibility compliance
+- [ ] Performance optimization
+- [ ] Security review completed
+- [ ] Documentation updated
+
+## Emergency Protocols
+
+### 1. Bug Fixes
+
+- Hotfix process for production issues
+- Rollback strategies
+- Communication protocols
+
+### 2. Security Issues
+
+- Immediate patch deployment
+- Security audit procedures
+- Incident response plan
+
+---
+
+Remember: This is a production application. Prioritize security, performance, and user experience over feature velocity. Always write maintainable, scalable code.
