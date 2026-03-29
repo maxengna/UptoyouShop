@@ -1,153 +1,174 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { Plus, Search, Edit, Trash2, Eye, Filter, ChevronDown } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Eye,
+  Filter,
+  ChevronDown,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 // Mock products data
 const mockProducts = [
   {
-    id: '1',
-    name: 'Wireless Headphones',
-    sku: 'WH-001',
-    category: 'Electronics',
+    id: "1",
+    name: "Wireless Headphones",
+    sku: "WH-001",
+    category: "Electronics",
     price: 299.99,
     stock: 15,
-    status: 'active',
-    image: '/headphones.jpg',
-    createdAt: '2024-01-15',
+    status: "active",
+    image: "/products/wireless-headphones-1.jpg",
+    createdAt: "2024-01-15",
     sales: 234,
     revenue: 70146.66,
   },
   {
-    id: '2',
-    name: 'Smart Watch',
-    sku: 'SW-003',
-    category: 'Electronics',
+    id: "2",
+    name: "Smart Watch",
+    sku: "SW-003",
+    category: "Electronics",
     price: 199.99,
     stock: 8,
-    status: 'active',
-    image: '/smartwatch.jpg',
-    createdAt: '2024-01-10',
+    status: "active",
+    image: "/products/smart-watch-1.jpg",
+    createdAt: "2024-01-10",
     sales: 189,
     revenue: 37798.11,
   },
   {
-    id: '3',
-    name: 'Organic Cotton T-Shirt',
-    sku: 'CT-002',
-    category: 'Clothing',
+    id: "3",
+    name: "Organic Cotton T-Shirt",
+    sku: "CT-002",
+    category: "Clothing",
     price: 29.99,
     stock: 50,
-    status: 'active',
-    image: '/tshirt.jpg',
-    createdAt: '2024-01-08',
+    status: "active",
+    image: "/products/organic-cotton-tshirt-1.jpg",
+    createdAt: "2024-01-08",
     sales: 156,
     revenue: 4678.44,
   },
   {
-    id: '4',
-    name: 'Laptop Stand',
-    sku: 'LS-004',
-    category: 'Electronics',
+    id: "4",
+    name: "Laptop Stand",
+    sku: "LS-004",
+    category: "Electronics",
     price: 49.99,
     stock: 0,
-    status: 'out-of-stock',
-    image: '/laptop-stand.jpg',
-    createdAt: '2024-01-05',
+    status: "out-of-stock",
+    image: "/products/laptop-stand-1.jpg",
+    createdAt: "2024-01-05",
     sales: 78,
     revenue: 3899.22,
   },
   {
-    id: '5',
-    name: 'USB-C Hub',
-    sku: 'UH-005',
-    category: 'Electronics',
+    id: "5",
+    name: "USB-C Hub",
+    sku: "UH-005",
+    category: "Electronics",
     price: 39.99,
     stock: 30,
-    status: 'active',
-    image: '/usb-hub.jpg',
-    createdAt: '2024-01-03',
+    status: "active",
+    image: "/products/usb-c-hub-2.jpg",
+    createdAt: "2024-01-03",
     sales: 143,
     revenue: 5718.57,
   },
   {
-    id: '6',
-    name: 'Mechanical Keyboard',
-    sku: 'MK-007',
-    category: 'Electronics',
+    id: "6",
+    name: "Mechanical Keyboard",
+    sku: "MK-007",
+    category: "Electronics",
     price: 89.99,
     stock: 12,
-    status: 'active',
-    image: '/keyboard.jpg',
-    createdAt: '2024-01-01',
+    status: "active",
+    image: "/products/mechanical-keyboard-1.jpg",
+    createdAt: "2024-01-01",
     sales: 98,
     revenue: 8809.02,
   },
-]
+];
 
-const categories = ['All', 'Electronics', 'Clothing', 'Home & Garden', 'Sports']
-const statuses = ['All', 'Active', 'Out of Stock', 'Draft', 'Archived']
+const categories = [
+  "All",
+  "Electronics",
+  "Clothing",
+  "Home & Garden",
+  "Sports",
+];
+const statuses = ["All", "Active", "Out of Stock", "Draft", "Archived"];
 
 const formatPrice = (price: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(price)
-}
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(price);
+};
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case 'active':
-      return 'bg-green-100 text-green-800'
-    case 'out-of-stock':
-      return 'bg-red-100 text-red-800'
-    case 'draft':
-      return 'bg-yellow-100 text-yellow-800'
-    case 'archived':
-      return 'bg-gray-100 text-gray-800'
+    case "active":
+      return "bg-green-100 text-green-800";
+    case "out-of-stock":
+      return "bg-red-100 text-red-800";
+    case "draft":
+      return "bg-yellow-100 text-yellow-800";
+    case "archived":
+      return "bg-gray-100 text-gray-800";
     default:
-      return 'bg-gray-100 text-gray-800'
+      return "bg-gray-100 text-gray-800";
   }
-}
+};
 
 export default function ProductsPage() {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('All')
-  const [selectedStatus, setSelectedStatus] = useState('All')
-  const [currentPage, setCurrentPage] = useState(1)
-  const [showFilters, setShowFilters] = useState(false)
-  
-  const productsPerPage = 10
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedStatus, setSelectedStatus] = useState("All");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showFilters, setShowFilters] = useState(false);
+
+  const productsPerPage = 10;
 
   // Filter products
-  const filteredProducts = mockProducts.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         product.sku.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory
-    const matchesStatus = selectedStatus === 'All' || 
-                          (selectedStatus === 'Active' && product.status === 'active') ||
-                          (selectedStatus === 'Out of Stock' && product.status === 'out-of-stock') ||
-                          product.status === selectedStatus.toLowerCase().replace(' ', '-')
-    
-    return matchesSearch && matchesCategory && matchesStatus
-  })
+  const filteredProducts = mockProducts.filter((product) => {
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.sku.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "All" || product.category === selectedCategory;
+    const matchesStatus =
+      selectedStatus === "All" ||
+      (selectedStatus === "Active" && product.status === "active") ||
+      (selectedStatus === "Out of Stock" &&
+        product.status === "out-of-stock") ||
+      product.status === selectedStatus.toLowerCase().replace(" ", "-");
+
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
 
   // Pagination
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage)
-  const startIndex = (currentPage - 1) * productsPerPage
-  const paginatedProducts = filteredProducts.slice(startIndex, startIndex + productsPerPage)
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+  const startIndex = (currentPage - 1) * productsPerPage;
+  const paginatedProducts = filteredProducts.slice(
+    startIndex,
+    startIndex + productsPerPage,
+  );
 
   const handleDelete = (productId: string) => {
-    if (confirm('Are you sure you want to delete this product?')) {
+    if (confirm("Are you sure you want to delete this product?")) {
       // Handle delete logic
-      console.log('Delete product:', productId)
+      console.log("Delete product:", productId);
     }
-  }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -178,7 +199,7 @@ export default function ProductsPage() {
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold">
-              {mockProducts.filter(p => p.status === 'active').length}
+              {mockProducts.filter((p) => p.status === "active").length}
             </div>
             <p className="text-sm text-muted-foreground">Active Products</p>
           </CardContent>
@@ -186,7 +207,7 @@ export default function ProductsPage() {
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold">
-              {mockProducts.filter(p => p.stock === 0).length}
+              {mockProducts.filter((p) => p.stock === 0).length}
             </div>
             <p className="text-sm text-muted-foreground">Out of Stock</p>
           </CardContent>
@@ -225,8 +246,10 @@ export default function ProductsPage() {
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   className="appearance-none bg-background border border-input rounded-md px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
-                  {categories.map(category => (
-                    <option key={category} value={category}>{category}</option>
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
                   ))}
                 </select>
                 <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 pointer-events-none text-muted-foreground" />
@@ -239,8 +262,10 @@ export default function ProductsPage() {
                   onChange={(e) => setSelectedStatus(e.target.value)}
                   className="appearance-none bg-background border border-input rounded-md px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
-                  {statuses.map(status => (
-                    <option key={status} value={status}>{status}</option>
+                  {statuses.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
                   ))}
                 </select>
                 <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 pointer-events-none text-muted-foreground" />
@@ -258,9 +283,7 @@ export default function ProductsPage() {
       {/* Products Table */}
       <Card>
         <CardHeader>
-          <CardTitle>
-            Products ({filteredProducts.length})
-          </CardTitle>
+          <CardTitle>Products ({filteredProducts.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -285,7 +308,9 @@ export default function ProductsPage() {
                       <div className="flex items-center gap-3">
                         <div className="relative w-12 h-12 bg-muted rounded-md overflow-hidden">
                           <Image
-                            src={product.image || '/images/product-placeholder.jpg'}
+                            src={
+                              product.image || "/images/product-placeholder.jpg"
+                            }
                             alt={product.name}
                             width={48}
                             height={48}
@@ -295,26 +320,37 @@ export default function ProductsPage() {
                         <div>
                           <p className="font-medium">{product.name}</p>
                           <p className="text-sm text-muted-foreground">
-                            Created {new Date(product.createdAt).toLocaleDateString()}
+                            Created{" "}
+                            {new Date(product.createdAt).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
                     </td>
                     <td className="p-4 font-mono text-sm">{product.sku}</td>
                     <td className="p-4">{product.category}</td>
-                    <td className="p-4 font-medium">{formatPrice(product.price)}</td>
+                    <td className="p-4 font-medium">
+                      {formatPrice(product.price)}
+                    </td>
                     <td className="p-4">
-                      <span className={product.stock === 0 ? 'text-red-600 font-medium' : ''}>
+                      <span
+                        className={
+                          product.stock === 0 ? "text-red-600 font-medium" : ""
+                        }
+                      >
                         {product.stock}
                       </span>
                     </td>
                     <td className="p-4">
-                      <span className={`inline-block px-2 py-1 text-xs rounded-full ${getStatusColor(product.status)}`}>
-                        {product.status.replace('-', ' ')}
+                      <span
+                        className={`inline-block px-2 py-1 text-xs rounded-full ${getStatusColor(product.status)}`}
+                      >
+                        {product.status.replace("-", " ")}
                       </span>
                     </td>
                     <td className="p-4">{product.sales}</td>
-                    <td className="p-4 font-medium">{formatPrice(product.revenue)}</td>
+                    <td className="p-4 font-medium">
+                      {formatPrice(product.revenue)}
+                    </td>
                     <td className="p-4">
                       <div className="flex items-center gap-2">
                         <Button variant="ghost" size="icon" asChild>
@@ -327,8 +363,8 @@ export default function ProductsPage() {
                             <Edit className="h-4 w-4" />
                           </Link>
                         </Button>
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="icon"
                           onClick={() => handleDelete(product.id)}
                           className="text-red-600 hover:text-red-700"
@@ -345,12 +381,17 @@ export default function ProductsPage() {
 
           {filteredProducts.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-muted-foreground mb-4">No products found matching your criteria.</p>
-              <Button variant="outline" onClick={() => {
-                setSearchQuery('')
-                setSelectedCategory('All')
-                setSelectedStatus('All')
-              }}>
+              <p className="text-muted-foreground mb-4">
+                No products found matching your criteria.
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedCategory("All");
+                  setSelectedStatus("All");
+                }}
+              >
                 Clear Filters
               </Button>
             </div>
@@ -366,20 +407,22 @@ export default function ProductsPage() {
               >
                 Previous
               </Button>
-              
+
               <div className="flex gap-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <Button
-                    key={page}
-                    variant={currentPage === page ? 'default' : 'outline'}
-                    size="icon"
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </Button>
-                ))}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      size="icon"
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </Button>
+                  ),
+                )}
               </div>
-              
+
               <Button
                 variant="outline"
                 disabled={currentPage === totalPages}
@@ -392,5 +435,5 @@ export default function ProductsPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
