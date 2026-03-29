@@ -178,10 +178,10 @@ export function Header() {
               ) : (
                 <div className="flex items-center space-x-2">
                   <Button variant="ghost" size="sm" asChild>
-                    <Link href="/auth/login">Sign In</Link>
+                    <Link href="/signin">Sign In</Link>
                   </Button>
                   <Button size="sm" asChild>
-                    <Link href="/auth/register">Sign Up</Link>
+                    <Link href="/signup">Sign Up</Link>
                   </Button>
                 </div>
               )}
@@ -259,12 +259,12 @@ export function Header() {
               {!isAuthenticated && (
                 <div className="border-t pt-4 space-y-2">
                   <Button variant="outline" className="w-full" asChild>
-                    <Link href="/auth/login" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Link href="/auth/signin" onClick={() => setIsMobileMenuOpen(false)}>
                       Sign In
                     </Link>
                   </Button>
                   <Button className="w-full" asChild>
-                    <Link href="/auth/register" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Link href="/auth/signup" onClick={() => setIsMobileMenuOpen(false)}>
                       Sign Up
                     </Link>
                   </Button>
