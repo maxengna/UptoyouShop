@@ -181,7 +181,7 @@ export default function ProductsPage() {
           </p>
         </div>
         <Button asChild>
-          <Link href="/admin/products/new">
+          <Link href="/products/new">
             <Plus className="h-4 w-4 mr-2" />
             Add Product
           </Link>

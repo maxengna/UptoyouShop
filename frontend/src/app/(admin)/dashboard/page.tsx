@@ -171,7 +171,7 @@ export default function AdminDashboard() {
             <option value="1y">Last year</option>
           </select>
           <Button asChild>
-            <Link href="/products">Add Product</Link>
+            <Link href="/products">Manage Product</Link>
           </Button>
         </div>
       </div>
