@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { productApi, ApiError, Product } from "@/lib/api";
 
 const categories = [
   "Electronics",
@@ -45,30 +46,10 @@ interface ProductImage {
   file?: File;
 }
 
-interface ProductState {
-  name: string;
-  sku: string;
-  description: string;
-  price: string;
-  comparePrice: string;
-  category: string;
-  status: string;
-  trackInventory: boolean;
-  stock: string;
-  weight: string;
-  dimensions: {
-    length: string;
-    width: string;
-    height: string;
-  };
-  tags: string[];
-  seo: {
-    title: string;
-    description: string;
-    keywords: string;
-  };
-  images: ProductImage[];
-}
+interface ProductState extends Omit<
+  Product,
+  "id" | "createdAt" | "updatedAt"
+> {}
 
 const initialProductState: ProductState = {
   name: "",
@@ -98,10 +79,60 @@ const initialProductState: ProductState = {
 export default function NewProductPage() {
   const router = useRouter();
   const [product, setProduct] = useState<ProductState>(initialProductState);
-  const [currentTag, setCurrentTag] = useState("");
-  const [previewMode, setPreviewMode] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false);
+  const [images, setImages] = useState<ProductImage[]>([]);
+  const [currentTag, setCurrentTag] = useState("");
+  const [categories, setCategories] = useState<string[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("/api/categories");
+        const data = await response.json();
+
+        if (data.success) {
+          setCategories(data.categories);
+        } else {
+          // Fallback to default categories if API fails
+          setCategories([
+            "Electronics",
+            "Clothing",
+            "Home & Garden",
+            "Sports",
+            "Books",
+            "Toys",
+            "Beauty",
+            "Health",
+            "Food",
+            "Other",
+          ]);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        // Fallback to default categories
+        setCategories([
+          "Electronics",
+          "Clothing",
+          "Home & Garden",
+          "Sports",
+          "Books",
+          "Toys",
+          "Beauty",
+          "Health",
+          "Food",
+          "Other",
+        ]);
+      } finally {
+        setIsLoadingCategories(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setProduct((prev) => ({
@@ -212,13 +243,41 @@ export default function NewProductPage() {
     setIsSubmitting(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Prepare product data for API
+      const productData = {
+        ...product,
+        price: product.price,
+        stock: product.trackInventory ? product.stock : "0",
+        status: product.status as "active" | "draft" | "archived",
+      };
 
-      console.log("New product:", product);
+      // Call API to create product
+      const response = await productApi.create(productData);
 
-      router.push("/admin/products");
+      if (response.success) {
+        console.log("Product created successfully:", response.product);
+        router.push("/products");
+      } else {
+        throw new Error(response.message || "Failed to create product");
+      }
     } catch (error) {
       console.error("Error creating product:", error);
+
+      // Handle API errors
+      if (error instanceof ApiError) {
+        if (error.status === 400 && error.data?.errors) {
+          // Handle validation errors from API
+          const apiErrors: Record<string, string> = {};
+          error.data.errors.forEach((err: any) => {
+            apiErrors[err.path?.[0] || "general"] = err.message;
+          });
+          setErrors(apiErrors);
+        } else {
+          setErrors({ general: error.message || "Failed to create product" });
+        }
+      } else {
+        setErrors({ general: "An unexpected error occurred" });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -228,13 +287,34 @@ export default function NewProductPage() {
     setIsSubmitting(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Prepare product data for API as draft
+      const productData = {
+        ...product,
+        price: product.price,
+        stock: product.trackInventory ? product.stock : "0",
+        status: "draft" as const,
+      };
 
-      console.log("Saving draft:", product);
+      // Call API to create draft product
+      const response = await productApi.create(productData);
 
-      router.push("/admin/products");
+      if (response.success) {
+        console.log("Draft saved successfully:", response.product);
+        router.push("/products");
+      } else {
+        throw new Error(response.message || "Failed to save draft");
+      }
     } catch (error) {
       console.error("Error saving draft:", error);
+
+      // Handle API errors
+      if (error instanceof ApiError) {
+        setErrors({ general: error.message || "Failed to save draft" });
+      } else {
+        setErrors({
+          general: "An unexpected error occurred while saving draft",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -381,7 +461,7 @@ export default function NewProductPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button variant="outline" size="sm" asChild>
-                <Link href="/admin/products">
+                <Link href="/products">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back
                 </Link>
@@ -469,6 +549,94 @@ export default function NewProductPage() {
                         </p>
                       )}
                     </div>
+
+                    <div>
+                      <Label htmlFor="price">Price *</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={product.price}
+                        onChange={(e) =>
+                          handleInputChange("price", e.target.value)
+                        }
+                        placeholder="0.00"
+                        className={errors.price ? "border-red-500" : ""}
+                      />
+                      {errors.price && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {errors.price}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label htmlFor="category">Category *</Label>
+                      <select
+                        id="category"
+                        value={product.category}
+                        onChange={(e) =>
+                          handleInputChange("category", e.target.value)
+                        }
+                        disabled={isLoadingCategories}
+                        className={`w-full border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring ${
+                          errors.category ? "border-red-500" : ""
+                        } ${isLoadingCategories ? "bg-gray-100" : ""}`}
+                      >
+                        <option value="">
+                          {isLoadingCategories
+                            ? "Loading categories..."
+                            : "Select a category"}
+                        </option>
+                        {categories.map((category) => (
+                          <option key={category} value={category}>
+                            {category}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.category && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {errors.category}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label htmlFor="stock">Stock Quantity</Label>
+                      <Input
+                        id="stock"
+                        type="number"
+                        min="0"
+                        value={product.stock}
+                        onChange={(e) =>
+                          handleInputChange("stock", e.target.value)
+                        }
+                        placeholder="0"
+                        className={errors.stock ? "border-red-500" : ""}
+                        disabled={!product.trackInventory}
+                      />
+                      {errors.stock && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {errors.stock}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center space-x-2 mt-6">
+                      <input
+                        type="checkbox"
+                        id="trackInventory"
+                        checked={product.trackInventory}
+                        onChange={(e) =>
+                          handleInputChange("trackInventory", e.target.checked)
+                        }
+                        className="rounded border-gray-300"
+                      />
+                      <Label htmlFor="trackInventory" className="text-sm">
+                        Track inventory
+                      </Label>
+                    </div>
                   </div>
 
                   <div>
@@ -488,7 +656,7 @@ export default function NewProductPage() {
                     <Label htmlFor="seoKeywords">SEO Keywords</Label>
                     <Input
                       id="seoKeywords"
-                      value={product.seo.keywords}
+                      value={product.seo?.keywords || ""}
                       onChange={(e) =>
                         handleSeoChange("keywords", e.target.value)
                       }
@@ -550,7 +718,7 @@ export default function NewProductPage() {
                         <Input
                           id="length"
                           type="number"
-                          value={product.dimensions.length}
+                          value={product.dimensions?.length || ""}
                           onChange={(e) =>
                             setProduct((prev) => ({
                               ...prev,
@@ -570,7 +738,7 @@ export default function NewProductPage() {
                         <Input
                           id="width"
                           type="number"
-                          value={product.dimensions.width}
+                          value={product.dimensions?.width || ""}
                           onChange={(e) =>
                             setProduct((prev) => ({
                               ...prev,
@@ -590,7 +758,7 @@ export default function NewProductPage() {
                         <Input
                           id="height"
                           type="number"
-                          value={product.dimensions.height}
+                          value={product.dimensions?.height || ""}
                           onChange={(e) =>
                             setProduct((prev) => ({
                               ...prev,
@@ -773,7 +941,7 @@ export default function NewProductPage() {
                     <Label htmlFor="seoTitle">SEO Title</Label>
                     <Input
                       id="seoTitle"
-                      value={product.seo.title}
+                      value={product.seo?.title || ""}
                       onChange={(e) => handleSeoChange("title", e.target.value)}
                       placeholder="Product SEO title"
                       maxLength={60}
@@ -791,7 +959,7 @@ export default function NewProductPage() {
                               : "text-green-500"
                           }
                         >
-                          {product.seo.title.length}/60
+                          {product.seo?.title?.length || 0}/60
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-1">
@@ -799,7 +967,7 @@ export default function NewProductPage() {
                           className={`h-1 rounded-full transition-colors ${
                             product.seo.title.length > 60
                               ? "bg-red-500"
-                              : product.seo.title.length > 50
+                              : product.seo?.title?.length || 0 > 50
                                 ? "bg-yellow-500"
                                 : "bg-green-500"
                           }`}
@@ -815,7 +983,7 @@ export default function NewProductPage() {
                     <Label htmlFor="seoDescription">SEO Description</Label>
                     <Textarea
                       id="seoDescription"
-                      value={product.seo.description}
+                      value={product.seo?.description || ""}
                       onChange={(e) =>
                         handleSeoChange("description", e.target.value)
                       }
@@ -860,7 +1028,7 @@ export default function NewProductPage() {
                     <Label htmlFor="seoKeywords">SEO Keywords</Label>
                     <Input
                       id="seoKeywords"
-                      value={product.seo.keywords}
+                      value={product.seo?.keywords || ""}
                       onChange={(e) =>
                         handleSeoChange("keywords", e.target.value)
                       }

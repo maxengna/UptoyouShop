@@ -1,102 +1,62 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  Plus,
-  Search,
-  Edit,
-  Trash2,
-  Eye,
-  Filter,
-  ChevronDown,
-} from "lucide-react";
+import { Plus, Search, Edit, Trash2, Eye, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { productApi } from "@/lib/api";
 
-// Mock products data
-const mockProducts = [
-  {
-    id: "1",
-    name: "Wireless Headphones",
-    sku: "WH-001",
-    category: "Electronics",
-    price: 299.99,
-    stock: 15,
-    status: "active",
-    image: "/products/wireless-headphones-1.jpg",
-    createdAt: "2024-01-15",
-    sales: 234,
-    revenue: 70146.66,
-  },
-  {
-    id: "2",
-    name: "Smart Watch",
-    sku: "SW-003",
-    category: "Electronics",
-    price: 199.99,
-    stock: 8,
-    status: "active",
-    image: "/products/smart-watch-1.jpg",
-    createdAt: "2024-01-10",
-    sales: 189,
-    revenue: 37798.11,
-  },
-  {
-    id: "3",
-    name: "Organic Cotton T-Shirt",
-    sku: "CT-002",
-    category: "Clothing",
-    price: 29.99,
-    stock: 50,
-    status: "active",
-    image: "/products/organic-cotton-tshirt-1.jpg",
-    createdAt: "2024-01-08",
-    sales: 156,
-    revenue: 4678.44,
-  },
-  {
-    id: "4",
-    name: "Laptop Stand",
-    sku: "LS-004",
-    category: "Electronics",
-    price: 49.99,
-    stock: 0,
-    status: "out-of-stock",
-    image: "/products/laptop-stand-1.jpg",
-    createdAt: "2024-01-05",
-    sales: 78,
-    revenue: 3899.22,
-  },
-  {
-    id: "5",
-    name: "USB-C Hub",
-    sku: "UH-005",
-    category: "Electronics",
-    price: 39.99,
-    stock: 30,
-    status: "active",
-    image: "/products/usb-c-hub-2.jpg",
-    createdAt: "2024-01-03",
-    sales: 143,
-    revenue: 5718.57,
-  },
-  {
-    id: "6",
-    name: "Mechanical Keyboard",
-    sku: "MK-007",
-    category: "Electronics",
-    price: 89.99,
-    stock: 12,
-    status: "active",
-    image: "/products/mechanical-keyboard-1.jpg",
-    createdAt: "2024-01-01",
-    sales: 98,
-    revenue: 8809.02,
-  },
-];
+const statuses = ["All", "Active", "Out of Stock", "Draft", "Archived"];
+
+// Product type from API
+interface Product {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  price: number;
+  originalPrice?: number;
+  sku: string;
+  stock: number;
+  category: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  categoryId: string;
+  isActive: boolean;
+  isNew: boolean;
+  isOnSale: boolean;
+  tags: string[];
+  images: Array<{
+    id: string;
+    url: string;
+    sortOrder: number;
+  }>;
+  createdAt: string;
+  updatedAt: string;
+  inventory?: {
+    quantity: number;
+    reorderLevel: number;
+  };
+  averageRating?: number | null;
+  reviewCount: number;
+}
+
+interface ProductsResponse {
+  products: Product[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
 
 const categories = [
   "All",
@@ -105,7 +65,12 @@ const categories = [
   "Home & Garden",
   "Sports",
 ];
-const statuses = ["All", "Active", "Out of Stock", "Draft", "Archived"];
+
+const getStatusFromProduct = (product: Product): string => {
+  if (product.stock === 0) return "out-of-stock";
+  if (!product.isActive) return "draft";
+  return "active";
+};
 
 const formatPrice = (price: number) => {
   return new Intl.NumberFormat("en-US", {
@@ -130,6 +95,9 @@ const getStatusColor = (status: string) => {
 };
 
 export default function ProductsPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
@@ -138,19 +106,45 @@ export default function ProductsPage() {
 
   const productsPerPage = 10;
 
+  // Fetch products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("http://localhost:5000/api/products");
+        if (!response.ok) {
+          throw new Error("Failed to fetch products");
+        }
+        const data = await response.json();
+        if (data.success) {
+          setProducts(data.data.products || []);
+        } else {
+          throw new Error(data.message || "Failed to fetch products");
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   // Filter products
-  const filteredProducts = mockProducts.filter((product) => {
+  const filteredProducts = products.filter((product) => {
     const matchesSearch =
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.sku.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory =
-      selectedCategory === "All" || product.category === selectedCategory;
+      selectedCategory === "All" || product.category.name === selectedCategory;
+    const productStatus = getStatusFromProduct(product);
     const matchesStatus =
       selectedStatus === "All" ||
-      (selectedStatus === "Active" && product.status === "active") ||
-      (selectedStatus === "Out of Stock" &&
-        product.status === "out-of-stock") ||
-      product.status === selectedStatus.toLowerCase().replace(" ", "-");
+      (selectedStatus === "Active" && productStatus === "active") ||
+      (selectedStatus === "Out of Stock" && productStatus === "out-of-stock") ||
+      (selectedStatus === "Draft" && productStatus === "draft") ||
+      (selectedStatus === "Archived" && productStatus === "archived");
 
     return matchesSearch && matchesCategory && matchesStatus;
   });
@@ -163,10 +157,23 @@ export default function ProductsPage() {
     startIndex + productsPerPage,
   );
 
-  const handleDelete = (productId: string) => {
+  const handleDelete = async (productId: string) => {
     if (confirm("Are you sure you want to delete this product?")) {
-      // Handle delete logic
-      console.log("Delete product:", productId);
+      try {
+        const response = await fetch(
+          `http://localhost:5000/api/products/${productId}`,
+          {
+            method: "DELETE",
+          },
+        );
+        if (response.ok) {
+          setProducts(products.filter((p) => p.id !== productId));
+        } else {
+          alert("Failed to delete product");
+        }
+      } catch (err) {
+        alert("Error deleting product");
+      }
     }
   };
 
@@ -188,18 +195,35 @@ export default function ProductsPage() {
         </Button>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <p className="text-red-800">{error}</p>
+        </div>
+      )}
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <Card>
           <CardContent className="p-6">
-            <div className="text-2xl font-bold">{mockProducts.length}</div>
+            <div className="text-2xl font-bold">{products.length}</div>
             <p className="text-sm text-muted-foreground">Total Products</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold">
-              {mockProducts.filter((p) => p.status === "active").length}
+              {
+                products.filter((p: Product) => p.isActive && p.stock > 0)
+                  .length
+              }
             </div>
             <p className="text-sm text-muted-foreground">Active Products</p>
           </CardContent>
@@ -207,7 +231,7 @@ export default function ProductsPage() {
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold">
-              {mockProducts.filter((p) => p.stock === 0).length}
+              {products.filter((p: Product) => p.stock === 0).length}
             </div>
             <p className="text-sm text-muted-foreground">Out of Stock</p>
           </CardContent>
@@ -215,7 +239,7 @@ export default function ProductsPage() {
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold">
-              {mockProducts.reduce((sum, p) => sum + p.stock, 0)}
+              {products.reduce((sum: number, p: Product) => sum + p.stock, 0)}
             </div>
             <p className="text-sm text-muted-foreground">Total Stock</p>
           </CardContent>
@@ -302,79 +326,85 @@ export default function ProductsPage() {
                 </tr>
               </thead>
               <tbody>
-                {paginatedProducts.map((product) => (
-                  <tr key={product.id} className="border-b hover:bg-muted/50">
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="relative w-12 h-12 bg-muted rounded-md overflow-hidden">
-                          <Image
-                            src={
-                              product.image || "/images/product-placeholder.jpg"
-                            }
-                            alt={product.name}
-                            width={48}
-                            height={48}
-                            className="w-full h-full object-cover"
-                          />
+                {paginatedProducts.map((product: Product) => {
+                  const productStatus = getStatusFromProduct(product);
+                  return (
+                    <tr key={product.id} className="border-b hover:bg-muted/50">
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="relative w-12 h-12 bg-muted rounded-md overflow-hidden">
+                            <Image
+                              src={
+                                product.images[0]?.url ||
+                                "/images/product-placeholder.jpg"
+                              }
+                              alt={product.name}
+                              width={48}
+                              height={48}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div>
+                            <p className="font-medium">{product.name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              Created{" "}
+                              {new Date(product.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium">{product.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            Created{" "}
-                            {new Date(product.createdAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-4 font-mono text-sm">{product.sku}</td>
-                    <td className="p-4">{product.category}</td>
-                    <td className="p-4 font-medium">
-                      {formatPrice(product.price)}
-                    </td>
-                    <td className="p-4">
-                      <span
-                        className={
-                          product.stock === 0 ? "text-red-600 font-medium" : ""
-                        }
-                      >
-                        {product.stock}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <span
-                        className={`inline-block px-2 py-1 text-xs rounded-full ${getStatusColor(product.status)}`}
-                      >
-                        {product.status.replace("-", " ")}
-                      </span>
-                    </td>
-                    <td className="p-4">{product.sales}</td>
-                    <td className="p-4 font-medium">
-                      {formatPrice(product.revenue)}
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon" asChild>
-                          <Link href={`/admin/products/${product.id}`}>
-                            <Eye className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                        <Button variant="ghost" size="icon" asChild>
-                          <Link href={`/admin/products/${product.id}/edit`}>
-                            <Edit className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(product.id)}
-                          className="text-red-600 hover:text-red-700"
+                      </td>
+                      <td className="p-4 font-mono text-sm">{product.sku}</td>
+                      <td className="p-4">
+                        {product.category?.name || "Uncategorized"}
+                      </td>
+                      <td className="p-4 font-medium">
+                        {formatPrice(product.price)}
+                      </td>
+                      <td className="p-4">
+                        <span
+                          className={
+                            product.stock === 0
+                              ? "text-red-600 font-medium"
+                              : ""
+                          }
                         >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          {product.stock}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <span
+                          className={`inline-block px-2 py-1 text-xs rounded-full ${getStatusColor(productStatus)}`}
+                        >
+                          {productStatus.replace("-", " ")}
+                        </span>
+                      </td>
+                      <td className="p-4">-</td>
+                      <td className="p-4 font-medium">-</td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="icon" asChild>
+                            <Link href={`/admin/products/${product.id}`}>
+                              <Eye className="h-4 w-4" />
+                            </Link>
+                          </Button>
+                          <Button variant="ghost" size="icon" asChild>
+                            <Link href={`/admin/products/${product.id}/edit`}>
+                              <Edit className="h-4 w-4" />
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDelete(product.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
