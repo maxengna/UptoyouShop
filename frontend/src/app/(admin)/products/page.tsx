@@ -388,7 +388,7 @@ export default function ProductsPage() {
                             </Link>
                           </Button>
                           <Button variant="ghost" size="icon" asChild>
-                            <Link href={`/admin/products/${product.id}/edit`}>
+                            <Link href={`/products/${product.id}/edit`}>
                               <Edit className="h-4 w-4" />
                             </Link>
                           </Button>

@@ -86,6 +86,7 @@ export default function NewProductPage() {
   const [currentTag, setCurrentTag] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Fetch categories from API
   useEffect(() => {
@@ -188,6 +189,21 @@ export default function NewProductPage() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const newImages: ProductImage[] = files.map((file) => ({
+      id: Date.now() + Math.random(),
+      url: URL.createObjectURL(file),
+      name: file.name,
+      file,
+    }));
+
+    setProduct((prev) => ({
+      ...prev,
+      images: [...prev.images, ...newImages],
+    }));
+  };
+
+  const handleFilesUpload = (files: File[]) => {
+    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+    const newImages: ProductImage[] = imageFiles.map((file) => ({
       id: Date.now() + Math.random(),
       url: URL.createObjectURL(file),
       name: file.name,
@@ -928,6 +944,113 @@ export default function NewProductPage() {
 
             {/* Right Sidebar */}
             <div className="lg:col-span-4 space-y-4">
+              {/* Product Images - Drag & Drop Upload */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Upload className="h-5 w-5" />
+                    Product Images
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Drag & Drop Zone */}
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsDragging(true);
+                    }}
+                    onDragLeave={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsDragging(false);
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsDragging(false);
+                      const files = Array.from(e.dataTransfer.files);
+                      handleFilesUpload(files);
+                    }}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
+                      isDragging
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-300 hover:border-gray-400"
+                    }`}
+                  >
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        handleFilesUpload(files);
+                      }}
+                      className="hidden"
+                      id="image-upload"
+                    />
+                    <label
+                      htmlFor="image-upload"
+                      className="cursor-pointer block"
+                    >
+                      <Upload className="h-10 w-10 mx-auto mb-3 text-gray-400" />
+                      <p className="text-sm font-medium text-gray-700 mb-1">
+                        {isDragging
+                          ? "Drop files here"
+                          : "Drag & drop images here"}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        or click to browse files
+                      </p>
+                      <p className="text-xs text-gray-400 mt-2">
+                        Supports: JPG, PNG, WebP (Max 5MB each)
+                      </p>
+                    </label>
+                  </div>
+
+                  {/* Image Preview Grid */}
+                  {product.images.length > 0 && (
+                    <div>
+                      <Label className="text-sm font-medium mb-3 block">
+                        Uploaded Images ({product.images.length})
+                      </Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {product.images.map((image, index) => (
+                          <div
+                            key={image.id}
+                            className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 group"
+                          >
+                            <Image
+                              src={image.url}
+                              alt={`Product image ${index + 1}`}
+                              fill
+                              className="object-cover"
+                            />
+                            {/* Remove button */}
+                            <button
+                              type="button"
+                              onClick={() => removeImage(image.id)}
+                              className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                            {/* Main image badge */}
+                            {index === 0 && (
+                              <span className="absolute bottom-1 left-1 px-2 py-0.5 bg-blue-500 text-white text-xs rounded">
+                                Main
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        First image will be the main product image
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               {/* SEO Settings */}
               <Card>
                 <CardHeader>
