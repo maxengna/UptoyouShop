@@ -130,7 +130,7 @@ export const productApi = {
   },
 
   // Update a product
-  update: async (id: number, productData: Partial<Product>) => {
+  update: async (id: string, productData: Record<string, any>) => {
     return apiRequest<{ success: boolean; message: string; product: Product }>(
       `/api/products/${id}`,
       {

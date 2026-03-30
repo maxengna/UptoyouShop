@@ -243,34 +243,43 @@ export default function EditProductPage() {
 
     setSaving(true);
     try {
-      // Map product data to API format
-      const productData = {
+      // Map product data to API format (numbers for backend)
+      // Only include fields that have valid values
+      const productData: Record<string, any> = {
         name: product.name,
         sku: product.sku,
-        description: product.description,
-        price: product.price.toString(),
-        comparePrice: product.originalPrice?.toString(),
-        stock: product.stock.toString(),
-        category: product.category?.name || product.categoryId || "",
-        status: product.isActive ? ("active" as const) : ("draft" as const),
-        trackInventory: true,
+        price: product.price,
+        stock: product.stock,
+        isActive: product.isActive,
         tags: product.tags,
-        weight: product.weight?.toString(),
-        dimensions: product.dimensions
-          ? {
-              length: product.dimensions.length?.toString(),
-              width: product.dimensions.width?.toString(),
-              height: product.dimensions.height?.toString(),
-            }
-          : undefined,
-        seo: {
-          title: product.seoTitle,
-          description: product.seoDescription,
-        },
-        images: product.images,
       };
-      console.log(productId);
-      const result = await productApi.update(parseInt(productId), productData);
+
+      // Only add optional fields if they have values
+      if (product.description) productData.description = product.description;
+      if (product.originalPrice)
+        productData.originalPrice = product.originalPrice;
+      if (product.category?.id) productData.categoryId = product.category.id;
+      else if (product.categoryId) productData.categoryId = product.categoryId;
+      if (product.isNew) productData.isNew = product.isNew;
+      if (product.isOnSale) productData.isOnSale = product.isOnSale;
+      if (product.weight) productData.weight = product.weight;
+      if (product.seoTitle) productData.seoTitle = product.seoTitle;
+      if (product.seoDescription)
+        productData.seoDescription = product.seoDescription;
+
+      // Only include dimensions if all values are present
+      if (
+        product.dimensions?.length &&
+        product.dimensions?.width &&
+        product.dimensions?.height
+      ) {
+        productData.dimensions = {
+          length: product.dimensions.length,
+          width: product.dimensions.width,
+          height: product.dimensions.height,
+        };
+      }
+      const result = await productApi.update(productId, productData);
 
       if (result.success) {
         router.push("/products");
