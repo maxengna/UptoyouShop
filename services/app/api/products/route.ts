@@ -72,6 +72,8 @@ function generateSlug(text: string): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    console.log("POST /api/products - body:", body);
+    console.log("POST /api/products - body type:", typeof body);
 
     // Validate request body
     const validatedData = createProductSchema.parse(body);

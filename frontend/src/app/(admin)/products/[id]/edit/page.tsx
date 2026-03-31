@@ -24,13 +24,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { productApi } from "@/lib/api";
+import { productApi, uploadApi } from "@/lib/api";
 
 interface ProductImage {
   id: number;
   url: string;
   name: string;
-  file?: File;
+  alt?: string; // Add alt property
+  file?: File; // File object for new images
+  isFromDB?: boolean; // Track if image is from database
 }
 
 interface Category {
@@ -46,13 +48,16 @@ interface Product {
   description?: string;
   price: number;
   originalPrice?: number;
+  comparePrice?: number;
   sku: string;
   stock: number;
   category: Category;
   categoryId: string;
   isActive: boolean;
+  status?: "active" | "draft" | "archived";
   isNew: boolean;
   isOnSale: boolean;
+  trackInventory?: boolean;
   tags: string[];
   images: ProductImage[];
   weight?: number;
@@ -63,6 +68,11 @@ interface Product {
   };
   seoTitle?: string;
   seoDescription?: string;
+  seo?: {
+    title?: string;
+    description?: string;
+    keywords?: string;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -95,7 +105,16 @@ export default function EditProductPage() {
         }
         const data = await response.json();
         if (data.success) {
-          setProduct(data.data);
+          // Mark existing images as from database
+          const productWithImageFlags = {
+            ...data.data,
+            images:
+              data.data.images?.map((img: any) => ({
+                ...img,
+                isFromDB: true, // Mark as existing image
+              })) || [],
+          };
+          setProduct(productWithImageFlags);
         } else {
           throw new Error(data.message || "Product not found");
         }
@@ -155,17 +174,32 @@ export default function EditProductPage() {
   }, []);
 
   const handleInputChange = (
-    field: keyof Product,
-    value: string | number | boolean,
+    field: string,
+    value: string | number | boolean | undefined,
   ) => {
     if (!product) return;
     setProduct((prev) => ({
       ...prev!,
       [field]: value,
     }));
+
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }));
+      setErrors((prev) => ({
+        ...prev,
+        [field]: "",
+      }));
     }
+  };
+
+  const handleSeoChange = (field: string, value: string) => {
+    if (!product) return;
+    setProduct((prev) => ({
+      ...prev!,
+      seo: {
+        ...prev!.seo,
+        [field]: value,
+      },
+    }));
   };
 
   const addTag = () => {
@@ -190,14 +224,16 @@ export default function EditProductPage() {
     }));
   };
 
-  const handleFilesUpload = (files: File[]) => {
-    if (!product) return;
+  const handleFilesUpload = async (files: File[]) => {
     const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+
+    // Create preview images with file objects
     const newImages: ProductImage[] = imageFiles.map((file) => ({
       id: Date.now() + Math.random(),
-      url: URL.createObjectURL(file),
+      url: URL.createObjectURL(file), // Local preview URL
       name: file.name,
-      file,
+      file: file, // Store file object for later upload
+      isFromDB: false, // Mark as new image
     }));
 
     setProduct((prev) => ({
@@ -208,6 +244,14 @@ export default function EditProductPage() {
 
   const removeImage = (imageId: number) => {
     if (!product) return;
+
+    const imageToRemove = product.images.find((img) => img.id === imageId);
+
+    // Cleanup object URL if it's a preview
+    if (imageToRemove?.url.startsWith("blob:")) {
+      URL.revokeObjectURL(imageToRemove.url);
+    }
+
     setProduct((prev) => ({
       ...prev!,
       images: prev!.images.filter((img) => img.id !== imageId),
@@ -243,13 +287,54 @@ export default function EditProductPage() {
 
     setSaving(true);
     try {
+      // Upload new images first
+      const uploadedImages = await Promise.all(
+        product.images.map(async (img, index) => {
+          if (img.file && !img.isFromDB) {
+            // New image that needs upload
+            try {
+              const result = await uploadApi.uploadFile(img.file);
+
+              if (result.success) {
+                return {
+                  id: img.id,
+                  url: `http://localhost:5000${result.data.url}`, // Real URL from server
+                  name: img.name,
+                  alt: `${product.name} - Image ${index + 1}`,
+                  sortOrder: index,
+                  isMain: index === 0,
+                };
+              } else {
+                throw new Error(
+                  `Upload failed: ${(result as any).error || "Unknown error"}`,
+                );
+              }
+            } catch (error) {
+              console.error("Upload error:", error);
+              throw new Error(
+                `Failed to upload ${img.name}: ${error instanceof Error ? error.message : "Unknown error"}`,
+              );
+            }
+          } else {
+            // Existing image from database
+            return {
+              id: img.id,
+              url: img.url,
+              name: img.name,
+              alt: img.alt || `${product.name} - Image ${index + 1}`,
+              sortOrder: index,
+              isMain: index === 0,
+            };
+          }
+        }),
+      );
+
       // Map product data to API format (numbers for backend)
-      // Only include fields that have valid values
       const productData: Record<string, any> = {
         name: product.name,
         sku: product.sku,
         slug: product.slug,
-        price: product.price,
+        price: Number(product.price), // Convert to number
         stock: product.stock,
         isActive: product.isActive,
         tags: product.tags,
@@ -258,16 +343,26 @@ export default function EditProductPage() {
       // Only add optional fields if they have values
       if (product.description) productData.description = product.description;
       if (product.originalPrice !== undefined && product.originalPrice !== null)
-        productData.originalPrice = product.originalPrice;
-      if (product.category?.id) productData.categoryId = product.category.id;
+        productData.originalPrice = Number(product.originalPrice);
+      if (product.category?.id) productData.categoryId = product.category.id; // Use categoryId
       if (product.isNew !== undefined) productData.isNew = product.isNew;
       if (product.isOnSale !== undefined)
         productData.isOnSale = product.isOnSale;
       if (product.weight !== undefined && product.weight !== null)
-        productData.weight = product.weight;
-      if (product.seoTitle) productData.seoTitle = product.seoTitle;
+        productData.weight = Number(product.weight);
+      if (product.seoTitle) productData.seoTitle = product.seoTitle; // Separate field
       if (product.seoDescription)
-        productData.seoDescription = product.seoDescription;
+        productData.seoDescription = product.seoDescription; // Separate field
+
+      // Add uploaded images if they exist
+      if (uploadedImages && uploadedImages.length > 0) {
+        productData.images = uploadedImages.map((img) => ({
+          url: img.url,
+          alt: img.alt,
+          sortOrder: img.sortOrder,
+          isMain: img.isMain,
+        }));
+      }
 
       // Only include dimensions if all values are present (including 0)
       if (
@@ -282,9 +377,20 @@ export default function EditProductPage() {
           height: Number(product.dimensions.height),
         };
       }
+
+      console.log("Final productData:", productData);
+      console.log("Uploaded images:", uploadedImages);
+
       const result = await productApi.update(productId, productData);
 
       if (result.success) {
+        // Cleanup object URLs after successful save
+        product.images.forEach((img) => {
+          if (img.url.startsWith("blob:")) {
+            URL.revokeObjectURL(img.url);
+          }
+        });
+
         router.push("/products");
       } else {
         setError(result.message || "Failed to update product");
@@ -477,6 +583,52 @@ export default function EditProductPage() {
                     </div>
 
                     <div>
+                      <Label htmlFor="originalPrice">
+                        Original Price (Compare Price)
+                      </Label>
+                      <Input
+                        id="originalPrice"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={product.originalPrice || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "originalPrice",
+                            e.target.value
+                              ? parseFloat(e.target.value)
+                              : undefined,
+                          )
+                        }
+                        placeholder="0.00"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="status">Status *</Label>
+                      <select
+                        id="status"
+                        value={
+                          product.status ||
+                          (product.isActive ? "active" : "draft")
+                        }
+                        onChange={(e) =>
+                          handleInputChange("status", e.target.value)
+                        }
+                        className={`w-full border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring ${errors.status ? "border-red-500" : ""}`}
+                      >
+                        <option value="active">Active</option>
+                        <option value="draft">Draft</option>
+                        <option value="archived">Archived</option>
+                      </select>
+                      {errors.status && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {errors.status}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
                       <Label htmlFor="stock">Stock Quantity</Label>
                       <Input
                         id="stock"
@@ -487,21 +639,22 @@ export default function EditProductPage() {
                           handleInputChange("stock", parseInt(e.target.value))
                         }
                         placeholder="0"
+                        disabled={product.trackInventory === false}
                       />
                     </div>
 
                     <div className="flex items-center space-x-2 mt-6">
                       <input
                         type="checkbox"
-                        id="isActive"
-                        checked={product.isActive}
+                        id="trackInventory"
+                        checked={product.trackInventory !== false}
                         onChange={(e) =>
-                          handleInputChange("isActive", e.target.checked)
+                          handleInputChange("trackInventory", e.target.checked)
                         }
                         className="rounded border-gray-300"
                       />
-                      <Label htmlFor="isActive" className="text-sm">
-                        Product is active
+                      <Label htmlFor="trackInventory" className="text-sm">
+                        Track inventory
                       </Label>
                     </div>
                   </div>
@@ -518,6 +671,131 @@ export default function EditProductPage() {
                       rows={4}
                     />
                   </div>
+
+                  <div>
+                    <Label htmlFor="seoKeywords">SEO Keywords</Label>
+                    <Input
+                      id="seoKeywords"
+                      value={product.seo?.keywords || ""}
+                      onChange={(e) =>
+                        handleSeoChange("keywords", e.target.value)
+                      }
+                      placeholder="keyword1, keyword2, keyword3"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Shipping & Dimensions */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Box className="h-5 w-5" />
+                    Shipping & Dimensions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <Label htmlFor="weight">Weight (kg)</Label>
+                      <Input
+                        id="weight"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={product.weight || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "weight",
+                            e.target.value
+                              ? parseFloat(e.target.value)
+                              : undefined,
+                          )
+                        }
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-base font-medium">
+                      Dimensions (cm)
+                    </Label>
+                    <div className="grid grid-cols-3 gap-4 mt-2">
+                      <div>
+                        <Label htmlFor="length" className="text-sm">
+                          Length
+                        </Label>
+                        <Input
+                          id="length"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={product.dimensions?.length || ""}
+                          onChange={(e) =>
+                            setProduct((prev) => ({
+                              ...prev!,
+                              dimensions: {
+                                ...prev!.dimensions,
+                                length: e.target.value
+                                  ? parseFloat(e.target.value)
+                                  : undefined,
+                              },
+                            }))
+                          }
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="width" className="text-sm">
+                          Width
+                        </Label>
+                        <Input
+                          id="width"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={product.dimensions?.width || ""}
+                          onChange={(e) =>
+                            setProduct((prev) => ({
+                              ...prev!,
+                              dimensions: {
+                                ...prev!.dimensions,
+                                width: e.target.value
+                                  ? parseFloat(e.target.value)
+                                  : undefined,
+                              },
+                            }))
+                          }
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="height" className="text-sm">
+                          Height
+                        </Label>
+                        <Input
+                          id="height"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={product.dimensions?.height || ""}
+                          onChange={(e) =>
+                            setProduct((prev) => ({
+                              ...prev!,
+                              dimensions: {
+                                ...prev!.dimensions,
+                                height: e.target.value
+                                  ? parseFloat(e.target.value)
+                                  : undefined,
+                              },
+                            }))
+                          }
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
 
@@ -529,43 +807,107 @@ export default function EditProductPage() {
                     Tags
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex gap-2">
-                    <Input
-                      value={currentTag}
-                      onChange={(e) => setCurrentTag(e.target.value)}
-                      placeholder="Add a tag..."
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          addTag();
-                        }
-                      }}
-                    />
-                    <Button
-                      type="button"
-                      onClick={addTag}
-                      disabled={!currentTag.trim()}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label className="text-base font-medium">
+                      Add Product Tags
+                    </Label>
+                    <p className="text-sm text-gray-500 mb-4">
+                      Add tags to help customers find your product easily
+                    </p>
+                    <div className="flex gap-2">
+                      <Input
+                        value={currentTag}
+                        onChange={(e) => setCurrentTag(e.target.value)}
+                        placeholder="Add a tag..."
+                        onKeyPress={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addTag();
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        onClick={addTag}
+                        disabled={!currentTag.trim()}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
 
                   {product.tags.length > 0 && (
+                    <div>
+                      <Label className="text-base font-medium">
+                        Current Tags
+                      </Label>
+                      <p className="text-sm text-gray-500 mb-3">
+                        Click on a tag to remove it
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {product.tags.map((tag) => (
+                          <Badge
+                            key={tag}
+                            variant="secondary"
+                            className="cursor-pointer hover:bg-red-100 transition-colors"
+                            onClick={() => removeTag(tag)}
+                          >
+                            {tag}
+                            <X className="h-3 w-3 ml-1" />
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="pt-4 border-t">
+                    <Label className="text-base font-medium">
+                      Popular Tags
+                    </Label>
+                    <p className="text-sm text-gray-500 mb-3">
+                      Quick add commonly used tags
+                    </p>
                     <div className="flex flex-wrap gap-2">
-                      {product.tags.map((tag) => (
+                      {[
+                        "New",
+                        "Best Seller",
+                        "Sale",
+                        "Limited Edition",
+                        "Eco-Friendly",
+                        "Premium",
+                      ].map((suggestion) => (
                         <Badge
-                          key={tag}
-                          variant="secondary"
-                          className="cursor-pointer hover:bg-red-100 transition-colors"
-                          onClick={() => removeTag(tag)}
+                          key={suggestion}
+                          variant="outline"
+                          className="cursor-pointer hover:bg-blue-50 transition-colors"
+                          onClick={() => {
+                            if (!product.tags.includes(suggestion)) {
+                              setProduct((prev) => ({
+                                ...prev!,
+                                tags: [...prev!.tags, suggestion],
+                              }));
+                            }
+                          }}
                         >
-                          {tag}
-                          <X className="h-3 w-3 ml-1" />
+                          + {suggestion}
                         </Badge>
                       ))}
                     </div>
-                  )}
+                  </div>
+
+                  <div className="bg-blue-50 p-4 rounded-md">
+                    <h4 className="text-sm font-medium text-blue-800 mb-2">
+                      Tag Tips
+                    </h4>
+                    <ul className="text-xs text-blue-700 space-y-1">
+                      <li>
+                        • Use specific keywords customers might search for
+                      </li>
+                      <li>• Include brand, material, or style information</li>
+                      <li>• Add seasonal or occasion-based tags</li>
+                    </ul>
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -649,10 +991,24 @@ export default function EditProductPage() {
                               fill
                               className="object-cover"
                             />
+
+                            {/* Upload status indicator */}
+                            {image.file && !image.isFromDB && (
+                              <div className="absolute top-1 right-1 bg-yellow-500 text-white px-2 py-1 rounded text-xs">
+                                Pending Upload
+                              </div>
+                            )}
+
+                            {!image.file && image.isFromDB && (
+                              <div className="absolute top-1 right-1 bg-green-500 text-white px-2 py-1 rounded text-xs">
+                                Uploaded
+                              </div>
+                            )}
+
                             <button
                               type="button"
                               onClick={() => removeImage(image.id)}
-                              className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="absolute top-1 left-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                             >
                               <X className="h-3 w-3" />
                             </button>
@@ -677,31 +1033,208 @@ export default function EditProductPage() {
                     SEO Settings
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-8">
                   <div>
                     <Label htmlFor="seoTitle">SEO Title</Label>
                     <Input
                       id="seoTitle"
-                      value={product.seoTitle || ""}
-                      onChange={(e) =>
-                        handleInputChange("seoTitle", e.target.value)
-                      }
-                      placeholder="SEO title"
+                      value={product.seo?.title || product.seoTitle || ""}
+                      onChange={(e) => {
+                        handleInputChange("seoTitle", e.target.value);
+                        handleSeoChange("title", e.target.value);
+                      }}
+                      placeholder="Product SEO title"
                       maxLength={60}
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Recommended: 50-60 characters
+                    </p>
+                    <div className="mt-2">
+                      <div className="flex justify-between text-xs text-gray-500 mb-1">
+                        <span>Character count:</span>
+                        <span
+                          className={
+                            (product.seo?.title || product.seoTitle || "")
+                              .length > 60
+                              ? "text-red-500"
+                              : "text-green-500"
+                          }
+                        >
+                          {
+                            (product.seo?.title || product.seoTitle || "")
+                              .length
+                          }
+                          /60
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-1">
+                        <div
+                          className={`h-1 rounded-full transition-colors ${
+                            (product.seo?.title || product.seoTitle || "")
+                              .length > 60
+                              ? "bg-red-500"
+                              : (product.seo?.title || product.seoTitle || "")
+                                    .length > 50
+                                ? "bg-yellow-500"
+                                : "bg-green-500"
+                          }`}
+                          style={{
+                            width: `${Math.min(((product.seo?.title || product.seoTitle || "").length / 60) * 100, 100)}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
+
                   <div>
                     <Label htmlFor="seoDescription">SEO Description</Label>
                     <Textarea
                       id="seoDescription"
-                      value={product.seoDescription || ""}
-                      onChange={(e) =>
-                        handleInputChange("seoDescription", e.target.value)
+                      value={
+                        product.seo?.description || product.seoDescription || ""
                       }
+                      onChange={(e) => {
+                        handleInputChange("seoDescription", e.target.value);
+                        handleSeoChange("description", e.target.value);
+                      }}
                       placeholder="SEO description"
-                      rows={4}
+                      rows={6}
                       maxLength={160}
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Recommended: 150-160 characters
+                    </p>
+                    <div className="mt-2">
+                      <div className="flex justify-between text-xs text-gray-500 mb-1">
+                        <span>Character count:</span>
+                        <span
+                          className={
+                            (
+                              product.seo?.description ||
+                              product.seoDescription ||
+                              ""
+                            ).length > 160
+                              ? "text-red-500"
+                              : "text-green-500"
+                          }
+                        >
+                          {
+                            (
+                              product.seo?.description ||
+                              product.seoDescription ||
+                              ""
+                            ).length
+                          }
+                          /160
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-1">
+                        <div
+                          className={`h-1 rounded-full transition-colors ${
+                            (
+                              product.seo?.description ||
+                              product.seoDescription ||
+                              ""
+                            ).length > 160
+                              ? "bg-red-500"
+                              : (
+                                    product.seo?.description ||
+                                    product.seoDescription ||
+                                    ""
+                                  ).length > 150
+                                ? "bg-yellow-500"
+                                : "bg-green-500"
+                          }`}
+                          style={{
+                            width: `${Math.min(((product.seo?.description || product.seoDescription || "").length / 160) * 100, 100)}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="seoKeywords">SEO Keywords</Label>
+                    <Input
+                      id="seoKeywords"
+                      value={product.seo?.keywords || ""}
+                      onChange={(e) =>
+                        handleSeoChange("keywords", e.target.value)
+                      }
+                      placeholder="keyword1, keyword2, keyword3"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Separate keywords with commas
+                    </p>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <h4 className="text-sm font-medium mb-3">SEO Preview</h4>
+                    <div className="bg-gray-50 p-3 rounded-md space-y-2">
+                      <div className="text-blue-800 text-lg font-medium truncate">
+                        {product.seo?.title ||
+                          product.seoTitle ||
+                          product.name ||
+                          "Product Title"}
+                      </div>
+                      <div className="text-green-800 text-sm truncate">
+                        www.yourstore.com/products/
+                        {product?.sku || "product-sku"}
+                      </div>
+                      <div className="text-gray-600 text-sm line-clamp-2">
+                        {product.seo?.description ||
+                          product.seoDescription ||
+                          product.description ||
+                          "Product description will appear here..."}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <h4 className="text-sm font-medium mb-3">
+                      SEO Best Practices
+                    </h4>
+                    <div className="space-y-3">
+                      <div className="bg-green-50 p-3 rounded-md">
+                        <h5 className="text-xs font-medium text-green-800 mb-1">
+                          ✓ Title Optimization
+                        </h5>
+                        <p className="text-xs text-green-700">
+                          Include main keywords at the beginning
+                        </p>
+                      </div>
+                      <div className="bg-blue-50 p-3 rounded-md">
+                        <h5 className="text-xs font-medium text-blue-800 mb-1">
+                          ✓ Description Quality
+                        </h5>
+                        <p className="text-xs text-blue-700">
+                          Write compelling, unique descriptions
+                        </p>
+                      </div>
+                      <div className="bg-purple-50 p-3 rounded-md">
+                        <h5 className="text-xs font-medium text-purple-800 mb-1">
+                          ✓ Keyword Strategy
+                        </h5>
+                        <p className="text-xs text-purple-700">
+                          Use 5-8 relevant keywords per product
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-amber-50 p-4 rounded-md">
+                    <h4 className="text-sm font-medium text-amber-800 mb-2">
+                      💡 Pro Tips
+                    </h4>
+                    <ul className="text-xs text-amber-700 space-y-1">
+                      <li>• Use action words like "Buy", "Shop", "Order"</li>
+                      <li>• Include brand name for recognition</li>
+                      <li>• Add location if targeting local customers</li>
+                      <li>
+                        • Use numbers and special characters strategically
+                      </li>
+                      <li>• Avoid keyword stuffing and duplicate content</li>
+                    </ul>
                   </div>
                 </CardContent>
               </Card>

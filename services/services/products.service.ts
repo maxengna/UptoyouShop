@@ -2,6 +2,17 @@ import { NextRequest } from "next/server";
 import { prisma } from "../../database/prisma";
 import { z } from "zod";
 
+// Image schema for validation
+const imageSchema = z.object({
+  url: z.string().url(),
+  alt: z.string().optional(),
+  sortOrder: z.number().default(0),
+  isMain: z.boolean().default(false),
+});
+
+// Product images schema
+const productImagesSchema = z.array(imageSchema).optional();
+
 // Query schema for validation
 const querySchema = z.object({
   page: z.coerce.number().min(1).default(1),
@@ -191,16 +202,17 @@ const createProductSchema = z.object({
     .optional(),
   seoTitle: z.string().optional(),
   seoDescription: z.string().optional(),
+  images: productImagesSchema,
 });
 
 export async function createProduct(request: NextRequest) {
   try {
     const body = await request.json();
-    const validatedData = createProductSchema.parse(body);
+    const { images, ...productData } = createProductSchema.parse(body);
 
     // Check if SKU already exists
     const existingProduct = await prisma.product.findUnique({
-      where: { sku: validatedData.sku },
+      where: { sku: productData.sku },
     });
 
     if (existingProduct) {
@@ -212,7 +224,7 @@ export async function createProduct(request: NextRequest) {
 
     // Check if slug already exists
     const existingSlug = await prisma.product.findUnique({
-      where: { slug: validatedData.slug },
+      where: { slug: productData.slug },
     });
 
     if (existingSlug) {
@@ -224,7 +236,7 @@ export async function createProduct(request: NextRequest) {
 
     // Create product
     const product = await prisma.product.create({
-      data: validatedData,
+      data: productData,
       include: {
         category: true,
         images: true,
@@ -233,18 +245,46 @@ export async function createProduct(request: NextRequest) {
       },
     });
 
+    // Create images if provided
+    if (images && images.length > 0) {
+      const imageData = images.map((img, index) => ({
+        productId: product.id,
+        url: img.url,
+        alt: img.alt || `${product.name} - Image ${index + 1}`,
+        sortOrder: img.sortOrder || index,
+        isMain: img.isMain || index === 0,
+      }));
+
+      await prisma.productImage.createMany({
+        data: imageData,
+      });
+    }
+
     // Create inventory record
     await prisma.inventory.create({
       data: {
         productId: product.id,
-        quantity: validatedData.stock,
+        quantity: productData.stock,
         reorderLevel: 5,
+      },
+    });
+
+    // Fetch product with images
+    const productWithImages = await prisma.product.findUnique({
+      where: { id: product.id },
+      include: {
+        category: true,
+        images: {
+          orderBy: { sortOrder: "asc" },
+        },
+        variants: true,
+        inventory: true,
       },
     });
 
     return {
       success: true,
-      data: product,
+      data: productWithImages,
       message: "Product created successfully",
     };
   } catch (error) {
@@ -329,7 +369,9 @@ export async function getProductById(id: string) {
 export async function updateProduct(id: string, request: NextRequest) {
   try {
     const body = await request.json();
-    const validatedData = createProductSchema.partial().parse(body);
+    const { images, ...productData } = createProductSchema
+      .partial()
+      .parse(body);
 
     // Check if product exists
     const existingProduct = await prisma.product.findUnique({
@@ -345,9 +387,9 @@ export async function updateProduct(id: string, request: NextRequest) {
     }
 
     // Check SKU uniqueness if changed
-    if (validatedData.sku && validatedData.sku !== existingProduct.sku) {
+    if (productData.sku && productData.sku !== existingProduct.sku) {
       const skuExists = await prisma.product.findUnique({
-        where: { sku: validatedData.sku },
+        where: { sku: productData.sku },
       });
 
       if (skuExists) {
@@ -361,7 +403,7 @@ export async function updateProduct(id: string, request: NextRequest) {
     // Update product
     const product = await prisma.product.update({
       where: { id },
-      data: validatedData,
+      data: productData,
       include: {
         category: true,
         images: true,
@@ -370,9 +412,45 @@ export async function updateProduct(id: string, request: NextRequest) {
       },
     });
 
+    // Handle images if provided
+    if (images !== undefined) {
+      // Delete existing images
+      await prisma.productImage.deleteMany({
+        where: { productId: id },
+      });
+
+      // Create new images
+      if (images.length > 0) {
+        const imageData = images.map((img, index) => ({
+          productId: id,
+          url: img.url,
+          alt: img.alt || `${product.name} - Image ${index + 1}`,
+          sortOrder: img.sortOrder || index,
+          isMain: img.isMain || index === 0,
+        }));
+
+        await prisma.productImage.createMany({
+          data: imageData,
+        });
+      }
+    }
+
+    // Fetch updated product with images
+    const updatedProduct = await prisma.product.findUnique({
+      where: { id },
+      include: {
+        category: true,
+        images: {
+          orderBy: { sortOrder: "asc" },
+        },
+        variants: true,
+        inventory: true,
+      },
+    });
+
     return {
       success: true,
-      data: product,
+      data: updatedProduct,
       message: "Product updated successfully",
     };
   } catch (error) {

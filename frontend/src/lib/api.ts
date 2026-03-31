@@ -57,27 +57,36 @@ class ApiError extends Error {
 
 async function apiRequest<T>(
   endpoint: string,
-  options: RequestInit = {},
+  options?: {
+    method?: string;
+    body?: any;
+  },
+  skipContentType?: boolean,
 ): Promise<T> {
   const url = `${API_BASE}${endpoint}`;
 
-  const defaultHeaders = {
-    "Content-Type": "application/json",
+  const config: RequestInit = {
+    method: options?.method || "GET",
+    headers: {},
   };
 
-  const config: RequestInit = {
-    ...options,
-    headers: {
-      ...defaultHeaders,
-      ...options.headers,
-    },
-  };
+  // Only set Content-Type if not FormData and body exists
+  if (!skipContentType && options?.body) {
+    config.headers = {
+      ...config.headers,
+      "Content-Type": "application/json",
+    };
+    config.body = JSON.stringify(options.body);
+  } else if (options?.body) {
+    // For FormData, let browser set Content-Type automatically
+    config.body = options.body;
+  }
 
   try {
     const response = await fetch(url, config);
-    const data = await response.json();
 
     if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
       throw new ApiError(
         data.message || `HTTP error! status: ${response.status}`,
         response.status,
@@ -85,7 +94,7 @@ async function apiRequest<T>(
       );
     }
 
-    return data;
+    return response.json();
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
@@ -100,6 +109,43 @@ async function apiRequest<T>(
   }
 }
 
+// Upload API
+export const uploadApi = {
+  // Upload a single file
+  uploadFile: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    return apiRequest<{
+      success: boolean;
+      data: {
+        url: string;
+        filename: string;
+        originalName: string;
+        size: number;
+        type: string;
+      };
+    }>(
+      "/api/upload",
+      {
+        method: "POST",
+        body: formData,
+      },
+      true, // Skip Content-Type for FormData
+    );
+  },
+
+  // Delete a file
+  deleteFile: async (filePath: string) => {
+    return apiRequest<{ success: boolean; message: string }>(
+      `/api/upload?path=${encodeURIComponent(filePath)}`,
+      {
+        method: "DELETE",
+      },
+    );
+  },
+};
+
 // Product API functions
 export const productApi = {
   // Create a new product
@@ -110,7 +156,7 @@ export const productApi = {
       "/api/products",
       {
         method: "POST",
-        body: JSON.stringify(productData),
+        body: productData, // Don't stringify here, apiRequest will do it
       },
     );
   },
@@ -123,7 +169,7 @@ export const productApi = {
   },
 
   // Get a single product
-  getById: async (id: number) => {
+  getById: async (id: string) => {
     return apiRequest<{ success: boolean; product: Product }>(
       `/api/products/${id}`,
     );
@@ -135,7 +181,7 @@ export const productApi = {
       `/api/products/${id}`,
       {
         method: "PUT",
-        body: JSON.stringify(productData),
+        body: productData, // Don't stringify here, apiRequest will do it
       },
     );
   },
