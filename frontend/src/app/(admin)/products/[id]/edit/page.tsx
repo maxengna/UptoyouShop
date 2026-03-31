@@ -248,6 +248,7 @@ export default function EditProductPage() {
       const productData: Record<string, any> = {
         name: product.name,
         sku: product.sku,
+        slug: product.slug,
         price: product.price,
         stock: product.stock,
         isActive: product.isActive,
@@ -256,27 +257,29 @@ export default function EditProductPage() {
 
       // Only add optional fields if they have values
       if (product.description) productData.description = product.description;
-      if (product.originalPrice)
+      if (product.originalPrice !== undefined && product.originalPrice !== null)
         productData.originalPrice = product.originalPrice;
       if (product.category?.id) productData.categoryId = product.category.id;
-      else if (product.categoryId) productData.categoryId = product.categoryId;
-      if (product.isNew) productData.isNew = product.isNew;
-      if (product.isOnSale) productData.isOnSale = product.isOnSale;
-      if (product.weight) productData.weight = product.weight;
+      if (product.isNew !== undefined) productData.isNew = product.isNew;
+      if (product.isOnSale !== undefined)
+        productData.isOnSale = product.isOnSale;
+      if (product.weight !== undefined && product.weight !== null)
+        productData.weight = product.weight;
       if (product.seoTitle) productData.seoTitle = product.seoTitle;
       if (product.seoDescription)
         productData.seoDescription = product.seoDescription;
 
-      // Only include dimensions if all values are present
+      // Only include dimensions if all values are present (including 0)
       if (
-        product.dimensions?.length &&
-        product.dimensions?.width &&
-        product.dimensions?.height
+        product.dimensions &&
+        product.dimensions.length !== undefined &&
+        product.dimensions.width !== undefined &&
+        product.dimensions.height !== undefined
       ) {
         productData.dimensions = {
-          length: product.dimensions.length,
-          width: product.dimensions.width,
-          height: product.dimensions.height,
+          length: Number(product.dimensions.length),
+          width: Number(product.dimensions.width),
+          height: Number(product.dimensions.height),
         };
       }
       const result = await productApi.update(productId, productData);
