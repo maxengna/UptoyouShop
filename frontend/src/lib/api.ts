@@ -152,38 +152,40 @@ export const productApi = {
   create: async (
     productData: Omit<Product, "id" | "createdAt" | "updatedAt">,
   ) => {
-    return apiRequest<{ success: boolean; message: string; product: Product }>(
-      "/api/products",
-      {
-        method: "POST",
-        body: productData, // Don't stringify here, apiRequest will do it
-      },
-    );
+    return apiRequest<{
+      success: boolean;
+      message: string;
+      data: { product: Product };
+    }>("/api/products", {
+      method: "POST",
+      body: productData, // Don't stringify here, apiRequest will do it
+    });
   },
 
   // Get all products
   getAll: async () => {
-    return apiRequest<{ success: boolean; products: Product[] }>(
+    return apiRequest<{ success: boolean; data: { products: Product[] } }>(
       "/api/products",
     );
   },
 
   // Get a single product
   getById: async (id: string) => {
-    return apiRequest<{ success: boolean; product: Product }>(
+    return apiRequest<{ success: boolean; data: { product: Product } }>(
       `/api/products/${id}`,
     );
   },
 
   // Update a product
   update: async (id: string, productData: Record<string, any>) => {
-    return apiRequest<{ success: boolean; message: string; product: Product }>(
-      `/api/products/${id}`,
-      {
-        method: "PUT",
-        body: productData, // Don't stringify here, apiRequest will do it
-      },
-    );
+    return apiRequest<{
+      success: boolean;
+      message: string;
+      data: { product: Product };
+    }>(`/api/products/${id}`, {
+      method: "PUT",
+      body: productData, // Don't stringify here, apiRequest will do it
+    });
   },
 
   // Delete a product

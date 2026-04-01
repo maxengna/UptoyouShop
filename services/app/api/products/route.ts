@@ -53,9 +53,10 @@ const createProductSchema = z.object({
   images: z
     .array(
       z.object({
-        id: z.number(),
         url: z.string(),
-        name: z.string(),
+        alt: z.string().optional(),
+        sortOrder: z.number().optional(),
+        isMain: z.boolean().optional(),
       }),
     )
     .default([]),
@@ -134,6 +135,7 @@ export async function POST(request: NextRequest) {
         : undefined,
       seoTitle: validatedData.seo?.title,
       seoDescription: validatedData.seo?.description,
+      images: validatedData.images, // Add images to productData
     };
 
     // Call service to create product

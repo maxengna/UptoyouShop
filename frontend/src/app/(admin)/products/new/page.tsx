@@ -339,13 +339,18 @@ export default function NewProductPage() {
 
       // Create product first
       const response = await productApi.create(productData as any);
-
+      console.log("Response:", response.data.product?.id);
       if (!response.success) {
         throw new Error(response.message || "Failed to create product");
       }
 
-      const createdProduct = response.product;
+      const createdProduct = response.data.product;
       console.log("Product created successfully:", createdProduct);
+      console.log("Product ID:", createdProduct?.id);
+
+      if (!createdProduct || !createdProduct.id) {
+        throw new Error("Product was created but no ID was returned");
+      }
 
       // Only upload images if product creation succeeded
       if (product.images.length > 0) {
@@ -364,9 +369,7 @@ export default function NewProductPage() {
                 if (result.success) {
                   console.log("Upload successful for:", img.file.name);
                   return {
-                    id: img.id,
                     url: `http://localhost:5000${result.data.url}`, // Real URL from server
-                    name: img.name,
                     alt: `${product.name} - Image ${index + 1}`,
                     sortOrder: index,
                     isMain: index === 0,
@@ -385,9 +388,7 @@ export default function NewProductPage() {
             } else {
               // Existing image from database (shouldn't happen in new product)
               return {
-                id: img.id,
                 url: img.url,
-                name: img.name,
                 alt: img.alt || `${product.name} - Image ${index + 1}`,
                 sortOrder: index,
                 isMain: index === 0,
@@ -401,12 +402,7 @@ export default function NewProductPage() {
         // Update product with images
         if (uploadedImages && uploadedImages.length > 0) {
           const updateData = {
-            images: uploadedImages.map((img) => ({
-              url: img.url,
-              alt: img.alt,
-              sortOrder: img.sortOrder,
-              isMain: img.isMain,
-            })),
+            images: uploadedImages, // Send images array
           };
 
           const updateResponse = await productApi.update(
@@ -470,7 +466,7 @@ export default function NewProductPage() {
       const response = await productApi.create(productData);
 
       if (response.success) {
-        console.log("Draft saved successfully:", response.product);
+        console.log("Draft saved successfully:", response.data.product);
         router.push("/products");
       } else {
         throw new Error(response.message || "Failed to save draft");
