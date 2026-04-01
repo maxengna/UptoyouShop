@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { productApi, ApiError, Product } from "@/lib/api";
+import { productApi, uploadApi, ApiError, Product } from "@/lib/api";
 
 const categories = [
   "Electronics",
@@ -39,21 +39,51 @@ const categories = [
   "Other",
 ];
 
+// Generate slug from text
+function generateSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+// Helper function to get or create category
+const getOrCreateCategory = async (
+  categoryName: string,
+): Promise<string | null> => {
+  // For now, return a simple ID - in real app this would call API
+  const categoryMap: Record<string, string> = {
+    Electronics: "electronics",
+    Clothing: "clothing",
+    "Home & Garden": "home-garden",
+    Sports: "sports",
+    Books: "books",
+    Toys: "toys",
+    Beauty: "beauty",
+    Health: "health",
+    Food: "food",
+    Other: "other",
+  };
+  return categoryMap[categoryName] || null;
+};
+
 interface ProductImage {
   id: number;
   url: string;
   name: string;
-  file?: File;
+  alt?: string;
+  file?: File; // File object for new images
+  isFromDB?: boolean; // Track if image is from database
 }
 
-interface ProductState extends Omit<
-  Product,
-  "id" | "createdAt" | "updatedAt"
-> {}
+interface ProductState extends Omit<Product, "id" | "createdAt" | "updatedAt"> {
+  slug: string; // Add slug explicitly
+}
 
 const initialProductState: ProductState = {
   name: "",
   sku: "",
+  slug: "", // Add slug field
   description: "",
   price: "",
   comparePrice: "",
@@ -202,14 +232,19 @@ export default function NewProductPage() {
   };
 
   const handleFilesUpload = (files: File[]) => {
+    console.log("handleFilesUpload called with files:", files);
     const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+
+    // Create preview images with file objects
     const newImages: ProductImage[] = imageFiles.map((file) => ({
       id: Date.now() + Math.random(),
-      url: URL.createObjectURL(file),
+      url: URL.createObjectURL(file), // Local preview URL
       name: file.name,
-      file,
+      file: file, // Store file object for later upload
+      isFromDB: false, // Mark as new image
     }));
 
+    console.log("Created preview images:", newImages);
     setProduct((prev) => ({
       ...prev,
       images: [...prev.images, ...newImages],
@@ -217,6 +252,13 @@ export default function NewProductPage() {
   };
 
   const removeImage = (imageId: number) => {
+    const imageToRemove = product.images.find((img) => img.id === imageId);
+
+    // Cleanup object URL if it's a preview
+    if (imageToRemove?.url.startsWith("blob:")) {
+      URL.revokeObjectURL(imageToRemove.url);
+    }
+
     setProduct((prev) => ({
       ...prev,
       images: prev.images.filter((img) => img.id !== imageId),
@@ -259,23 +301,136 @@ export default function NewProductPage() {
     setIsSubmitting(true);
 
     try {
-      // Prepare product data for API
-      const productData = {
-        ...product,
-        price: product.price,
-        stock: product.trackInventory ? product.stock : "0",
-        status: product.status as "active" | "draft" | "archived",
+      // Create product first without images
+      const productData: Record<string, any> = {
+        name: product.name,
+        sku: product.sku,
+        slug: product.slug || generateSlug(product.name),
+        price: String(product.price), // Convert to string for backend
+        stock: product.trackInventory ? product.stock : 0,
+        isActive: product.status === "active",
+        tags: product.tags,
+        category: product.category, // Add category as string
       };
 
-      // Call API to create product
-      const response = await productApi.create(productData);
+      // Only add optional fields if they have values
+      if (product.description) productData.description = product.description;
+      if (product.comparePrice)
+        productData.originalPrice = String(product.comparePrice); // Convert to string
+      if (product.weight) productData.weight = String(product.weight); // Convert to string
+      if (product.seo?.title) productData.seoTitle = product.seo.title;
+      if (product.seo?.description)
+        productData.seoDescription = product.seo.description;
 
-      if (response.success) {
-        console.log("Product created successfully:", response.product);
-        router.push("/products");
-      } else {
+      // Add dimensions if present (convert to strings)
+      if (
+        product.dimensions?.length &&
+        product.dimensions?.width &&
+        product.dimensions?.height
+      ) {
+        productData.dimensions = {
+          length: String(product.dimensions.length), // Convert to string
+          width: String(product.dimensions.width), // Convert to string
+          height: String(product.dimensions.height), // Convert to string
+        };
+      }
+
+      console.log("Final productData:", productData);
+
+      // Create product first
+      const response = await productApi.create(productData as any);
+
+      if (!response.success) {
         throw new Error(response.message || "Failed to create product");
       }
+
+      const createdProduct = response.product;
+      console.log("Product created successfully:", createdProduct);
+
+      // Only upload images if product creation succeeded
+      if (product.images.length > 0) {
+        console.log(
+          "Starting to upload images after successful product creation",
+        );
+        const uploadedImages = await Promise.all(
+          product.images.map(async (img: ProductImage, index) => {
+            console.log("Processing image:", img.name, "has file:", !!img.file);
+            if (img.file && !img.isFromDB) {
+              // New image that needs upload
+              try {
+                console.log("Uploading file:", img.file.name);
+                const result = await uploadApi.uploadFile(img.file);
+
+                if (result.success) {
+                  console.log("Upload successful for:", img.file.name);
+                  return {
+                    id: img.id,
+                    url: `http://localhost:5000${result.data.url}`, // Real URL from server
+                    name: img.name,
+                    alt: `${product.name} - Image ${index + 1}`,
+                    sortOrder: index,
+                    isMain: index === 0,
+                  };
+                } else {
+                  throw new Error(
+                    `Upload failed: ${(result as any).error || "Unknown error"}`,
+                  );
+                }
+              } catch (error) {
+                console.error("Upload error:", error);
+                throw new Error(
+                  `Failed to upload ${img.name}: ${error instanceof Error ? error.message : "Unknown error"}`,
+                );
+              }
+            } else {
+              // Existing image from database (shouldn't happen in new product)
+              return {
+                id: img.id,
+                url: img.url,
+                name: img.name,
+                alt: img.alt || `${product.name} - Image ${index + 1}`,
+                sortOrder: index,
+                isMain: index === 0,
+              };
+            }
+          }),
+        );
+
+        console.log("Uploaded images:", uploadedImages);
+
+        // Update product with images
+        if (uploadedImages && uploadedImages.length > 0) {
+          const updateData = {
+            images: uploadedImages.map((img) => ({
+              url: img.url,
+              alt: img.alt,
+              sortOrder: img.sortOrder,
+              isMain: img.isMain,
+            })),
+          };
+
+          const updateResponse = await productApi.update(
+            String(createdProduct.id),
+            updateData,
+          );
+          if (!updateResponse.success) {
+            console.error(
+              "Failed to update product with images:",
+              updateResponse.message,
+            );
+            // Don't throw error - product was created successfully
+          }
+        }
+      }
+
+      // Cleanup object URLs after successful save
+      product.images.forEach((img) => {
+        if (img.url.startsWith("blob:")) {
+          URL.revokeObjectURL(img.url);
+        }
+      });
+
+      router.push("/products");
     } catch (error) {
       console.error("Error creating product:", error);
 
