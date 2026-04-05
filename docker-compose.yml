@@ -1,18 +1,4 @@
-version: "3.8"
-
 services:
-  app:
-    build: .
-    container_name: prisma-app
-    ports:
-      - "3000:3000"
-    environment:
-      DATABASE_URL: postgresql://postgres:password@db:5432/mydb?schema=public
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: unless-stopped
-
   db:
     image: postgres:16-alpine
     container_name: postgres-db
@@ -30,6 +16,45 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    networks:
+      - uptoyoushop-network
+
+  backend:
+    container_name: backend-app
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?schema=public
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    networks:
+      - uptoyoushop-network
+
+  frontend:
+    container_name: frontend-app
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - backend
+    environment:
+      - NODE_ENV=production
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    networks:
+      - uptoyoushop-network
 
 volumes:
   pgdata:
+networks:
+  uptoyoushop-network:
+    driver: bridge
