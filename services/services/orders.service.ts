@@ -1,15 +1,17 @@
-import { NextRequest } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { prisma } from '../database/prisma'
-import { z } from 'zod'
+import { NextRequest } from "next/server";
+import { getServerSession } from "next-auth";
+import { prisma } from "../../database/prisma";
+import { z } from "zod";
 
 // Create order schema
 const createOrderSchema = z.object({
-  items: z.array(z.object({
-    productId: z.string(),
-    quantity: z.number().min(1),
-    variantId: z.string().optional(),
-  })),
+  items: z.array(
+    z.object({
+      productId: z.string(),
+      quantity: z.number().min(1),
+      variantId: z.string().optional(),
+    }),
+  ),
   shippingAddress: z.object({
     firstName: z.string(),
     lastName: z.string(),
@@ -36,43 +38,43 @@ const createOrderSchema = z.object({
   }),
   paymentMethod: z.string(),
   notes: z.string().optional(),
-})
+});
 
 export async function getOrders(request: NextRequest) {
   try {
-    const session = await getServerSession()
-    
+    const session = await getServerSession();
+
     if (!session?.user?.email) {
       return {
         success: false,
-        error: 'Unauthorized',
+        error: "Unauthorized",
         status: 401,
-      }
+      };
     }
 
     // Find user
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-    })
+    });
 
     if (!user) {
       return {
         success: false,
-        error: 'User not found',
+        error: "User not found",
         status: 404,
-      }
+      };
     }
 
     // Get query parameters
-    const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '10')
-    const status = searchParams.get('status')
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const status = searchParams.get("status");
 
     // Build where clause
-    const where: any = { userId: user.id }
+    const where: any = { userId: user.id };
     if (status) {
-      where.status = status.toUpperCase()
+      where.status = status.toUpperCase();
     }
 
     // Get orders
@@ -90,13 +92,13 @@ export async function getOrders(request: NextRequest) {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       skip: (page - 1) * limit,
       take: limit,
-    })
+    });
 
     // Get total count
-    const total = await prisma.order.count({ where })
+    const total = await prisma.order.count({ where });
 
     return {
       success: true,
@@ -109,48 +111,48 @@ export async function getOrders(request: NextRequest) {
           pages: Math.ceil(total / limit),
         },
       },
-    }
+    };
   } catch (error) {
-    console.error('Get orders error:', error)
+    console.error("Get orders error:", error);
     return {
       success: false,
-      error: 'Failed to fetch orders',
+      error: "Failed to fetch orders",
       status: 500,
-    }
+    };
   }
 }
 
 export async function createOrder(request: NextRequest) {
   try {
-    const session = await getServerSession()
-    
+    const session = await getServerSession();
+
     if (!session?.user?.email) {
       return {
         success: false,
-        error: 'Unauthorized',
+        error: "Unauthorized",
         status: 401,
-      }
+      };
     }
 
-    const body = await request.json()
-    const validatedData = createOrderSchema.parse(body)
+    const body = await request.json();
+    const validatedData = createOrderSchema.parse(body);
 
     // Find user
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-    })
+    });
 
     if (!user) {
       return {
         success: false,
-        error: 'User not found',
+        error: "User not found",
         status: 404,
-      }
+      };
     }
 
     // Validate products and calculate totals
-    let subtotal = 0
-    const orderItems: any[] = []
+    let subtotal = 0;
+    const orderItems: any[] = [];
 
     for (const item of validatedData.items) {
       const product = await prisma.product.findUnique({
@@ -159,31 +161,31 @@ export async function createOrder(request: NextRequest) {
           inventory: true,
           variants: item.variantId ? { where: { id: item.variantId } } : false,
         },
-      })
+      });
 
       if (!product) {
         return {
           success: false,
           error: `Product ${item.productId} not found`,
           status: 404,
-        }
+        };
       }
 
       // Check stock
-      const availableStock = item.variantId 
+      const availableStock = item.variantId
         ? product.variants?.[0]?.stock || product.stock
-        : product.stock
+        : product.stock;
 
       if (availableStock < item.quantity) {
         return {
           success: false,
           error: `Insufficient stock for ${product.name}`,
           status: 400,
-        }
+        };
       }
 
-      const itemTotal = Number(product.price) * item.quantity
-      subtotal += itemTotal
+      const itemTotal = Number(product.price) * item.quantity;
+      subtotal += itemTotal;
 
       orderItems.push({
         productId: product.id,
@@ -196,30 +198,30 @@ export async function createOrder(request: NextRequest) {
           sku: product.sku,
           images: product.images,
         },
-      })
+      });
     }
 
     // Calculate totals
-    const tax = subtotal * 0.08 // 8% tax rate
-    const shipping = subtotal > 50 ? 0 : 9.99 // Free shipping over $50
-    const total = subtotal + tax + shipping
+    const tax = subtotal * 0.08; // 8% tax rate
+    const shipping = subtotal > 50 ? 0 : 9.99; // Free shipping over $50
+    const total = subtotal + tax + shipping;
 
     // Generate order number
-    const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+    const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
     // Create order
     const order = await prisma.order.create({
       data: {
         userId: user.id,
         orderNumber,
-        status: 'PENDING',
-        paymentStatus: 'PENDING',
+        status: "PENDING",
+        paymentStatus: "PENDING",
         paymentMethod: validatedData.paymentMethod,
         subtotal,
         tax,
         shipping,
         total,
-        currency: 'USD',
+        currency: "USD",
         shippingAddress: validatedData.shippingAddress,
         billingAddress: validatedData.billingAddress,
         notes: validatedData.notes,
@@ -239,7 +241,7 @@ export async function createOrder(request: NextRequest) {
           },
         },
       },
-    })
+    });
 
     // Reserve inventory
     for (const item of validatedData.items) {
@@ -250,7 +252,7 @@ export async function createOrder(request: NextRequest) {
             increment: item.quantity,
           },
         },
-      })
+      });
     }
 
     // Clear user's cart
@@ -259,62 +261,62 @@ export async function createOrder(request: NextRequest) {
         userId: user.id,
         isActive: true,
       },
-    })
+    });
 
     if (cart) {
       await prisma.cartItem.deleteMany({
         where: { cartId: cart.id },
-      })
+      });
     }
 
     return {
       success: true,
       data: order,
-      message: 'Order created successfully',
-    }
+      message: "Order created successfully",
+    };
   } catch (error) {
-    console.error('Create order error:', error)
-    
+    console.error("Create order error:", error);
+
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: 'Invalid order data',
+        error: "Invalid order data",
         details: error.errors,
         status: 400,
-      }
+      };
     }
 
     return {
       success: false,
-      error: 'Failed to create order',
+      error: "Failed to create order",
       status: 500,
-    }
+    };
   }
 }
 
 export async function getOrderById(orderId: string) {
   try {
-    const session = await getServerSession()
-    
+    const session = await getServerSession();
+
     if (!session?.user?.email) {
       return {
         success: false,
-        error: 'Unauthorized',
+        error: "Unauthorized",
         status: 401,
-      }
+      };
     }
 
     // Find user
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-    })
+    });
 
     if (!user) {
       return {
         success: false,
-        error: 'User not found',
+        error: "User not found",
         status: 404,
-      }
+      };
     }
 
     // Get order
@@ -337,76 +339,85 @@ export async function getOrderById(orderId: string) {
         },
         payments: true,
       },
-    })
+    });
 
     if (!order) {
       return {
         success: false,
-        error: 'Order not found',
+        error: "Order not found",
         status: 404,
-      }
+      };
     }
 
     return {
       success: true,
       data: order,
-    }
+    };
   } catch (error) {
-    console.error('Get order error:', error)
+    console.error("Get order error:", error);
     return {
       success: false,
-      error: 'Failed to fetch order',
+      error: "Failed to fetch order",
       status: 500,
-    }
+    };
   }
 }
 
 export async function updateOrderStatus(orderId: string, request: NextRequest) {
   try {
-    const session = await getServerSession()
-    
+    const session = await getServerSession();
+
     if (!session?.user?.email) {
       return {
         success: false,
-        error: 'Unauthorized',
+        error: "Unauthorized",
         status: 401,
-      }
+      };
     }
 
     // Find user
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-    })
+    });
 
     if (!user) {
       return {
         success: false,
-        error: 'User not found',
+        error: "User not found",
         status: 404,
-      }
+      };
     }
 
     // Check if user is admin
-    if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+    if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN") {
       return {
         success: false,
-        error: 'Insufficient permissions',
+        error: "Insufficient permissions",
         status: 403,
-      }
+      };
     }
 
-    const body = await request.json()
-    const { status } = z.object({
-      status: z.enum(['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED']),
-    }).parse(body)
+    const body = await request.json();
+    const { status } = z
+      .object({
+        status: z.enum([
+          "PENDING",
+          "PROCESSING",
+          "SHIPPED",
+          "DELIVERED",
+          "CANCELLED",
+          "REFUNDED",
+        ]),
+      })
+      .parse(body);
 
     // Update order
     const order = await prisma.order.update({
       where: { id: orderId },
-      data: { 
+      data: {
         status,
-        ...(status === 'SHIPPED' && { shippedAt: new Date() }),
-        ...(status === 'DELIVERED' && { deliveredAt: new Date() }),
+        ...(status === "SHIPPED" && { shippedAt: new Date() }),
+        ...(status === "DELIVERED" && { deliveredAt: new Date() }),
       },
       include: {
         items: {
@@ -415,10 +426,10 @@ export async function updateOrderStatus(orderId: string, request: NextRequest) {
           },
         },
       },
-    })
+    });
 
     // Update inventory when order is shipped/delivered
-    if (status === 'SHIPPED' || status === 'DELIVERED') {
+    if (status === "SHIPPED" || status === "DELIVERED") {
       for (const item of order.items) {
         await prisma.inventory.update({
           where: { productId: item.productId },
@@ -430,12 +441,12 @@ export async function updateOrderStatus(orderId: string, request: NextRequest) {
               decrement: item.quantity,
             },
           },
-        })
+        });
       }
     }
 
     // Release inventory if order is cancelled
-    if (status === 'CANCELLED') {
+    if (status === "CANCELLED") {
       for (const item of order.items) {
         await prisma.inventory.update({
           where: { productId: item.productId },
@@ -444,32 +455,32 @@ export async function updateOrderStatus(orderId: string, request: NextRequest) {
               decrement: item.quantity,
             },
           },
-        })
+        });
       }
     }
 
     return {
       success: true,
       data: order,
-      message: 'Order status updated successfully',
-    }
+      message: "Order status updated successfully",
+    };
   } catch (error) {
-    console.error('Update order status error:', error)
-    
+    console.error("Update order status error:", error);
+
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: 'Invalid request data',
+        error: "Invalid request data",
         details: error.errors,
         status: 400,
-      }
+      };
     }
 
     return {
       success: false,
-      error: 'Failed to update order status',
+      error: "Failed to update order status",
       status: 500,
-    }
+    };
   }
 }
 
@@ -487,26 +498,26 @@ export async function getOrderTracking(orderNumber: string) {
         createdAt: true,
         shippingAddress: true,
       },
-    })
+    });
 
     if (!order) {
       return {
         success: false,
-        error: 'Order not found',
+        error: "Order not found",
         status: 404,
-      }
+      };
     }
 
     return {
       success: true,
       data: order,
-    }
+    };
   } catch (error) {
-    console.error('Get order tracking error:', error)
+    console.error("Get order tracking error:", error);
     return {
       success: false,
-      error: 'Failed to fetch order tracking',
+      error: "Failed to fetch order tracking",
       status: 500,
-    }
+    };
   }
 }

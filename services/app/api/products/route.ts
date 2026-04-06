@@ -9,7 +9,7 @@ import {
 import {
   getProducts as getProductsService,
   createProduct as createProductService,
-} from "../../../services/products.service";
+} from "@/services/products.service";
 
 // Validation schema
 const createProductSchema = z.object({
