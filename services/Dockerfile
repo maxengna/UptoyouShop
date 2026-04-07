@@ -4,17 +4,17 @@ RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
 
-# Install dependencies
+# Copy package files to services/
 COPY services/package*.json ./services/
 COPY database/schema.prisma ./database/
 COPY database/prisma.ts ./database/
 
-WORKDIR /app/services
-
-RUN npm ci
+RUN npm ci --prefix services
 
 # Generate Prisma client
-RUN npx prisma generate
+RUN npx prisma generate --schema database/schema.prisma
+
+WORKDIR /app/services
 
 # Copy services preserving structure
 COPY services/. .

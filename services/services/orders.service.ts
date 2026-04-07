@@ -160,6 +160,7 @@ export async function createOrder(request: NextRequest) {
         include: {
           inventory: true,
           variants: item.variantId ? { where: { id: item.variantId } } : false,
+          images: true,
         },
       });
 

@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "prisma": {
-    "schema": "database/schema.prisma",
-    "seed": "tsx database/seed.ts"
+    "schema": "../database/schema.prisma",
+    "seed": "../database/seed.ts"
   },
   "scripts": {
     "dev": "next dev -p 5000",
@@ -12,11 +12,11 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    "db:push": "prisma db push",
-    "db:seed": "tsx database/seed.ts",
-    "db:studio": "prisma studio",
-    "db:generate": "prisma generate",
-    "postinstall": "prisma generate"
+    "db:push": "prisma db push --schema ../database/schema.prisma",
+    "db:seed": "tsx ../database/seed.ts",
+    "db:studio": "prisma studio --schema ../database/schema.prisma",
+    "db:generate": "prisma generate --schema ../database/schema.prisma",
+    "postinstall": "prisma generate --schema ../database/schema.prisma"
   },
   "dependencies": {
     "next": "14.0.0",

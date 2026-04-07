@@ -17,15 +17,10 @@ export async function GET(request: NextRequest) {
     // GET /api/admin/orders
     const result = await getAdminOrders(request);
 
-    if (result.status) {
-      return NextResponse.json(
-        {
-          success: result.success,
-          error: result.error,
-          details: result.details,
-        },
-        { status: result.status },
-      );
+    if (!result.success) {
+      return NextResponse.json({
+        error: result,
+      });
     }
 
     return NextResponse.json(result);
@@ -33,15 +28,10 @@ export async function GET(request: NextRequest) {
     // GET /api/admin/users
     const result = await getAdminUsers(request);
 
-    if (result.status) {
-      return NextResponse.json(
-        {
-          success: result.success,
-          error: result.error,
-          details: result.details,
-        },
-        { status: result.status },
-      );
+    if (!result.success) {
+      return NextResponse.json({
+        error: result,
+      });
     }
 
     return NextResponse.json(result);
@@ -53,45 +43,30 @@ export async function GET(request: NextRequest) {
     if (type === "sales") {
       const result = await getSalesAnalytics(request);
 
-      if (result.status) {
-        return NextResponse.json(
-          {
-            success: result.success,
-            error: result.error,
-            details: result.details,
-          },
-          { status: result.status },
-        );
+      if (!result.success) {
+        return NextResponse.json({
+          error: result,
+        });
       }
 
       return NextResponse.json(result);
     } else if (type === "products") {
       const result = await getProductAnalytics(request);
 
-      if (result.status) {
-        return NextResponse.json(
-          {
-            success: result.success,
-            error: result.error,
-            details: result.details,
-          },
-          { status: result.status },
-        );
+      if (!result.success) {
+        return NextResponse.json({
+          error: result,
+        });
       }
 
       return NextResponse.json(result);
     } else if (type === "customers") {
       const result = await getCustomerAnalytics(request);
 
-      if (result.status) {
-        return NextResponse.json(
-          {
-            success: result.success,
-            error: result.error,
-            details: result.details,
-          },
-          { status: result.status },
-        );
+      if (!result.success) {
+        return NextResponse.json({
+          error: result,
+        });
       }
 
       return NextResponse.json(result);
@@ -108,15 +83,10 @@ export async function GET(request: NextRequest) {
     // GET /api/admin/health
     const result = await getSystemHealth();
 
-    if (result.status) {
-      return NextResponse.json(
-        {
-          success: result.success,
-          error: result.error,
-          details: result.details,
-        },
-        { status: result.status },
-      );
+    if (!result.success) {
+      return NextResponse.json({
+        error: result,
+      });
     }
 
     return NextResponse.json(result);
