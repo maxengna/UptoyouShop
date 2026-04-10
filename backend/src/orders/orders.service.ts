@@ -3,11 +3,11 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
-} from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
-import { OrderStatus, PaymentStatus } from '@prisma/client';
+} from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
+import { CreateOrderDto } from "./dto/create-order.dto";
+import { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
+import { OrderStatus, PaymentStatus } from "@prisma/client";
 
 @Injectable()
 export class OrdersService {
@@ -41,9 +41,7 @@ export class OrdersService {
         : product.stock;
 
       if (availableStock < item.quantity) {
-        throw new BadRequestException(
-          `Insufficient stock for ${product.name}`,
-        );
+        throw new BadRequestException(`Insufficient stock for ${product.name}`);
       }
 
       const itemTotal = Number(product.price) * item.quantity;
@@ -89,7 +87,7 @@ export class OrdersService {
         tax,
         shipping,
         total,
-        currency: 'USD',
+        currency: "USD",
         shippingAddress,
         billingAddress: billingAddress || shippingAddress,
         notes,
@@ -139,7 +137,7 @@ export class OrdersService {
     return {
       success: true,
       data: order,
-      message: 'Order created successfully',
+      message: "Order created successfully",
       errors: [],
     };
   }
@@ -169,7 +167,7 @@ export class OrdersService {
           },
           payments: true,
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         skip,
         take: limit,
       }),
@@ -187,7 +185,7 @@ export class OrdersService {
           pages: Math.ceil(total / limit),
         },
       },
-      message: 'Orders retrieved successfully',
+      message: "Orders retrieved successfully",
       errors: [],
     };
   }
@@ -216,18 +214,21 @@ export class OrdersService {
     });
 
     if (!order) {
-      throw new NotFoundException('Order not found');
+      throw new NotFoundException("Order not found");
     }
 
     return {
       success: true,
       data: order,
-      message: 'Order retrieved successfully',
+      message: "Order retrieved successfully",
       errors: [],
     };
   }
 
-  async updateOrderStatus(orderId: string, updateOrderStatusDto: UpdateOrderStatusDto) {
+  async updateOrderStatus(
+    orderId: string,
+    updateOrderStatusDto: UpdateOrderStatusDto,
+  ) {
     const { status } = updateOrderStatusDto;
 
     const order = await this.prisma.order.findUnique({
@@ -236,7 +237,7 @@ export class OrdersService {
     });
 
     if (!order) {
-      throw new NotFoundException('Order not found');
+      throw new NotFoundException("Order not found");
     }
 
     const updateData: any = { status };
@@ -288,7 +289,7 @@ export class OrdersService {
     return {
       success: true,
       data: updatedOrder,
-      message: 'Order status updated successfully',
+      message: "Order status updated successfully",
       errors: [],
     };
   }
@@ -309,13 +310,13 @@ export class OrdersService {
     });
 
     if (!order) {
-      throw new NotFoundException('Order not found');
+      throw new NotFoundException("Order not found");
     }
 
     return {
       success: true,
       data: order,
-      message: 'Order tracking information retrieved',
+      message: "Order tracking information retrieved",
       errors: [],
     };
   }

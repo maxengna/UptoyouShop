@@ -2,10 +2,10 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { AddCartItemDto } from './dto/add-cart-item.dto';
-import { UpdateCartItemDto } from './dto/update-cart-item.dto';
+} from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
+import { AddCartItemDto } from "./dto/add-cart-item.dto";
+import { UpdateCartItemDto } from "./dto/update-cart-item.dto";
 
 @Injectable()
 export class CartService {
@@ -44,7 +44,7 @@ export class CartService {
       return {
         success: true,
         data: newCart,
-        message: 'Cart retrieved successfully',
+        message: "Cart retrieved successfully",
         errors: [],
       };
     }
@@ -61,7 +61,7 @@ export class CartService {
         subtotal,
         itemCount: cart.items.reduce((sum, item) => sum + item.quantity, 0),
       },
-      message: 'Cart retrieved successfully',
+      message: "Cart retrieved successfully",
       errors: [],
     };
   }
@@ -79,7 +79,7 @@ export class CartService {
     });
 
     if (!product) {
-      throw new NotFoundException('Product not found');
+      throw new NotFoundException("Product not found");
     }
 
     // Check stock
@@ -111,7 +111,7 @@ export class CartService {
         cartId_productId_variantId: {
           cartId: cart.id,
           productId,
-          variantId: variantId || null,
+          variantId: variantId || "",
         },
       },
     });
@@ -136,15 +136,16 @@ export class CartService {
       return {
         success: true,
         data: updatedItem,
-        message: 'Cart item updated',
+        message: "Cart item updated",
         errors: [],
       };
     }
 
     // Get variant price if applicable
-    const price = variantId && product.variants?.[0]?.price
-      ? product.variants[0].price
-      : product.price;
+    const price =
+      variantId && product.variants?.[0]?.price
+        ? product.variants[0].price
+        : product.price;
 
     // Add new item
     const cartItem = await this.prisma.cartItem.create({
@@ -153,7 +154,7 @@ export class CartService {
         productId,
         quantity,
         price,
-        variantId: variantId || null,
+        variantId: variantId || "",
       },
       include: {
         product: {
@@ -168,7 +169,7 @@ export class CartService {
     return {
       success: true,
       data: cartItem,
-      message: 'Item added to cart',
+      message: "Item added to cart",
       errors: [],
     };
   }
@@ -186,7 +187,7 @@ export class CartService {
     });
 
     if (!cart) {
-      throw new NotFoundException('Cart not found');
+      throw new NotFoundException("Cart not found");
     }
 
     const cartItem = await this.prisma.cartItem.findFirst({
@@ -195,7 +196,7 @@ export class CartService {
     });
 
     if (!cartItem) {
-      throw new NotFoundException('Cart item not found');
+      throw new NotFoundException("Cart item not found");
     }
 
     if (quantity === 0) {
@@ -207,7 +208,7 @@ export class CartService {
       return {
         success: true,
         data: null,
-        message: 'Item removed from cart',
+        message: "Item removed from cart",
         errors: [],
       };
     }
@@ -239,7 +240,7 @@ export class CartService {
     return {
       success: true,
       data: updatedItem,
-      message: 'Cart item updated',
+      message: "Cart item updated",
       errors: [],
     };
   }
@@ -251,7 +252,7 @@ export class CartService {
     });
 
     if (!cart) {
-      throw new NotFoundException('Cart not found');
+      throw new NotFoundException("Cart not found");
     }
 
     const cartItem = await this.prisma.cartItem.findFirst({
@@ -259,7 +260,7 @@ export class CartService {
     });
 
     if (!cartItem) {
-      throw new NotFoundException('Cart item not found');
+      throw new NotFoundException("Cart item not found");
     }
 
     await this.prisma.cartItem.delete({
@@ -269,7 +270,7 @@ export class CartService {
     return {
       success: true,
       data: null,
-      message: 'Item removed from cart',
+      message: "Item removed from cart",
       errors: [],
     };
   }
@@ -283,7 +284,7 @@ export class CartService {
       return {
         success: true,
         data: null,
-        message: 'Cart is already empty',
+        message: "Cart is already empty",
         errors: [],
       };
     }
@@ -295,7 +296,7 @@ export class CartService {
     return {
       success: true,
       data: null,
-      message: 'Cart cleared successfully',
+      message: "Cart cleared successfully",
       errors: [],
     };
   }
@@ -306,29 +307,29 @@ export class CartService {
     });
 
     if (!coupon) {
-      throw new NotFoundException('Invalid coupon code');
+      throw new NotFoundException("Invalid coupon code");
     }
 
     if (!coupon.isActive) {
-      throw new BadRequestException('Coupon is no longer active');
+      throw new BadRequestException("Coupon is no longer active");
     }
 
     if (coupon.startsAt > new Date()) {
-      throw new BadRequestException('Coupon is not yet valid');
+      throw new BadRequestException("Coupon is not yet valid");
     }
 
     if (coupon.expiresAt < new Date()) {
-      throw new BadRequestException('Coupon has expired');
+      throw new BadRequestException("Coupon has expired");
     }
 
     if (coupon.maxUses && coupon.usedCount >= coupon.maxUses) {
-      throw new BadRequestException('Coupon usage limit reached');
+      throw new BadRequestException("Coupon usage limit reached");
     }
 
     return {
       success: true,
       data: coupon,
-      message: 'Coupon applied successfully',
+      message: "Coupon applied successfully",
       errors: [],
     };
   }
