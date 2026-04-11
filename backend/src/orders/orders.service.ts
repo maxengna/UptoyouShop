@@ -88,8 +88,8 @@ export class OrdersService {
         shipping,
         total,
         currency: "USD",
-        shippingAddress,
-        billingAddress: billingAddress || shippingAddress,
+        shippingAddress: { ...shippingAddress },
+        billingAddress: billingAddress ? { ...billingAddress } : undefined,
         notes,
         items: {
           create: orderItems,

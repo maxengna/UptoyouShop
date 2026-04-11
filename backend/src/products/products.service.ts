@@ -3,11 +3,11 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
-} from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
-import { ProductQueryDto, SortBy } from './dto/product-query.dto';
+} from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
+import { CreateProductDto } from "./dto/create-product.dto";
+import { UpdateProductDto } from "./dto/update-product.dto";
+import { ProductQueryDto, SortBy } from "./dto/product-query.dto";
 
 @Injectable()
 export class ProductsService {
@@ -37,9 +37,9 @@ export class ProductsService {
 
     if (search) {
       where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-        { sku: { contains: search, mode: 'insensitive' } },
+        { name: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+        { sku: { contains: search, mode: "insensitive" } },
       ];
     }
 
@@ -53,26 +53,26 @@ export class ProductsService {
       where.stock = { gt: 0 };
     }
 
-    let orderBy: any = { createdAt: 'desc' };
+    let orderBy: any = { createdAt: "desc" };
 
     switch (sortBy) {
       case SortBy.PRICE_ASC:
-        orderBy = { price: 'asc' };
+        orderBy = { price: "asc" };
         break;
       case SortBy.PRICE_DESC:
-        orderBy = { price: 'desc' };
+        orderBy = { price: "desc" };
         break;
       case SortBy.NAME_ASC:
-        orderBy = { name: 'asc' };
+        orderBy = { name: "asc" };
         break;
       case SortBy.NAME_DESC:
-        orderBy = { name: 'desc' };
+        orderBy = { name: "desc" };
         break;
       case SortBy.NEWEST:
-        orderBy = { createdAt: 'desc' };
+        orderBy = { createdAt: "desc" };
         break;
       case SortBy.RATING:
-        orderBy = { reviews: { _avg: { rating: 'desc' } } };
+        orderBy = { reviews: { _avg: { rating: "desc" } } };
         break;
     }
 
@@ -82,7 +82,7 @@ export class ProductsService {
         include: {
           category: true,
           images: {
-            orderBy: { sortOrder: 'asc' },
+            orderBy: { sortOrder: "asc" },
             take: 3,
           },
           variants: {
@@ -125,7 +125,7 @@ export class ProductsService {
           hasPrev: page > 1,
         },
       },
-      message: 'Products retrieved successfully',
+      message: "Products retrieved successfully",
       errors: [],
     };
   }
@@ -136,7 +136,7 @@ export class ProductsService {
       include: {
         category: true,
         images: {
-          orderBy: { sortOrder: 'asc' },
+          orderBy: { sortOrder: "asc" },
         },
         variants: {
           where: { isActive: true },
@@ -150,7 +150,7 @@ export class ProductsService {
               },
             },
           },
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
           take: 10,
         },
         inventory: true,
@@ -158,7 +158,7 @@ export class ProductsService {
     });
 
     if (!product) {
-      throw new NotFoundException('Product not found');
+      throw new NotFoundException("Product not found");
     }
 
     const averageRating =
@@ -174,7 +174,7 @@ export class ProductsService {
         averageRating,
         reviewCount: product.reviews.length,
       },
-      message: 'Product retrieved successfully',
+      message: "Product retrieved successfully",
       errors: [],
     };
   }
@@ -188,7 +188,7 @@ export class ProductsService {
     });
 
     if (existingProduct) {
-      throw new ConflictException('Product with this SKU already exists');
+      throw new ConflictException("Product with this SKU already exists");
     }
 
     // Check if slug already exists
@@ -197,12 +197,17 @@ export class ProductsService {
     });
 
     if (existingSlug) {
-      throw new ConflictException('Product with this slug already exists');
+      throw new ConflictException("Product with this slug already exists");
     }
 
     // Create product
     const product = await this.prisma.product.create({
-      data: productData,
+      data: {
+        ...productData,
+        dimensions: productData.dimensions
+          ? { ...productData.dimensions }
+          : undefined,
+      },
       include: {
         category: true,
         images: true,
@@ -241,7 +246,7 @@ export class ProductsService {
       include: {
         category: true,
         images: {
-          orderBy: { sortOrder: 'asc' },
+          orderBy: { sortOrder: "asc" },
         },
         variants: true,
         inventory: true,
@@ -251,7 +256,7 @@ export class ProductsService {
     return {
       success: true,
       data: productWithImages,
-      message: 'Product created successfully',
+      message: "Product created successfully",
       errors: [],
     };
   }
@@ -265,7 +270,7 @@ export class ProductsService {
     });
 
     if (!existingProduct) {
-      throw new NotFoundException('Product not found');
+      throw new NotFoundException("Product not found");
     }
 
     // Check SKU uniqueness if changed
@@ -275,14 +280,19 @@ export class ProductsService {
       });
 
       if (skuExists) {
-        throw new ConflictException('Product with this SKU already exists');
+        throw new ConflictException("Product with this SKU already exists");
       }
     }
 
     // Update product
     const product = await this.prisma.product.update({
       where: { id },
-      data: productData,
+      data: {
+        ...productData,
+        dimensions: productData.dimensions
+          ? { ...productData.dimensions }
+          : undefined,
+      },
       include: {
         category: true,
         images: true,
@@ -320,7 +330,7 @@ export class ProductsService {
       include: {
         category: true,
         images: {
-          orderBy: { sortOrder: 'asc' },
+          orderBy: { sortOrder: "asc" },
         },
         variants: true,
         inventory: true,
@@ -330,7 +340,7 @@ export class ProductsService {
     return {
       success: true,
       data: updatedProduct,
-      message: 'Product updated successfully',
+      message: "Product updated successfully",
       errors: [],
     };
   }
@@ -345,12 +355,14 @@ export class ProductsService {
     });
 
     if (!existingProduct) {
-      throw new NotFoundException('Product not found');
+      throw new NotFoundException("Product not found");
     }
 
     // Check if product has orders
     if (existingProduct.orderItems.length > 0) {
-      throw new BadRequestException('Cannot delete product with existing orders');
+      throw new BadRequestException(
+        "Cannot delete product with existing orders",
+      );
     }
 
     // Delete product (cascade will handle related records)
@@ -361,7 +373,7 @@ export class ProductsService {
     return {
       success: true,
       data: null,
-      message: 'Product deleted successfully',
+      message: "Product deleted successfully",
       errors: [],
     };
   }
@@ -380,7 +392,7 @@ export class ProductsService {
             },
           },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         skip,
         take: limit,
       }),
@@ -400,7 +412,7 @@ export class ProductsService {
           pages: Math.ceil(total / limit),
         },
       },
-      message: 'Reviews retrieved successfully',
+      message: "Reviews retrieved successfully",
       errors: [],
     };
   }

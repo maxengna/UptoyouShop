@@ -12,7 +12,7 @@ export default function DealsPage() {
       discount: "50%",
       category: "Clothing",
       validUntil: "2024-08-31",
-      image: "/api/placeholder/300/200",
+      image: "/placeholder/300/200",
       featured: true,
     },
     {
@@ -22,7 +22,7 @@ export default function DealsPage() {
       discount: "30%",
       category: "Electronics",
       validUntil: "2024-07-15",
-      image: "/api/placeholder/300/200",
+      image: "/placeholder/300/200",
       featured: false,
     },
     {
@@ -32,7 +32,7 @@ export default function DealsPage() {
       discount: "B2G1",
       category: "Accessories",
       validUntil: "2024-07-30",
-      image: "/api/placeholder/300/200",
+      image: "/placeholder/300/200",
       featured: true,
     },
     {
@@ -42,7 +42,7 @@ export default function DealsPage() {
       discount: "20%",
       category: "All Categories",
       validUntil: "2024-07-14",
-      image: "/api/placeholder/300/200",
+      image: "/placeholder/300/200",
       featured: false,
     },
   ];

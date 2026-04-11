@@ -44,25 +44,25 @@ export default function AboutPage() {
       name: "Sarah Johnson",
       role: "CEO & Founder",
       description: "Visionary leader with 15+ years in e-commerce",
-      image: "/api/placeholder/200/200",
+      image: "/placeholder/200/200",
     },
     {
       name: "Mike Chen",
       role: "CTO",
       description: "Tech expert focused on innovative shopping experiences",
-      image: "/api/placeholder/200/200",
+      image: "/placeholder/200/200",
     },
     {
       name: "Emily Davis",
       role: "Head of Marketing",
       description: "Creative mind behind our brand and campaigns",
-      image: "/api/placeholder/200/200",
+      image: "/placeholder/200/200",
     },
     {
       name: "Alex Thompson",
       role: "Customer Success Lead",
       description: "Ensuring every customer has an amazing experience",
-      image: "/api/placeholder/200/200",
+      image: "/placeholder/200/200",
     },
   ];
 

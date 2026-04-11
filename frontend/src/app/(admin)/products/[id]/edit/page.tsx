@@ -98,7 +98,7 @@ export default function EditProductPage() {
       try {
         setLoading(true);
         const response = await fetch(
-          `http://localhost:5000/api/products/${productId}`,
+          `http://localhost:5000/products/${productId}`,
         );
         if (!response.ok) {
           throw new Error("Failed to fetch product");
@@ -134,7 +134,7 @@ export default function EditProductPage() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/categories");
+        const response = await fetch("http://localhost:5000/categories");
         const data = await response.json();
         if (data.success) {
           setCategories(data.categories);

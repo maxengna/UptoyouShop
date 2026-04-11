@@ -111,7 +111,7 @@ export default function ProductsPage() {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:5000/api/products");
+        const response = await fetch("http://localhost:5000/products");
         if (!response.ok) {
           throw new Error("Failed to fetch products");
         }
@@ -161,7 +161,7 @@ export default function ProductsPage() {
     if (confirm("Are you sure you want to delete this product?")) {
       try {
         const response = await fetch(
-          `http://localhost:5000/api/products/${productId}`,
+          `http://localhost:5000/products/${productId}`,
           {
             method: "DELETE",
           },
