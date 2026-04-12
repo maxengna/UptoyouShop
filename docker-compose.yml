@@ -23,7 +23,7 @@ services:
     container_name: backend-app
     build:
       context: .
-      dockerfile: services/Dockerfile
+      dockerfile: backend/Dockerfile
     depends_on:
       db:
         condition: service_healthy
@@ -34,6 +34,12 @@ services:
       - DATABASE_URL=postgresql://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?schema=public
     ports:
       - "5000:5000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
     restart: unless-stopped
     networks:
       - uptoyoushop-network
