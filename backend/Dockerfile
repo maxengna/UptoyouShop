@@ -4,6 +4,8 @@
 
 FROM node:18-alpine As development
 
+RUN apk add --no-cache libc6-compat
+
 # Create app directory
 WORKDIR /usr/src/app
 
@@ -46,8 +48,14 @@ COPY --chown=node:node . .
 # Generate Prisma Client
 RUN npx prisma generate --schema=./database/schema.prisma
 
+WORKDIR /usr/src/app/backend
+
+RUN cat package.json
+
 # Run the build command which creates the production bundle
 RUN npm run build
+
+
 
 # Set NODE_ENV environment variable
 ENV NODE_ENV production
@@ -69,8 +77,8 @@ WORKDIR /usr/src/app
 # Copy the bundled code from the build stage to the production image
 COPY --chown=node:node --from=build /usr/src/app/database ./database
 COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
-COPY --chown=node:node --from=build /usr/src/app/dist ./dist
-COPY --chown=node:node --from=build /usr/src/app/package.json ./
+COPY --chown=node:node --from=build /usr/src/app/backend/dist ./dist
+COPY --chown=node:node --from=build /usr/src/app/backend/package.json ./
 
 EXPOSE 5000
 

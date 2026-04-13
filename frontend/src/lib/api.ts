@@ -197,6 +197,13 @@ export const productApi = {
       },
     );
   },
+
+  // Health check
+  health: async () => {
+    return apiRequest<{ status: string }>("/health", {
+      method: "GET",
+    });
+  },
 };
 
 // Export API error class for error handling

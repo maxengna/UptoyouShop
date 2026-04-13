@@ -3,10 +3,15 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Install dependencies
-COPY package*.json ./
+COPY frontend/package*.json ./
 RUN npm ci
 
-COPY . .
+# Copy frontend source and shared schema
+COPY frontend/ ./
+COPY database/schema.prisma ./prisma/schema.prisma
+
+# Generate Prisma client before build
+RUN npx prisma generate --schema=./prisma/schema.prisma
 
 RUN npm run build
 
