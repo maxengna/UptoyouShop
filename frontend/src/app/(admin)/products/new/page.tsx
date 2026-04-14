@@ -1228,7 +1228,7 @@ export default function NewProductPage() {
                         <span>Character count:</span>
                         <span
                           className={
-                            product.seo.title.length > 60
+                            (product.seo?.title?.length || 0) > 60
                               ? "text-red-500"
                               : "text-green-500"
                           }
@@ -1239,14 +1239,14 @@ export default function NewProductPage() {
                       <div className="w-full bg-gray-200 rounded-full h-1">
                         <div
                           className={`h-1 rounded-full transition-colors ${
-                            product.seo.title.length > 60
+                            (product.seo?.title?.length || 0) > 60
                               ? "bg-red-500"
-                              : product.seo?.title?.length || 0 > 50
+                              : (product.seo?.title?.length || 0) > 50
                                 ? "bg-yellow-500"
                                 : "bg-green-500"
                           }`}
                           style={{
-                            width: `${Math.min((product.seo.title.length / 60) * 100, 100)}%`,
+                            width: `${Math.min(((product.seo?.title?.length || 0) / 60) * 100, 100)}%`,
                           }}
                         />
                       </div>
@@ -1273,25 +1273,25 @@ export default function NewProductPage() {
                         <span>Character count:</span>
                         <span
                           className={
-                            product.seo.description.length > 160
+                            (product.seo?.description?.length || 0) > 160
                               ? "text-red-500"
                               : "text-green-500"
                           }
                         >
-                          {product.seo.description.length}/160
+                          {product.seo?.description?.length || 0}/160
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-1">
                         <div
                           className={`h-1 rounded-full transition-colors ${
-                            product.seo.description.length > 160
+                            (product.seo?.description?.length || 0) > 160
                               ? "bg-red-500"
-                              : product.seo.description.length > 150
+                              : (product.seo?.description?.length || 0) > 150
                                 ? "bg-yellow-500"
                                 : "bg-green-500"
                           }`}
                           style={{
-                            width: `${Math.min((product.seo.description.length / 160) * 100, 100)}%`,
+                            width: `${Math.min(((product.seo?.description?.length || 0) / 160) * 100, 100)}%`,
                           }}
                         />
                       </div>
@@ -1317,14 +1317,14 @@ export default function NewProductPage() {
                     <h4 className="text-sm font-medium mb-3">SEO Preview</h4>
                     <div className="bg-gray-50 p-3 rounded-md space-y-2">
                       <div className="text-blue-800 text-lg font-medium truncate">
-                        {product.seo.title || product.name || "Product Title"}
+                        {product.seo?.title || product.name || "Product Title"}
                       </div>
                       <div className="text-green-800 text-sm truncate">
                         www.yourstore.com/products/
                         {product.sku || "product-sku"}
                       </div>
                       <div className="text-gray-600 text-sm line-clamp-2">
-                        {product.seo.description ||
+                        {product.seo?.description ||
                           product.description ||
                           "Product description will appear here..."}
                       </div>

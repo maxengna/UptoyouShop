@@ -1,5 +1,7 @@
 FROM node:20-alpine AS builder
 
+RUN apk add --no-cache libc6-compat
+
 WORKDIR /app
 
 # Install dependencies
@@ -8,13 +10,8 @@ RUN npm ci
 
 # Copy frontend source and shared schema
 COPY frontend/ ./
-COPY database/schema.prisma ./prisma/schema.prisma
-
-# Generate Prisma client before build
-RUN npx prisma generate --schema=./prisma/schema.prisma
 
 RUN npm run build
-
 
 FROM node:20-alpine AS runner
 WORKDIR /app
