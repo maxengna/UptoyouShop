@@ -14,7 +14,7 @@ WORKDIR /usr/src/app
 # Copying this first prevents re-running npm install on every code change.
 COPY --chown=node:node backend/package*.json ./
 
-COPY --chown=node:node ../database/schema.prisma ./database/
+COPY --chown=node:node database/schema.prisma ./database/
 
 # Install app dependencies using the `npm ci` command instead of `npm install`
 RUN npm ci
@@ -38,7 +38,7 @@ WORKDIR /usr/src/app
 
 COPY --chown=node:node backend/package*.json ./
 
-COPY --chown=node:node ../database/schema.prisma ./database/
+COPY --chown=node:node database/schema.prisma ./database/
 
 # In order to run `npm run build` we need access to the Nest CLI which is a dev dependency. In the previous development stage we ran `npm ci` which installed all dependencies, so we can copy over the node_modules directory from the development image
 COPY --chown=node:node --from=development /usr/src/app/node_modules ./node_modules
@@ -58,7 +58,7 @@ RUN npm run build
 ENV NODE_ENV production
 
 # Running `npm ci` removes the existing node_modules directory and passing in --only=production ensures that only the production dependencies are installed. This ensures that the node_modules directory is as optimized as possible
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --only=production && npm cache clean --force && npx prisma generate --schema=./database/schema.prisma
 
 USER node
 
@@ -67,6 +67,8 @@ USER node
 ###################
 
 FROM node:18-alpine As production
+
+RUN apk add --no-cache openssl openssl-dev
 
 WORKDIR /usr/src/app
 
