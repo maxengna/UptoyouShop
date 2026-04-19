@@ -56,6 +56,7 @@ jobs:
         with:
           context: .
           file: frontend/Dockerfile
+          target: builder
           tags: ${{ steps.meta.outputs.REPO_NAME }}-dev:latest
           load: true
           cache-from: type=local,src=/tmp/.buildx-cache
