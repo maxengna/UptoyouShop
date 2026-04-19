@@ -1,7 +1,7 @@
 # CI/CD - Next.js Application with Docker
 # Builds the app, runs tests in a container, and pushes the production image to Docker Hub.
 
-name: CI/CD - Next.js Application with Docker
+name: CI/CD - UptoyouShop Application with Docker
 
 on:
   push:
@@ -11,8 +11,31 @@ on:
   #   types: [opened, synchronize, reopened]
 
 jobs:
-  build-test-push:
-    name: Build, Test and Push Docker Image
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          npm ci
+          npx prisma generate --schema=../database/schema.prisma
+
+      - name: Run migrations
+        run: |
+          npx prisma migrate deploy --schema=../database/schema.prisma
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+  build-backend:
+    name: Build Backend Docker Image
+    needs: migrate
     runs-on: ubuntu-latest
 
     steps:
