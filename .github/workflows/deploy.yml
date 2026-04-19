@@ -25,7 +25,7 @@ jobs:
         run: |
           cd backend
           npm ci
-          npx prisma generate --schema=../database/schema.prisma
+          npx prisma generate --schema=./database/schema.prisma
 
       - name: Run migrations
         run: |
