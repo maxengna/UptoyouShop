@@ -24,11 +24,11 @@ jobs:
       - name: Install dependencies
         run: |
           npm ci
-          npx prisma generate --schema=../database/schema.prisma
+          npx prisma generate 
 
       - name: Run migrations
         run: |
-          npx prisma migrate deploy --schema=../database/schema.prisma
+          npx prisma migrate deploy 
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
   build-backend:
