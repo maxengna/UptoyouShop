@@ -11,6 +11,21 @@ on:
   #   types: [opened, synchronize, reopened]
 
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: 1234
+          POSTGRES_DB: uptoyoushop
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+            --health-timeout 5s
+            --health-retries 5
   migrate:
     runs-on: ubuntu-latest
     steps:
