@@ -91,6 +91,8 @@ jobs:
             ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_BACKEND }}:${{ steps.meta.outputs.SHORT_SHA }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      
       
        
   build-frontend:
@@ -161,8 +163,52 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      
+    # 9. Set ECR lifecycle policy to keep only latest image
+      - name: Set ECR lifecycle policy
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          aws ecr put-lifecycle-policy \
+            --repository-name ${{ secrets.ECR_REPOSITORY_BACKEND }} \
+            --lifecycle-policy-text '{
+              "rules": [
+                {
+                  "rulePriority": 1,
+                  "description": "Keep only latest image",
+                  "selection": {
+                    "tagStatus": "tagged",
+                    "tagPrefixList": ["latest"],
+                    "countType": "imageCountMoreThan",
+                    "countNumber": 1
+                  },
+                  "action": {
+                    "type": "expire"
+                  }
+                }
+              ]
+            }'
+          
+          aws ecr put-lifecycle-policy \
+            --repository-name ${{ secrets.ECR_REPOSITORY_FRONTEND }} \
+            --lifecycle-policy-text '{
+              "rules": [
+                {
+                  "rulePriority": 1,
+                  "description": "Keep only latest image",
+                  "selection": {
+                    "tagStatus": "tagged",
+                    "tagPrefixList": ["latest"],
+                    "countType": "imageCountMoreThan",
+                    "countNumber": 1
+                  },
+                  "action": {
+                    "type": "expire"
+                  }
+                }
+              ]
+            }'
+
   #update Tag in flux manifests
-  
   update-flux-manifests:
     name: Update Flux CD Manifests
     runs-on: ubuntu-latest
@@ -172,7 +218,7 @@ jobs:
       - name: Checkout manifests repository
         uses: actions/checkout@v4
         with:
-          repository: https://github.com/maxengna/uptoyou-gitops.git
+          repository: maxengna/uptoyou-gitops
           token: ${{ secrets.TOKEN_MANIFESTS }}
 
       - name: Extract metadata
