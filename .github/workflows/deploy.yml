@@ -156,11 +156,66 @@ jobs:
           push: true
           platforms: linux/amd64
           tags: |
-            ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:latest
+            ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:latest 
             ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${{ steps.meta.outputs.SHORT_SHA }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  #update Tag in flux manifests
+  
+  update-flux-manifests:
+    name: Update Flux CD Manifests
+    runs-on: ubuntu-latest
+    needs: [build-backend, build-frontend]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout manifests repository
+        uses: actions/checkout@v4
+        with:
+          repository: https://github.com/maxengna/uptoyou-gitops.git
+          token: ${{ secrets.TOKEN_MANIFESTS }}
+
+      - name: Extract metadata
+        id: meta
+        run: |
+          REPO_NAME="${GITHUB_REPOSITORY##*/}"
+          echo "REPO_NAME=${REPO_NAME,,}" >> "$GITHUB_OUTPUT"
+          echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+          
+      - name: Setup yq
+        run: |
+          wget https://github.com/mikefarah/yq/releases/download/v4.30.8/yq_linux_amd64
+          chmod +x yq_linux_amd64
+          sudo mv yq_linux_amd64 /usr/bin/yq
+          
+      - name: Update backend image tag
+        run: |
+          yq eval '.spec.template.spec.containers[0].image = "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_BACKEND }}:${{ steps.meta.outputs.SHORT_SHA }}"' \
+            -i app/base/backend/deployment.yaml
+            
+      - name: Update frontend image tag  
+        run: |
+          yq eval '.spec.template.spec.containers[0].image = "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${{ steps.meta.outputs.SHORT_SHA }}"' \
+            -i app/base/frontend/deployment.yaml
+            
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "phanupong.w2019@gmail.com"
+          git config --local user.name "maxengna"
+          git add .
+          git commit -m "Update image tags: backend=${{ steps.meta.outputs.SHORT_SHA }}, frontend=${{ steps.meta.outputs.SHORT_SHA }}"
+          git push
  
       # 9. Run Vitest tests inside the container
       # Use same package-manager detection as Dockerfile (no corepack at runtime; node user can't write to /usr/local/bin)
