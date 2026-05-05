@@ -176,10 +176,10 @@ jobs:
                   "rulePriority": 1,
                   "description": "Keep only latest image",
                   "selection": {
-                    "tagStatus": "tagged",
+                    "tagStatus": "any",
                     "tagPrefixList": ["latest"],
                     "countType": "imageCountMoreThan",
-                    "countNumber": 1
+                    "countNumber": 2
                   },
                   "action": {
                     "type": "expire"
@@ -196,10 +196,10 @@ jobs:
                   "rulePriority": 1,
                   "description": "Keep only latest image",
                   "selection": {
-                    "tagStatus": "tagged",
+                    "tagStatus": "any",
                     "tagPrefixList": ["latest"],
                     "countType": "imageCountMoreThan",
-                    "countNumber": 1
+                    "countNumber": 2
                   },
                   "action": {
                     "type": "expire"
