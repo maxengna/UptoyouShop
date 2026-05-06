@@ -215,7 +215,7 @@ jobs:
       - name: Checkout manifests repository
         uses: actions/checkout@v4
         with:
-          repository: https://github.com/maxengna/uptoyou-gitops.git
+          repository: maxengna/uptoyou-gitops
           token: ${{ secrets.TOKEN_MANIFESTS }}
 
       - name: Extract metadata
