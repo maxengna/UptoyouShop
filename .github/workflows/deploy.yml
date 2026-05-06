@@ -177,7 +177,6 @@ jobs:
                   "description": "Keep only latest image",
                   "selection": {
                     "tagStatus": "any",
-                    "tagPrefixList": ["latest"],
                     "countType": "imageCountMoreThan",
                     "countNumber": 2
                   },
@@ -197,7 +196,6 @@ jobs:
                   "description": "Keep only latest image",
                   "selection": {
                     "tagStatus": "any",
-                    "tagPrefixList": ["latest"],
                     "countType": "imageCountMoreThan",
                     "countNumber": 2
                   },
