@@ -216,7 +216,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: maxengna/uptoyou-gitops
-          token: ${{ secrets.TOKEN_MANIFESTS }}
+          # token: ${{ secrets.TOKEN_MANIFESTS }}
 
       - name: Extract metadata
         id: meta
