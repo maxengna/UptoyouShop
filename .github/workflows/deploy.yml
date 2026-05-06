@@ -91,10 +91,29 @@ jobs:
             ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_BACKEND }}:${{ steps.meta.outputs.SHORT_SHA }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
       
-      
-       
+      # 9. Set ECR lifecycle policy to keep only latest image
+      - name: Set ECR lifecycle policy
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          aws ecr put-lifecycle-policy \
+            --repository-name ${{ secrets.ECR_REPOSITORY_BACKEND }} \
+            --lifecycle-policy-text '{
+              "rules": [
+                {
+                  "rulePriority": 1,
+                  "description": "Keep only latest image",
+                  "selection": {
+                    "tagStatus": "any",
+                    "countType": "imageCountMoreThan",
+                    "countNumber": 1
+                  },
+                  "action": {
+                    "type": "expire"
+                  }
+                }
+              ]
+            }'
   build-frontend:
     name: Build Frontend Docker Image
     runs-on: ubuntu-latest
@@ -162,31 +181,11 @@ jobs:
             ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${{ steps.meta.outputs.SHORT_SHA }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
       
-    # 9. Set ECR lifecycle policy to keep only latest image
+      # 9. Set ECR lifecycle policy to keep only latest image
       - name: Set ECR lifecycle policy
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          aws ecr put-lifecycle-policy \
-            --repository-name ${{ secrets.ECR_REPOSITORY_BACKEND }} \
-            --lifecycle-policy-text '{
-              "rules": [
-                {
-                  "rulePriority": 1,
-                  "description": "Keep only latest image",
-                  "selection": {
-                    "tagStatus": "any",
-                    "countType": "imageCountMoreThan",
-                    "countNumber": 1
-                  },
-                  "action": {
-                    "type": "expire"
-                  }
-                }
-              ]
-            }'
-          
           aws ecr put-lifecycle-policy \
             --repository-name ${{ secrets.ECR_REPOSITORY_FRONTEND }} \
             --lifecycle-policy-text '{
@@ -216,7 +215,7 @@ jobs:
       - name: Checkout manifests repository
         uses: actions/checkout@v4
         with:
-          repository: maxengna/uptoyou-gitops
+          repository: https://github.com/maxengna/uptoyou-gitops.git
           token: ${{ secrets.TOKEN_MANIFESTS }}
 
       - name: Extract metadata
