@@ -244,12 +244,12 @@ jobs:
           
       - name: Update backend image tag
         run: |
-          yq eval '.spec.template.spec.containers[0].image = "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_BACKEND }}:${{ steps.meta.outputs.SHORT_SHA }}"' \
+          yq eval '.spec.template.spec.containers[0].image = "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_BACKEND }}:latest"' \
             -i app/base/backend/deployment.yaml
             
       - name: Update frontend image tag  
         run: |
-          yq eval '.spec.template.spec.containers[0].image = "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${{ steps.meta.outputs.SHORT_SHA }}"' \
+          yq eval '.spec.template.spec.containers[0].image = "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:latest"' \
             -i app/base/frontend/deployment.yaml
             
       - name: Commit and push changes
