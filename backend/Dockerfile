@@ -82,4 +82,7 @@ COPY --chown=node:node --from=build /usr/src/app/package.json ./
 EXPOSE 5000
 
 # Start the server using the production build
-CMD [ "node", "dist/main.js" ]
+# CMD [ "node", "dist/main.js" ]
+# CMD ["sh", "-c", "npx prisma migrate deploy --schema=./database/schema.prisma && node dist/main.js"]
+CMD ["sh", "-c", "npx prisma db push --schema=./database/schema.prisma && node dist/main.js"]
+

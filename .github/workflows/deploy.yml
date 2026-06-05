@@ -15,7 +15,7 @@ jobs:
   migrate:
     runs-on: ubuntu-latest
     services:
-      postgres:       
+      postgres:
         image: postgres:15
         env:
           POSTGRES_USER: postgres
@@ -24,10 +24,8 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd "pg_isready -U postgres" --health-interval 10s
+          --health-timeout 5s --health-retries 5
     steps:
       - uses: actions/checkout@v4
 
@@ -52,10 +50,10 @@ jobs:
     needs: migrate
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
-      
+
       # 1. Extract metadata
       - name: Extract metadata
         id: meta
@@ -91,7 +89,7 @@ jobs:
             ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_BACKEND }}:${{ steps.meta.outputs.SHORT_SHA }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      
+
       # 9. Set ECR lifecycle policy to keep only latest image
       - name: Set ECR lifecycle policy
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -143,7 +141,7 @@ jobs:
         with:
           path: ~/.npm
           # Frontend job cache
-          key: ${{ runner.os }}-npm-frontend-${{ hashFiles('frontend/package-lock.json') }}
+          key: ${{ runner.os }}-npm-frontend-${{ hashFiles('frontend/package-lock.json')}}
           restore-keys: ${{ runner.os }}-npm-
 
       # 5. Extract metadata
@@ -181,7 +179,7 @@ jobs:
             ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${{ steps.meta.outputs.SHORT_SHA }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      
+
       # 9. Set ECR lifecycle policy to keep only latest image
       - name: Set ECR lifecycle policy
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -209,7 +207,7 @@ jobs:
   update-flux-manifests:
     name: Update Flux CD Manifests
     runs-on: ubuntu-latest
-    needs: [build-backend, build-frontend]
+    needs: [ build-backend, build-frontend ]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Checkout manifests repository
@@ -224,31 +222,31 @@ jobs:
           REPO_NAME="${GITHUB_REPOSITORY##*/}"
           echo "REPO_NAME=${REPO_NAME,,}" >> "$GITHUB_OUTPUT"
           echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
-      
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-      
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
-          
+
       - name: Setup yq
         run: |
           wget https://github.com/mikefarah/yq/releases/download/v4.30.8/yq_linux_amd64
           chmod +x yq_linux_amd64
           sudo mv yq_linux_amd64 /usr/bin/yq
-          
+
       - name: Update backend image tag
-        run: |
+        run: |+
           yq eval '.spec.template.spec.containers[0].image = "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_BACKEND }}:${{ steps.meta.outputs.SHORT_SHA }}"' \
             -i app/base/backend/deployment.yaml
             
-      - name: Update frontend image tag  
-        run: |
+      - name: Update frontend image tag
+        run: |+
           yq eval '.spec.template.spec.containers[0].image = "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${{ steps.meta.outputs.SHORT_SHA }}"' \
             -i app/base/frontend/deployment.yaml
             
@@ -259,7 +257,6 @@ jobs:
           git add .
           git commit -m "Update image tags: backend=${{ steps.meta.outputs.SHORT_SHA }}, frontend=${{ steps.meta.outputs.SHORT_SHA }}"
           git push
- 
       # 9. Run Vitest tests inside the container
       # Use same package-manager detection as Dockerfile (no corepack at runtime; node user can't write to /usr/local/bin)
       # - name: Run tests
@@ -275,4 +272,3 @@ jobs:
       #     NODE_ENV: test
       #   timeout-minutes: 10
 
- 
