@@ -12,10 +12,27 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   // CORS
-  app.enableCors({
-    origin: configService.get("CORS_ORIGIN") || "http://localhost:3000",
-    credentials: true,
-  });
+  // app.enableCors({
+  //   origin: configService.get("CORS_ORIGIN") || "http://localhost:3000",
+  //   credentials: true,
+  // });
+
+app.enableCors({
+  origin: (origin, callback) => {
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    const hostname = new URL(origin).hostname;
+
+    if (hostname.endsWith('.elb.amazonaws.com')) {
+      return callback(null, true);
+    }
+
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+});
 
   // Cookie parser
   app.use(cookieParser(configService.get("COOKIE_SECRET")));
