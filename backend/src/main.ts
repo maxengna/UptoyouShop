@@ -17,22 +17,26 @@ async function bootstrap() {
   //   credentials: true,
   // });
 
-app.enableCors({
-  origin: (origin, callback) => {
-    if (!origin) {
-      return callback(null, true);
-    }
+// app.enableCors({
+//   origin: (origin, callback) => {
+//     if (!origin) {
+//       return callback(null, true);
+//     }
 
-    const hostname = new URL(origin).hostname;
+//     const hostname = new URL(origin).hostname;
 
-    if (hostname.endsWith('.elb.amazonaws.com')) {
-      return callback(null, true);
-    }
+//     if (hostname.endsWith('.elb.amazonaws.com')) {
+//       return callback(null, true);
+//     }
 
-    callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
-});
+//     callback(new Error('Not allowed by CORS'));
+//   },
+//   credentials: true,
+// });
+  app.enableCors({
+    origin: true,
+    credentials: true,
+  });
 
   // Cookie parser
   app.use(cookieParser(configService.get("COOKIE_SECRET")));
