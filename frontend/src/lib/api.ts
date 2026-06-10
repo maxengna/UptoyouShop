@@ -156,7 +156,7 @@ export const productApi = {
       success: boolean;
       message: string;
       data: { product: Product };
-    }>("/products", {
+    }>("/api/products", {
       method: "POST",
       body: productData, // Don't stringify here, apiRequest will do it
     });
@@ -165,14 +165,14 @@ export const productApi = {
   // Get all products
   getAll: async () => {
     return apiRequest<{ success: boolean; data: { products: Product[] } }>(
-      "/products",
+      "/api/products",
     );
   },
 
   // Get a single product
   getById: async (id: string) => {
     return apiRequest<{ success: boolean; data: { product: Product } }>(
-      `/products/${id}`,
+      `/api/products/${id}`,
     );
   },
 
@@ -182,7 +182,7 @@ export const productApi = {
       success: boolean;
       message: string;
       data: { product: Product };
-    }>(`/products/${id}`, {
+    }>(`/api/products/${id}`, {
       method: "PUT",
       body: productData, // Don't stringify here, apiRequest will do it
     });
@@ -191,7 +191,7 @@ export const productApi = {
   // Delete a product
   delete: async (id: number) => {
     return apiRequest<{ success: boolean; message: string }>(
-      `/products/${id}`,
+      `/api/products/${id}`,
       {
         method: "DELETE",
       },
@@ -200,7 +200,7 @@ export const productApi = {
 
   // Health check
   health: async () => {
-    return apiRequest<{ status: string }>("/health", {
+    return apiRequest<{ status: string }>("/api/health", {
       method: "GET",
     });
   },

@@ -9,11 +9,15 @@ import { TransformInterceptor } from "./common/interceptors/transform.intercepto
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.setGlobalPrefix("api");
   const configService = app.get(ConfigService);
 
   // CORS
   // app.enableCors({
   //   origin: configService.get("CORS_ORIGIN") || "http://localhost:3000",
+  //   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    
   //   credentials: true,
   // });
 

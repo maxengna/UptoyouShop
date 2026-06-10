@@ -8,83 +8,62 @@ import { useProductStore } from '@/store/product-store'
 import { useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { productApi } from '@/lib/api'
+import { Product } from '@/types/product'
 
-// Mock data for demonstration
-const mockProducts = [
-  {
-    id: '1',
-    name: 'Wireless Headphones',
-    description: 'Premium noise-cancelling wireless headphones with 30-hour battery life',
-    price: 299.99,
-    originalPrice: 399.99,
-    images: ['/products/wireless-headphones-1.jpg'],
-    category: 'electronics',
-    slug: 'wireless-headphones',
-    stock: 15,
-    sku: 'WH-001',
-    rating: 4.5,
-    reviews: 128,
-    isNew: true,
-    isOnSale: true,
-  },
-  {
-    id: '2',
-    name: 'Organic Cotton T-Shirt',
-    description: 'Comfortable and sustainable organic cotton t-shirt',
-    price: 29.99,
-    images: ['/products/organic-cotton-tshirt-1.jpg'],
-    category: 'clothing',
-    slug: 'organic-cotton-tshirt',
-    stock: 50,
-    sku: 'CT-002',
-    rating: 4.2,
-    reviews: 89,
-  },
-  {
-    id: '3',
-    name: 'Smart Watch',
-    description: 'Feature-rich smartwatch with health tracking and GPS',
-    price: 199.99,
-    originalPrice: 249.99,
-    images: ['/products/smart-watch-1.jpg'],
-    category: 'electronics',
-    slug: 'smart-watch',
-    stock: 8,
-    sku: 'SW-003',
-    rating: 4.7,
-    reviews: 203,
-    isOnSale: true,
-  },
-  {
-    id: '4',
-    name: 'Yoga Mat',
-    description: 'Eco-friendly non-slip yoga mat with carrying strap',
-    price: 39.99,
-    images: ['/products/yoga-mat-1.jpg'],
-    category: 'home',
-    slug: 'yoga-mat',
-    stock: 25,
-    sku: 'YM-004',
-    rating: 4.3,
-    reviews: 67,
-  },
-]
-
-const mockCategories = [
-  { id: '1', name: 'Electronics', slug: 'electronics', image: '/categories/electronics.jpg', productCount: 156 },
-  { id: '2', name: 'Clothing', slug: 'clothing', image: '/categories/clothing.jpg', productCount: 234 },
-  { id: '3', name: 'Home & Garden', slug: 'home', image: '/categories/home.jpg', productCount: 89 },
-  { id: '4', name: 'Sports', slug: 'sports', image: '/categories/sports.jpg', productCount: 112 },
-]
+const mapApiProduct = (p: any): Product => ({
+  id: String(p.id ?? ''),
+  name: p.name,
+  description: p.description || '',
+  price: parseFloat(p.price) || 0,
+  originalPrice: p.comparePrice ? parseFloat(p.comparePrice) : undefined,
+  images: p.images?.map((img: any) => img.url) || [],
+  category: p.category,
+  slug: p.slug || p.name?.toLowerCase().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, ''),
+  stock: parseInt(p.stock || '0', 10),
+  sku: p.sku,
+  rating: p.rating || undefined,
+  reviews: p.reviews || undefined,
+  isNew: p.isNew || undefined,
+  isOnSale: p.isOnSale || undefined,
+  variants: p.variants || undefined,
+})
 
 export default function HomePage() {
-  const { setProducts, setFeaturedProducts, setCategories } = useProductStore()
+  const { products, setProducts, setFeaturedProducts, setCategories, categories } = useProductStore()
 
   useEffect(() => {
-    // Initialize store with mock data
-    setProducts(mockProducts)
-    setFeaturedProducts(mockProducts.slice(0, 4))
-    setCategories(mockCategories)
+    const fetchProducts = async () => {
+      try {
+        const response = await productApi.getAll()
+        if (response.success && response.data) {
+          const mapped = response.data.products.map(mapApiProduct)
+          setProducts(mapped)
+          setFeaturedProducts(mapped.slice(0, 4))
+
+          const categoryMap = new Map<string, { name: string; slug: string }>()
+          mapped.forEach(p => {
+            if (!categoryMap.has(p.category)) {
+              categoryMap.set(p.category, {
+                name: p.category.charAt(0).toUpperCase() + p.category.slice(1),
+                slug: p.category,
+              })
+            }
+          })
+          const categories = Array.from(categoryMap.entries()).map(([slug, cat], idx) => ({
+            id: String(idx + 1),
+            name: cat.name,
+            slug: cat.slug,
+            image: `/categories/${cat.slug}.jpg`,
+            productCount: mapped.filter(p => p.category === cat.slug).length,
+          }))
+          setCategories(categories)
+        }
+      } catch (err) {
+        console.error('Failed to fetch products:', err)
+      }
+    }
+    fetchProducts()
   }, [setProducts, setFeaturedProducts, setCategories])
 
   return (
@@ -98,13 +77,13 @@ export default function HomePage() {
           <h2 className="text-3xl font-bold mb-4">Featured Products</h2>
           <p className="text-muted-foreground">Check out our hand-picked selection of amazing products</p>
         </div>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {mockProducts.slice(0, 4).map((product) => (
+          {products.slice(0, 4).map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
-        
+
         <div className="text-center mt-8">
           <Button size="lg" asChild>
             <a href="/category/all">View All Products</a>
@@ -118,9 +97,9 @@ export default function HomePage() {
           <h2 className="text-3xl font-bold mb-4">Shop by Category</h2>
           <p className="text-muted-foreground">Browse our wide range of product categories</p>
         </div>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {mockCategories.map((category) => (
+          {categories.map((category) => (
             <Link key={category.id} href={`/category/${category.slug}`}>
               <Card className="group cursor-pointer transition-transform hover:scale-105">
                 <CardHeader className="p-0">
@@ -151,7 +130,7 @@ export default function HomePage() {
           <div className="text-center">
             <h2 className="text-3xl font-bold mb-4">Special Offers</h2>
             <p className="text-muted-foreground mb-8">Limited time deals you don't want to miss</p>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card className="text-center p-6">
                 <h3 className="text-xl font-semibold mb-2">Free Shipping</h3>

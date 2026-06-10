@@ -21,6 +21,7 @@ import { ProductQueryDto } from "./dto/product-query.dto";
 
 @ApiTags("Products")
 @Controller("products")
+
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -9,86 +9,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { useCartStore } from '@/store/cart-store'
-import { useProductStore } from '@/store/product-store'
 import { formatPrice } from '@/lib/utils'
 import { Product } from '@/types/product'
-
-// Mock product data - in real app this would come from API
-const mockProducts: Product[] = [
-  {
-    id: '1',
-    name: 'Wireless Headphones',
-    description: 'Premium noise-cancelling wireless headphones with 30-hour battery life and superior sound quality. Experience crystal-clear audio with active noise cancellation technology.',
-    price: 299.99,
-    originalPrice: 399.99,
-    images: ['/products/wireless-headphones-1.jpg', '/products/wireless-headphones-2.jpg', '/products/wireless-headphones-3.jpg'],
-    category: 'electronics',
-    slug: 'wireless-headphones',
-    stock: 15,
-    sku: 'WH-001',
-    rating: 4.5,
-    reviews: 128,
-    isNew: true,
-    isOnSale: true,
-    variants: [
-      { id: 'v1', name: 'Color', value: 'Black' },
-      { id: 'v2', name: 'Color', value: 'Silver' },
-      { id: 'v3', name: 'Color', value: 'Blue' },
-    ]
-  },
-  {
-    id: '2',
-    name: 'Organic Cotton T-Shirt',
-    description: 'Comfortable and sustainable organic cotton t-shirt made from 100% certified organic cotton. Perfect for everyday wear.',
-    price: 29.99,
-    images: ['/products/organic-cotton-tshirt-1.jpg', '/products/organic-cotton-tshirt-2.jpg'],
-    category: 'clothing',
-    slug: 'organic-cotton-tshirt',
-    stock: 50,
-    sku: 'CT-002',
-    rating: 4.2,
-    reviews: 89,
-  },
-  {
-    id: '3',
-    name: 'Smart Watch',
-    description: 'Advanced fitness tracking smartwatch with heart rate monitor, GPS, and 7-day battery life. Track your health and stay connected.',
-    price: 199.99,
-    originalPrice: 249.99,
-    images: ['/products/smart-watch-1.jpg', '/products/smart-watch-2.jpg', '/products/smart-watch-3.jpg'],
-    category: 'electronics',
-    slug: 'smart-watch',
-    stock: 25,
-    sku: 'SW-003',
-    rating: 4.7,
-    reviews: 156,
-    isNew: true,
-    isOnSale: true,
-    variants: [
-      { id: 'v4', name: 'Color', value: 'Black' },
-      { id: 'v5', name: 'Color', value: 'Silver' },
-      { id: 'v6', name: 'Color', value: 'Rose Gold' },
-    ]
-  },
-  {
-    id: '4',
-    name: 'Yoga Mat',
-    description: 'Premium eco-friendly yoga mat with superior grip and cushioning. Non-slip surface perfect for all types of yoga practice.',
-    price: 39.99,
-    images: ['/products/yoga-mat-1.jpg', '/products/yoga-mat-2.jpg'],
-    category: 'sports',
-    slug: 'yoga-mat',
-    stock: 30,
-    sku: 'YM-004',
-    rating: 4.4,
-    reviews: 92,
-    variants: [
-      { id: 'v7', name: 'Color', value: 'Purple' },
-      { id: 'v8', name: 'Color', value: 'Blue' },
-      { id: 'v9', name: 'Color', value: 'Green' },
-    ]
-  },
-]
+import { productApi } from '@/lib/api'
 
 // Mock reviews data
 const mockReviews = [
@@ -124,22 +47,80 @@ const mockReviews = [
 export default function ProductDetailPage() {
   const params = useParams()
   const slug = params.slug as string
-  
+
   const { addItem } = useCartStore()
   const [quantity, setQuantity] = useState(1)
   const [selectedImage, setSelectedImage] = useState(0)
   const [selectedVariant, setSelectedVariant] = useState('')
-  
-  // Find product by slug
-  const product = mockProducts.find(p => p.slug === slug)
-  
-  if (!product) {
+  const [product, setProduct] = useState<Product | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        setLoading(true)
+        const response = await productApi.getAll()
+        if (response.success && response.data) {
+          const found = response.data.products.find((p: any) => {
+            const productSlug = p.slug || p.name?.toLowerCase().replace(/\s+/g, '-')
+            return productSlug === slug
+          })
+          if (found) {
+            setProduct({
+              id: String(found.id ?? ''),
+              name: found.name,
+              description: found.description || '',
+              price: parseFloat(found.price) || 0,
+              originalPrice: found.comparePrice ? parseFloat(found.comparePrice) : undefined,
+              images: found.images?.map(img => img.url) || [],
+              category: found.category,
+              slug: (found as any).slug || found.name.toLowerCase().replace(/\s+/g, '-'),
+              stock: parseInt(found.stock || '0', 10),
+              sku: found.sku,
+              rating: (found as any).rating || undefined,
+              reviews: (found as any).reviews || undefined,
+              isNew: (found as any).isNew || undefined,
+              isOnSale: (found as any).isOnSale || undefined,
+              variants: (found as any).variants || undefined,
+            })
+            setError(null)
+          } else {
+            setProduct(null)
+            setError('Product not found')
+          }
+        } else {
+          setProduct(null)
+          setError('Failed to fetch products')
+        }
+      } catch (err) {
+        setProduct(null)
+        setError(err instanceof Error ? err.message : 'Failed to fetch product')
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchProduct()
+  }, [slug])
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading product...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !product) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
           <p className="text-muted-foreground mb-8">
-            The product you're looking for doesn't exist.
+            {error || "The product you're looking for doesn't exist."}
           </p>
           <Button asChild>
             <Link href="/">Continue Shopping</Link>
@@ -165,9 +146,8 @@ export default function ProductDetailPage() {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`h-4 w-4 ${
-          i < Math.floor(rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'
-        }`}
+        className={`h-4 w-4 ${i < Math.floor(rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'
+          }`}
       />
     ))
   }
@@ -210,16 +190,15 @@ export default function ProductDetailPage() {
               </span>
             )}
           </div>
-          
+
           {/* Thumbnail Images */}
           <div className="flex gap-2">
             {product.images.map((image, index) => (
               <button
                 key={index}
                 onClick={() => setSelectedImage(index)}
-                className={`relative aspect-square w-20 bg-muted rounded-md overflow-hidden border-2 ${
-                  selectedImage === index ? 'border-primary' : 'border-transparent'
-                }`}
+                className={`relative aspect-square w-20 bg-muted rounded-md overflow-hidden border-2 ${selectedImage === index ? 'border-primary' : 'border-transparent'
+                  }`}
               >
                 <Image
                   src={image || '/images/product-placeholder.jpg'}
@@ -237,7 +216,7 @@ export default function ProductDetailPage() {
           {/* Product Info */}
           <div>
             <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-            
+
             {/* Rating */}
             <div className="flex items-center gap-2 mb-4">
               <div className="flex">
@@ -284,11 +263,10 @@ export default function ProductDetailPage() {
                     <button
                       key={variant.id}
                       onClick={() => setSelectedVariant(variant.value)}
-                      className={`px-4 py-2 border rounded-md ${
-                        selectedVariant === variant.value
-                          ? 'border-primary bg-primary text-primary-foreground'
-                          : 'border-border hover:border-primary'
-                      }`}
+                      className={`px-4 py-2 border rounded-md ${selectedVariant === variant.value
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-border hover:border-primary'
+                        }`}
                     >
                       {variant.value}
                     </button>
@@ -314,7 +292,7 @@ export default function ProductDetailPage() {
                   <Plus className="h-4 w-4" />
                 </button>
               </div>
-              
+
               <Button
                 onClick={handleAddToCart}
                 disabled={product.stock === 0}
@@ -323,7 +301,7 @@ export default function ProductDetailPage() {
               >
                 {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
               </Button>
-              
+
               <Button variant="outline" size="icon">
                 <Heart className="h-4 w-4" />
               </Button>
@@ -351,7 +329,7 @@ export default function ProductDetailPage() {
           {/* Reviews Section */}
           <div>
             <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
-            
+
             {/* Review Summary */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
               <div className="text-center">
@@ -363,7 +341,7 @@ export default function ProductDetailPage() {
                   Based on {product.reviews || 0} reviews
                 </p>
               </div>
-              
+
               <div className="space-y-2">
                 {[5, 4, 3, 2, 1].map((stars) => (
                   <div key={stars} className="flex items-center gap-2">
@@ -406,14 +384,14 @@ export default function ProductDetailPage() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <h5 className="font-medium mb-2">{review.title}</h5>
                     <p className="text-muted-foreground">{review.content}</p>
                   </CardContent>
                 </Card>
               ))}
             </div>
-            
+
             <Button variant="outline" className="w-full mt-6">
               Load More Reviews
             </Button>
