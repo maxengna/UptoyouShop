@@ -17,17 +17,17 @@ export interface Product {
   name: string;
   sku: string;
   description?: string;
-  price: string;
-  comparePrice?: string;
+  price: number;
+  comparePrice?: number;
   category: string;
   status: "active" | "draft" | "archived";
   trackInventory: boolean;
-  stock?: string;
-  weight?: string;
+  stock?: number;
+  weight?: number;
   dimensions?: {
-    length?: string;
-    width?: string;
-    height?: string;
+    length?: number;
+    width?: number;
+    height?: number;
   };
   tags: string[];
   seo?: {
@@ -36,7 +36,7 @@ export interface Product {
     keywords?: string;
   };
   images: Array<{
-    id: number;
+    id: string;
     url: string;
     name: string;
   }>;

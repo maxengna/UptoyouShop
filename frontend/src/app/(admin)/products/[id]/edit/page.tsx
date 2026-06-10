@@ -97,27 +97,27 @@ export default function EditProductPage() {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          `http://localhost:5000/products/${productId}`,
-        );
-        if (!response.ok) {
+        const response = await productApi.getById(productId);
+        // const response = await fetch(
+        //   `http://localhost:5000/api/products/${productId}`,
+        // );
+        if (!response.success) {
           throw new Error("Failed to fetch product");
         }
-        const data = await response.json();
-        if (data.success) {
-          // Mark existing images as from database
-          const productWithImageFlags = {
-            ...data.data,
-            images:
-              data.data.images?.map((img: any) => ({
-                ...img,
-                isFromDB: true, // Mark as existing image
-              })) || [],
-          };
-          setProduct(productWithImageFlags);
-        } else {
-          throw new Error(data.message || "Product not found");
+        const productData = response.data;
+        if (!productData) {
+          throw new Error("Product not found");
         }
+        // Mark existing images as from database
+        const productWithImageFlags = {
+          ...productData.product || productData,
+          images:
+            (productData.product?.images || productData.images)?.map((img: any) => ({
+              ...img,
+              isFromDB: true, // Mark as existing image
+            })) || [],
+        };
+        setProduct(productWithImageFlags);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
@@ -134,7 +134,7 @@ export default function EditProductPage() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch("http://localhost:5000/categories");
+        const response = await fetch("http://localhost:5000/api/categories");
         const data = await response.json();
         if (data.success) {
           setCategories(data.categories);
@@ -560,9 +560,8 @@ export default function EditProductPage() {
                           handleInputChange("categoryId", e.target.value)
                         }
                         disabled={isLoadingCategories}
-                        className={`w-full border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring ${
-                          errors.category ? "border-red-500" : ""
-                        } ${isLoadingCategories ? "bg-gray-100" : ""}`}
+                        className={`w-full border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring ${errors.category ? "border-red-500" : ""
+                          } ${isLoadingCategories ? "bg-gray-100" : ""}`}
                       >
                         <option value="">
                           {isLoadingCategories
@@ -942,11 +941,10 @@ export default function EditProductPage() {
                       const files = Array.from(e.dataTransfer.files);
                       handleFilesUpload(files);
                     }}
-                    className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
-                      isDragging
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-300 hover:border-gray-400"
-                    }`}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${isDragging
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-300 hover:border-gray-400"
+                      }`}
                   >
                     <input
                       type="file"
@@ -1069,15 +1067,14 @@ export default function EditProductPage() {
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-1">
                         <div
-                          className={`h-1 rounded-full transition-colors ${
-                            (product.seo?.title || product.seoTitle || "")
-                              .length > 60
-                              ? "bg-red-500"
-                              : (product.seo?.title || product.seoTitle || "")
-                                    .length > 50
-                                ? "bg-yellow-500"
-                                : "bg-green-500"
-                          }`}
+                          className={`h-1 rounded-full transition-colors ${(product.seo?.title || product.seoTitle || "")
+                            .length > 60
+                            ? "bg-red-500"
+                            : (product.seo?.title || product.seoTitle || "")
+                              .length > 50
+                              ? "bg-yellow-500"
+                              : "bg-green-500"
+                            }`}
                           style={{
                             width: `${Math.min(((product.seo?.title || product.seoTitle || "").length / 60) * 100, 100)}%`,
                           }}
@@ -1130,21 +1127,20 @@ export default function EditProductPage() {
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-1">
                         <div
-                          className={`h-1 rounded-full transition-colors ${
-                            (
+                          className={`h-1 rounded-full transition-colors ${(
+                            product.seo?.description ||
+                            product.seoDescription ||
+                            ""
+                          ).length > 160
+                            ? "bg-red-500"
+                            : (
                               product.seo?.description ||
                               product.seoDescription ||
                               ""
-                            ).length > 160
-                              ? "bg-red-500"
-                              : (
-                                    product.seo?.description ||
-                                    product.seoDescription ||
-                                    ""
-                                  ).length > 150
-                                ? "bg-yellow-500"
-                                : "bg-green-500"
-                          }`}
+                            ).length > 150
+                              ? "bg-yellow-500"
+                              : "bg-green-500"
+                            }`}
                           style={{
                             width: `${Math.min(((product.seo?.description || product.seoDescription || "").length / 160) * 100, 100)}%`,
                           }}

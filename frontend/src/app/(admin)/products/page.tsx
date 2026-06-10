@@ -13,14 +13,14 @@ const statuses = ["All", "Active", "Out of Stock", "Draft", "Archived"];
 
 // Product type from API
 interface Product {
-  id: string;
+  id: number;
   name: string;
   slug: string;
   description?: string;
-  price: number;
-  originalPrice?: number;
+  price: string;
+  originalPrice?: string;
   sku: string;
-  stock: number;
+  stock: string;
   category: {
     id: string;
     name: string;
@@ -39,11 +39,11 @@ interface Product {
   createdAt: string;
   updatedAt: string;
   inventory?: {
-    quantity: number;
-    reorderLevel: number;
+    quantity: string;
+    reorderLevel: string;
   };
-  averageRating?: number | null;
-  reviewCount: number;
+  averageRating?: string | null;
+  reviewCount: string;
 }
 
 interface ProductsResponse {
@@ -111,7 +111,7 @@ export default function ProductsPage() {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:5000/products");
+        const response = await fetch("http://localhost:5000/api/products");
         if (!response.ok) {
           throw new Error("Failed to fetch products");
         }

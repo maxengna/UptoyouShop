@@ -200,10 +200,38 @@ export class ProductsService {
       throw new ConflictException("Product with this slug already exists");
     }
 
+    // Resolve categoryId (could be a name or an actual category ID)
+    let resolvedCategoryId = productData.categoryId;
+    const categoryByName = await this.prisma.category.findUnique({
+      where: { name: productData.categoryId },
+    });
+    if (categoryByName) {
+      resolvedCategoryId = categoryByName.id;
+    } else {
+      const categoryById = await this.prisma.category.findUnique({
+        where: { id: productData.categoryId },
+      });
+      if (!categoryById) {
+        // Category doesn't exist by name or ID — create it
+        const slug = productData.categoryId
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)/g, "");
+        const newCategory = await this.prisma.category.create({
+          data: {
+            name: productData.categoryId,
+            slug,
+          },
+        });
+        resolvedCategoryId = newCategory.id;
+      }
+    }
+
     // Create product
     const product = await this.prisma.product.create({
       data: {
         ...productData,
+        categoryId: resolvedCategoryId,
         dimensions: productData.dimensions
           ? { ...productData.dimensions }
           : undefined,
@@ -284,11 +312,40 @@ export class ProductsService {
       }
     }
 
+    // Resolve categoryId if provided (could be a name or an actual category ID)
+    let resolvedCategoryId = productData.categoryId;
+    if (productData.categoryId) {
+      const categoryByName = await this.prisma.category.findUnique({
+        where: { name: productData.categoryId },
+      });
+      if (categoryByName) {
+        resolvedCategoryId = categoryByName.id;
+      } else {
+        const categoryById = await this.prisma.category.findUnique({
+          where: { id: productData.categoryId },
+        });
+        if (!categoryById) {
+          const slug = productData.categoryId
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/(^-|-$)/g, "");
+          const newCategory = await this.prisma.category.create({
+            data: {
+              name: productData.categoryId,
+              slug,
+            },
+          });
+          resolvedCategoryId = newCategory.id;
+        }
+      }
+    }
+
     // Update product
     const product = await this.prisma.product.update({
       where: { id },
       data: {
         ...productData,
+        ...(resolvedCategoryId ? { categoryId: resolvedCategoryId } : {}),
         dimensions: productData.dimensions
           ? { ...productData.dimensions }
           : undefined,

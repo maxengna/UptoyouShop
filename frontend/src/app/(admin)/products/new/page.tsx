@@ -306,32 +306,32 @@ export default function NewProductPage() {
         name: product.name,
         sku: product.sku,
         slug: product.slug || generateSlug(product.name),
-        price: String(product.price), // Convert to string for backend
-        stock: product.trackInventory ? product.stock : 0,
+        price: Number(product.price),
+        stock: product.trackInventory ? Number(product.stock) : 0,
         isActive: product.status === "active",
         tags: product.tags,
-        category: product.category, // Add category as string
+        categoryId: product.category,
       };
 
       // Only add optional fields if they have values
       if (product.description) productData.description = product.description;
       if (product.comparePrice)
-        productData.originalPrice = String(product.comparePrice); // Convert to string
-      if (product.weight) productData.weight = String(product.weight); // Convert to string
+        productData.originalPrice = Number(product.comparePrice);
+      if (product.weight) productData.weight = Number(product.weight);
       if (product.seo?.title) productData.seoTitle = product.seo.title;
       if (product.seo?.description)
         productData.seoDescription = product.seo.description;
 
-      // Add dimensions if present (convert to strings)
+      // Add dimensions if present
       if (
         product.dimensions?.length &&
         product.dimensions?.width &&
         product.dimensions?.height
       ) {
         productData.dimensions = {
-          length: String(product.dimensions.length), // Convert to string
-          width: String(product.dimensions.width), // Convert to string
-          height: String(product.dimensions.height), // Convert to string
+          length: Number(product.dimensions.length),
+          width: Number(product.dimensions.width),
+          height: Number(product.dimensions.height),
         };
       }
 
@@ -455,12 +455,24 @@ export default function NewProductPage() {
 
     try {
       // Prepare product data for API as draft
-      const productData = {
-        ...product,
-        price: product.price,
-        stock: product.trackInventory ? product.stock : "0",
-        status: "draft" as const,
+      const productData: Record<string, any> = {
+        name: product.name,
+        sku: product.sku,
+        slug: product.slug || generateSlug(product.name),
+        price: Number(product.price),
+        stock: product.trackInventory ? Number(product.stock) : 0,
+        status: "draft",
+        tags: product.tags,
+        categoryId: product.category,
       };
+
+      if (product.description) productData.description = product.description;
+      if (product.comparePrice)
+        productData.originalPrice = Number(product.comparePrice);
+      if (product.weight) productData.weight = Number(product.weight);
+      if (product.seo?.title) productData.seoTitle = product.seo.title;
+      if (product.seo?.description)
+        productData.seoDescription = product.seo.description;
 
       // Call API to create draft product
       const response = await productApi.create(productData);
@@ -747,9 +759,8 @@ export default function NewProductPage() {
                           handleInputChange("category", e.target.value)
                         }
                         disabled={isLoadingCategories}
-                        className={`w-full border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring ${
-                          errors.category ? "border-red-500" : ""
-                        } ${isLoadingCategories ? "bg-gray-100" : ""}`}
+                        className={`w-full border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring ${errors.category ? "border-red-500" : ""
+                          } ${isLoadingCategories ? "bg-gray-100" : ""}`}
                       >
                         <option value="">
                           {isLoadingCategories
@@ -1123,11 +1134,10 @@ export default function NewProductPage() {
                       const files = Array.from(e.dataTransfer.files);
                       handleFilesUpload(files);
                     }}
-                    className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
-                      isDragging
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-300 hover:border-gray-400"
-                    }`}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${isDragging
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-300 hover:border-gray-400"
+                      }`}
                   >
                     <input
                       type="file"
@@ -1238,13 +1248,12 @@ export default function NewProductPage() {
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-1">
                         <div
-                          className={`h-1 rounded-full transition-colors ${
-                            (product.seo?.title?.length || 0) > 60
-                              ? "bg-red-500"
-                              : (product.seo?.title?.length || 0) > 50
-                                ? "bg-yellow-500"
-                                : "bg-green-500"
-                          }`}
+                          className={`h-1 rounded-full transition-colors ${(product.seo?.title?.length || 0) > 60
+                            ? "bg-red-500"
+                            : (product.seo?.title?.length || 0) > 50
+                              ? "bg-yellow-500"
+                              : "bg-green-500"
+                            }`}
                           style={{
                             width: `${Math.min(((product.seo?.title?.length || 0) / 60) * 100, 100)}%`,
                           }}
@@ -1283,13 +1292,12 @@ export default function NewProductPage() {
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-1">
                         <div
-                          className={`h-1 rounded-full transition-colors ${
-                            (product.seo?.description?.length || 0) > 160
-                              ? "bg-red-500"
-                              : (product.seo?.description?.length || 0) > 150
-                                ? "bg-yellow-500"
-                                : "bg-green-500"
-                          }`}
+                          className={`h-1 rounded-full transition-colors ${(product.seo?.description?.length || 0) > 160
+                            ? "bg-red-500"
+                            : (product.seo?.description?.length || 0) > 150
+                              ? "bg-yellow-500"
+                              : "bg-green-500"
+                            }`}
                           style={{
                             width: `${Math.min(((product.seo?.description?.length || 0) / 160) * 100, 100)}%`,
                           }}
