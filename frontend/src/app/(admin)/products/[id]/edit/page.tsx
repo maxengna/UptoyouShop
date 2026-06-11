@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { productApi, uploadApi } from "@/lib/api";
+import { productApi, uploadApi, API_BASE } from "@/lib/api";
 
 interface ProductImage {
   id: number;
@@ -298,7 +298,7 @@ export default function EditProductPage() {
               if (result.success) {
                 return {
                   id: img.id,
-                  url: `http://localhost:5000${result.data.url}`, // Real URL from server
+                  url: `${API_BASE}${result.data.url}`, // Real URL from server
                   name: img.name,
                   alt: `${product.name} - Image ${index + 1}`,
                   sortOrder: index,

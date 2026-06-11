@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     const uniqueFilename = `${uuidv4()}.${fileExtension}`;
 
     // Create uploads directory if it doesn't exist
-    const uploadsDir = join(process.cwd(), "public", "uploads", "products");
+    const uploadsDir = join(process.cwd(), "public", "uploads");
     console.log("Uploads directory:", uploadsDir);
 
     try {
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Return the file URL
-    const fileUrl = `/uploads/products/${uniqueFilename}`;
+    const fileUrl = `/uploads/${uniqueFilename}`;
 
     return NextResponse.json(
       {
@@ -127,7 +127,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // For security, only allow deleting files from uploads directory
-    const allowedPath = filePath.startsWith("/uploads/products/");
+    const allowedPath = filePath.startsWith("/uploads/");
     if (!allowedPath) {
       return NextResponse.json({ error: "Invalid file path" }, { status: 400 });
     }

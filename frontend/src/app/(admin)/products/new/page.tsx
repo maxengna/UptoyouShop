@@ -72,8 +72,9 @@ interface ProductImage {
   url: string;
   name: string;
   alt?: string;
-  file?: File; // File object for new images
-  isFromDB?: boolean; // Track if image is from database
+  imageKey?: string;
+  file?: File;
+  isFromDB?: boolean;
 }
 
 interface ProductState extends Omit<Product, "id" | "createdAt" | "updatedAt"> {
@@ -339,14 +340,12 @@ export default function NewProductPage() {
 
       // Create product first
       const response = await productApi.create(productData as any);
-      console.log("Response:", response.data.product?.id);
       if (!response.success) {
         throw new Error(response.message || "Failed to create product");
       }
 
-      const createdProduct = response.data.product;
+      const createdProduct = response.data?.product ?? response.data;
       console.log("Product created successfully:", createdProduct);
-      console.log("Product ID:", createdProduct?.id);
 
       if (!createdProduct || !createdProduct.id) {
         throw new Error("Product was created but no ID was returned");
@@ -359,41 +358,40 @@ export default function NewProductPage() {
         );
         const uploadedImages = await Promise.all(
           product.images.map(async (img: ProductImage, index) => {
-            console.log("Processing image:", img.name, "has file:", !!img.file);
             if (img.file && !img.isFromDB) {
-              // New image that needs upload
               try {
-                console.log("Uploading file:", img.file.name);
                 const result = await uploadApi.uploadFile(img.file);
 
-                if (result.success) {
-                  console.log("Upload successful for:", img.file.name);
+                if (result.success && result.data.imageKey) {
                   return {
-                    url: `http://localhost:5000${result.data.url}`, // Real URL from server
+                    imageKey: result.data.imageKey,
                     alt: `${product.name} - Image ${index + 1}`,
                     sortOrder: index,
                     isMain: index === 0,
                   };
-                } else {
-                  throw new Error(
-                    `Upload failed: ${(result as any).error || "Unknown error"}`,
-                  );
                 }
+
+                throw new Error(
+                  `Upload failed: ${(result as any).error || "Unknown error"}`,
+                );
               } catch (error) {
                 console.error("Upload error:", error);
                 throw new Error(
                   `Failed to upload ${img.name}: ${error instanceof Error ? error.message : "Unknown error"}`,
                 );
               }
-            } else {
-              // Existing image from database (shouldn't happen in new product)
+            }
+
+            if (img.imageKey) {
               return {
-                url: img.url,
+                imageKey: img.imageKey,
                 alt: img.alt || `${product.name} - Image ${index + 1}`,
                 sortOrder: index,
                 isMain: index === 0,
               };
             }
+
+            throw new Error(`Image ${img.name} is missing file data`);
           }),
         );
 

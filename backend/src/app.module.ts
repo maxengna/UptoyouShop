@@ -9,6 +9,7 @@ import { OrdersModule } from "./orders/orders.module";
 import { AdminModule } from "./admin/admin.module";
 import { ReviewsModule } from "./reviews/reviews.module";
 import { HealthModule } from "./health/health.module";
+import { UploadModule } from "./upload/upload.module";
 import appConfig from "./config/app.config";
 
 @Module({
@@ -27,6 +28,7 @@ import appConfig from "./config/app.config";
     AdminModule,
     ReviewsModule,
     HealthModule,
+    UploadModule,
   ],
 })
 export class AppModule {}

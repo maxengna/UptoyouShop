@@ -1,6 +1,6 @@
 // API utility functions
 
-const API_BASE =
+export const API_BASE =
   process.env.NODE_ENV === "production"
     ? "https://your-domain.com"
     : "http://localhost:5000";
@@ -109,9 +109,9 @@ async function apiRequest<T>(
   }
 }
 
-// Upload API
+// Upload API (files stored in AWS S3, imageKey saved in product_images)
 export const uploadApi = {
-  // Upload a single file
+  // Upload a single file to S3
   uploadFile: async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -119,8 +119,8 @@ export const uploadApi = {
     return apiRequest<{
       success: boolean;
       data: {
+        imageKey: string;
         url: string;
-        filename: string;
         originalName: string;
         size: number;
         type: string;
@@ -135,10 +135,10 @@ export const uploadApi = {
     );
   },
 
-  // Delete a file
-  deleteFile: async (filePath: string) => {
+  // Delete a file from S3
+  deleteFile: async (imageKey: string) => {
     return apiRequest<{ success: boolean; message: string }>(
-      `/api/upload?path=${encodeURIComponent(filePath)}`,
+      `/api/upload?key=${encodeURIComponent(imageKey)}`,
       {
         method: "DELETE",
       },

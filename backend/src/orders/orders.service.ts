@@ -5,13 +5,17 @@ import {
   ForbiddenException,
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { S3Service } from "../upload/s3.service";
 import { CreateOrderDto } from "./dto/create-order.dto";
 import { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
 import { OrderStatus, PaymentStatus } from "@prisma/client";
 
 @Injectable()
 export class OrdersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly s3Service: S3Service,
+  ) {}
 
   async createOrder(userId: string, createOrderDto: CreateOrderDto) {
     const { items, shippingAddress, billingAddress, paymentMethod, notes } =
@@ -57,7 +61,8 @@ export class OrdersService {
           slug: product.slug,
           sku: product.sku,
           images: product.images.map((img) => ({
-            url: img.url,
+            imageKey: img.imageKey,
+            url: this.s3Service.getPublicUrl(img.imageKey),
             alt: img.alt,
           })),
         },

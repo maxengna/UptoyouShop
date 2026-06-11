@@ -27,9 +27,9 @@ class DimensionsDto {
 }
 
 class ImageDto {
-  @ApiProperty({ example: 'https://example.com/image.jpg' })
+  @ApiProperty({ example: 'products/abc123.jpg' })
   @IsString()
-  url: string;
+  imageKey: string;
 
   @ApiPropertyOptional({ example: 'Product image' })
   @IsOptional()

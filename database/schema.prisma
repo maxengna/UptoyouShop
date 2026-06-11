@@ -4,6 +4,7 @@
 generator client {
   provider = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  output   = "../backend/node_modules/.prisma/client"
 }
 
 datasource db {
@@ -105,7 +106,7 @@ model Product {
 model ProductImage {
   id        String   @id @default(cuid())
   productId String
-  url       String
+  imageKey  String
   alt       String?
   sortOrder  Int      @default(0)
   isMain    Boolean  @default(false)

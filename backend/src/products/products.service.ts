@@ -5,13 +5,33 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { S3Service } from "../upload/s3.service";
 import { CreateProductDto } from "./dto/create-product.dto";
 import { UpdateProductDto } from "./dto/update-product.dto";
 import { ProductQueryDto, SortBy } from "./dto/product-query.dto";
 
 @Injectable()
 export class ProductsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly s3Service: S3Service,
+  ) {}
+
+  private mapProductImages<T extends Record<string, unknown>>(product: T) {
+    const images = product.images as
+      | Array<{ imageKey: string; [key: string]: unknown }>
+      | undefined;
+
+    if (!images) return product;
+
+    return {
+      ...product,
+      images: images.map((img) => ({
+        ...img,
+        url: this.s3Service.getPublicUrl(img.imageKey),
+      })),
+    };
+  }
 
   async getProducts(query: ProductQueryDto) {
     const {
@@ -101,16 +121,18 @@ export class ProductsService {
     ]);
 
     // Calculate average rating for each product
-    const productsWithRatings = products.map((product) => ({
-      ...product,
-      averageRating:
-        product.reviews.length > 0
-          ? product.reviews.reduce((sum, review) => sum + review.rating, 0) /
-            product.reviews.length
-          : null,
-      reviewCount: product.reviews.length,
-      reviews: undefined, // Remove raw reviews
-    }));
+    const productsWithRatings = products.map((product) =>
+      this.mapProductImages({
+        ...product,
+        averageRating:
+          product.reviews.length > 0
+            ? product.reviews.reduce((sum, review) => sum + review.rating, 0) /
+              product.reviews.length
+            : null,
+        reviewCount: product.reviews.length,
+        reviews: undefined, // Remove raw reviews
+      }),
+    );
 
     return {
       success: true,
@@ -169,11 +191,11 @@ export class ProductsService {
 
     return {
       success: true,
-      data: {
+      data: this.mapProductImages({
         ...product,
         averageRating,
         reviewCount: product.reviews.length,
-      },
+      }),
       message: "Product retrieved successfully",
       errors: [],
     };
@@ -248,7 +270,7 @@ export class ProductsService {
     if (images && images.length > 0) {
       const imageData = images.map((img, index) => ({
         productId: product.id,
-        url: img.url,
+        imageKey: img.imageKey,
         alt: img.alt || `${product.name} - Image ${index + 1}`,
         sortOrder: img.sortOrder || index,
         isMain: img.isMain || index === 0,
@@ -283,7 +305,9 @@ export class ProductsService {
 
     return {
       success: true,
-      data: productWithImages,
+      data: productWithImages
+        ? this.mapProductImages(productWithImages)
+        : productWithImages,
       message: "Product created successfully",
       errors: [],
     };
@@ -369,7 +393,7 @@ export class ProductsService {
       if (images.length > 0) {
         const imageData = images.map((img, index) => ({
           productId: id,
-          url: img.url,
+          imageKey: img.imageKey,
           alt: img.alt || `${product.name} - Image ${index + 1}`,
           sortOrder: img.sortOrder || index,
           isMain: img.isMain || index === 0,
@@ -396,7 +420,9 @@ export class ProductsService {
 
     return {
       success: true,
-      data: updatedProduct,
+      data: updatedProduct
+        ? this.mapProductImages(updatedProduct)
+        : updatedProduct,
       message: "Product updated successfully",
       errors: [],
     };
