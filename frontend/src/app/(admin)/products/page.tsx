@@ -13,14 +13,14 @@ const statuses = ["All", "Active", "Out of Stock", "Draft", "Archived"];
 
 // Product type from API
 interface Product {
-  id: number;
+  id: any;
   name: string;
   slug: string;
   description?: string;
-  price: string;
-  originalPrice?: string;
+  price: any;
+  originalPrice?: any;
   sku: string;
-  stock: string;
+  stock: any;
   category: {
     id: string;
     name: string;

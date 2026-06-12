@@ -77,8 +77,18 @@ interface ProductImage {
   isFromDB?: boolean;
 }
 
-interface ProductState extends Omit<Product, "id" | "createdAt" | "updatedAt"> {
+interface ProductState extends Omit<Product, "id" | "createdAt" | "updatedAt" | "price" | "comparePrice" | "stock" | "weight" | "dimensions" | "images"> {
   slug: string; // Add slug explicitly
+  price: string | number;
+  comparePrice: string | number;
+  stock: string | number;
+  weight: string | number;
+  dimensions?: {
+    length?: string | number;
+    width?: string | number;
+    height?: string | number;
+  };
+  images: ProductImage[];
 }
 
 const initialProductState: ProductState = {
@@ -275,7 +285,7 @@ export default function NewProductPage() {
     if (!product.sku.trim()) {
       newErrors.sku = "Please enter product SKU";
     }
-    if (!product.price || parseFloat(product.price) <= 0) {
+    if (!product.price || parseFloat(String(product.price)) <= 0) {
       newErrors.price = "Please enter a valid price";
     }
     if (!product.category) {
@@ -283,7 +293,7 @@ export default function NewProductPage() {
     }
     if (
       product.trackInventory &&
-      (!product.stock || parseInt(product.stock) < 0)
+      (!product.stock || parseInt(String(product.stock), 10) < 0)
     ) {
       newErrors.stock = "Please enter a valid stock quantity";
     }
@@ -473,7 +483,7 @@ export default function NewProductPage() {
         productData.seoDescription = product.seo.description;
 
       // Call API to create draft product
-      const response = await productApi.create(productData);
+      const response = await productApi.create(productData as any);
 
       if (response.success) {
         console.log("Draft saved successfully:", response.data.product);
@@ -576,12 +586,12 @@ export default function NewProductPage() {
                 <div className="flex items-center gap-4 mb-6">
                   <span className="text-3xl font-bold">
                     {product.price
-                      ? `฿${parseFloat(product.price).toFixed(2)}`
+                      ? `฿${parseFloat(String(product.price)).toFixed(2)}`
                       : "฿0.00"}
                   </span>
                   {product.comparePrice && (
                     <span className="text-lg text-muted-foreground line-through">
-                      ฿{parseFloat(product.comparePrice).toFixed(2)}
+                      ฿{parseFloat(String(product.comparePrice)).toFixed(2)}
                     </span>
                   )}
                 </div>

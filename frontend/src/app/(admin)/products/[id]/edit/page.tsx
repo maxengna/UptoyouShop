@@ -31,6 +31,7 @@ interface ProductImage {
   url: string;
   name: string;
   alt?: string; // Add alt property
+  imageKey?: string; // Add imageKey property
   file?: File; // File object for new images
   isFromDB?: boolean; // Track if image is from database
 }
@@ -109,10 +110,11 @@ export default function EditProductPage() {
           throw new Error("Product not found");
         }
         // Mark existing images as from database
+        const rawProduct = (productData as any).product || productData;
         const productWithImageFlags = {
-          ...productData.product || productData,
+          ...rawProduct,
           images:
-            (productData.product?.images || productData.images)?.map((img: any) => ({
+            (rawProduct.images || [])?.map((img: any) => ({
               ...img,
               isFromDB: true, // Mark as existing image
             })) || [],
@@ -298,7 +300,8 @@ export default function EditProductPage() {
               if (result.success) {
                 return {
                   id: img.id,
-                  url: `${API_BASE}${result.data.url}`, // Real URL from server
+                  url: result.data.url, // Use full S3 URL returned by upload API // Real URL from server
+                  imageKey: result.data.imageKey,
                   name: img.name,
                   alt: `${product.name} - Image ${index + 1}`,
                   sortOrder: index,
@@ -320,6 +323,7 @@ export default function EditProductPage() {
             return {
               id: img.id,
               url: img.url,
+              imageKey: img.imageKey,
               name: img.name,
               alt: img.alt || `${product.name} - Image ${index + 1}`,
               sortOrder: index,
@@ -357,7 +361,7 @@ export default function EditProductPage() {
       // Add uploaded images if they exist
       if (uploadedImages && uploadedImages.length > 0) {
         productData.images = uploadedImages.map((img) => ({
-          url: img.url,
+          imageKey: img.imageKey,
           alt: img.alt,
           sortOrder: img.sortOrder,
           isMain: img.isMain,
@@ -983,12 +987,20 @@ export default function EditProductPage() {
                             key={image.id}
                             className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 group"
                           >
-                            <Image
-                              src={image.url}
-                              alt={`Product ${index + 1}`}
-                              fill
-                              className="object-cover"
-                            />
+                            {image.isFromDB ? (
+                              <Image
+                                src={image.url}
+                                alt={`Product ${index + 1}`}
+                                fill
+                                className="object-cover"
+                              />
+                            ) : (
+                              <img
+                                src={image.url}
+                                alt={`Product ${index + 1}`}
+                                className="object-cover w-full h-full"
+                              />
+                            )}
 
                             {/* Upload status indicator */}
                             {image.file && !image.isFromDB && (

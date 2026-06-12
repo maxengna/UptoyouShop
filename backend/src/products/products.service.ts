@@ -17,19 +17,23 @@ export class ProductsService {
     private readonly s3Service: S3Service,
   ) {}
 
-  private mapProductImages<T extends Record<string, unknown>>(product: T) {
+  private async mapProductImages<T extends Record<string, any>>(product: T): Promise<T> {
     const images = product.images as
-      | Array<{ imageKey: string; [key: string]: unknown }>
+      | Array<{ imageKey: string; [key: string]: any }>
       | undefined;
 
     if (!images) return product;
 
+    const mappedImages = await Promise.all(
+      images.map(async (img) => ({
+        ...img,
+        url: await this.s3Service.getSignedUrl(img.imageKey),
+      })),
+    );
+
     return {
       ...product,
-      images: images.map((img) => ({
-        ...img,
-        url: this.s3Service.getPublicUrl(img.imageKey),
-      })),
+      images: mappedImages,
     };
   }
 
@@ -121,17 +125,19 @@ export class ProductsService {
     ]);
 
     // Calculate average rating for each product
-    const productsWithRatings = products.map((product) =>
-      this.mapProductImages({
-        ...product,
-        averageRating:
-          product.reviews.length > 0
-            ? product.reviews.reduce((sum, review) => sum + review.rating, 0) /
-              product.reviews.length
-            : null,
-        reviewCount: product.reviews.length,
-        reviews: undefined, // Remove raw reviews
-      }),
+    const productsWithRatings = await Promise.all(
+      products.map((product) =>
+        this.mapProductImages({
+          ...product,
+          averageRating:
+            product.reviews.length > 0
+              ? product.reviews.reduce((sum, review) => sum + review.rating, 0) /
+                product.reviews.length
+              : null,
+          reviewCount: product.reviews.length,
+          reviews: undefined, // Remove raw reviews
+        }),
+      ),
     );
 
     return {
@@ -191,7 +197,7 @@ export class ProductsService {
 
     return {
       success: true,
-      data: this.mapProductImages({
+      data: await this.mapProductImages({
         ...product,
         averageRating,
         reviewCount: product.reviews.length,
@@ -306,7 +312,7 @@ export class ProductsService {
     return {
       success: true,
       data: productWithImages
-        ? this.mapProductImages(productWithImages)
+        ? await this.mapProductImages(productWithImages)
         : productWithImages,
       message: "Product created successfully",
       errors: [],
@@ -421,7 +427,7 @@ export class ProductsService {
     return {
       success: true,
       data: updatedProduct
-        ? this.mapProductImages(updatedProduct)
+        ? await this.mapProductImages(updatedProduct)
         : updatedProduct,
       message: "Product updated successfully",
       errors: [],
