@@ -572,7 +572,7 @@ export default function EditProductPage() {
                             ? "Loading..."
                             : "Select category"}
                         </option>
-                        {categories.map((category) => (
+                        {(categories || []).map((category) => (
                           <option key={category} value={category}>
                             {category}
                           </option>
