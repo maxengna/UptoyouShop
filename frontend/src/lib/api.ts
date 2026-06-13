@@ -12,6 +12,23 @@ export interface ApiResponse<T = any> {
   errors?: any;
 }
 
+export interface ProductQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  category?: string;
+  showAll?: boolean;
+}
+
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  pages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
 export interface Product {
   id?: number;
   name: string;
@@ -162,11 +179,19 @@ export const productApi = {
     });
   },
 
-  // Get all products
-  getAll: async () => {
-    return apiRequest<{ success: boolean; data: { products: Product[] } }>(
-      "/api/products",
-    );
+  // Get all products (with optional pagination/filter params)
+  getAll: async (params?: ProductQueryParams) => {
+    const query = new URLSearchParams();
+    if (params?.page) query.set("page", String(params.page));
+    if (params?.limit) query.set("limit", String(params.limit));
+    if (params?.search) query.set("search", params.search);
+    if (params?.category) query.set("category", params.category);
+    if (params?.showAll) query.set("showAll", "true");
+    const qs = query.toString();
+    return apiRequest<{
+      success: boolean;
+      data: { products: Product[]; pagination: PaginationMeta };
+    }>(`/api/products${qs ? `?${qs}` : ""}`);
   },
 
   // Get a single product

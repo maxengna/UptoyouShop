@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 import { productApi, uploadApi, API_BASE } from "@/lib/api";
 
 interface ProductImage {
@@ -245,14 +246,22 @@ export default function EditProductPage() {
     }));
   };
 
+  const [removedImageKeys, setRemovedImageKeys] = useState<string[]>([]);
+
   const removeImage = (imageId: number) => {
     if (!product) return;
 
     const imageToRemove = product.images.find((img) => img.id === imageId);
+    if (!imageToRemove) return;
 
     // Cleanup object URL if it's a preview
-    if (imageToRemove?.url.startsWith("blob:")) {
+    if (imageToRemove.url.startsWith("blob:")) {
       URL.revokeObjectURL(imageToRemove.url);
+    }
+
+    // Track existing image keys for deletion on save
+    if (imageToRemove.isFromDB && imageToRemove.imageKey) {
+      setRemovedImageKeys((prev) => [...prev, imageToRemove.imageKey!]);
     }
 
     setProduct((prev) => ({
@@ -359,15 +368,13 @@ export default function EditProductPage() {
       if (product.seoDescription)
         productData.seoDescription = product.seoDescription; // Separate field
 
-      // Add uploaded images if they exist
-      if (uploadedImages && uploadedImages.length > 0) {
-        productData.images = uploadedImages.map((img) => ({
-          imageKey: img.imageKey,
-          alt: img.alt,
-          sortOrder: img.sortOrder,
-          isMain: img.isMain,
-        }));
-      }
+      // Always send images array so backend deletes removed records
+      productData.images = (uploadedImages || []).map((img) => ({
+        imageKey: img.imageKey,
+        alt: img.alt,
+        sortOrder: img.sortOrder,
+        isMain: img.isMain,
+      }));
 
       // Only include dimensions if all values are present (including 0)
       if (
@@ -396,12 +403,22 @@ export default function EditProductPage() {
           }
         });
 
+        // Delete removed images from S3
+        await Promise.all(
+          removedImageKeys.map((key) =>
+            uploadApi.deleteFile(key).catch((err) =>
+              console.error("Failed to delete image from S3:", err),
+            ),
+          ),
+        );
+
+        toast.success("Product updated successfully");
         router.push("/products");
       } else {
-        setError(result.message || "Failed to update product");
+        toast.error(result.message || "Failed to update product");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error updating product");
+      toast.error(err instanceof Error ? err.message : "Error updating product");
     } finally {
       setSaving(false);
     }

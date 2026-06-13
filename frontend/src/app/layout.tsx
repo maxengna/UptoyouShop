@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import { Toaster } from 'sonner'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { CartDrawer } from '@/components/shop/cart-drawer'
@@ -29,6 +30,7 @@ export default function RootLayout({
           <Footer />
           <CartDrawer />
           <StickyCartBar />
+          <Toaster richColors position="top-right" />
         </div>
       </body>
     </html>

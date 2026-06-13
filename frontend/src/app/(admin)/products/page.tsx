@@ -1,17 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Plus, Search, Edit, Trash2, Eye, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { productApi } from "@/lib/api";
+import { productApi, PaginationMeta } from "@/lib/api";
 
 const statuses = ["All", "Active", "Out of Stock", "Draft", "Archived"];
 
-// Product type from API
 interface Product {
   id: any;
   name: string;
@@ -44,18 +43,6 @@ interface Product {
   };
   averageRating?: string | null;
   reviewCount: string;
-}
-
-interface ProductsResponse {
-  products: Product[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    pages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
 }
 
 const categories = [
@@ -102,72 +89,51 @@ export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
-  const [showFilters, setShowFilters] = useState(false);
+  const [pagination, setPagination] = useState<PaginationMeta | null>(null);
+  const [searchInput, setSearchInput] = useState("");
 
-  const productsPerPage = 10;
+  const LIMIT = 10;
 
-  // Fetch products from API
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch("http://localhost:5000/api/products");
-        if (!response.ok) {
-          throw new Error("Failed to fetch products");
-        }
-        const data = await response.json();
-        if (data.success) {
-          setProducts(data.data.products || []);
-        } else {
-          throw new Error(data.message || "Failed to fetch products");
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
-      } finally {
-        setLoading(false);
+  const fetchProducts = useCallback(async () => {
+    try {
+      setLoading(true);
+      const category =
+        selectedCategory === "All" ? undefined : selectedCategory.toLowerCase();
+      const showAll = selectedStatus === "All" ? true : undefined;
+      const response = await productApi.getAll({
+        page: currentPage,
+        limit: LIMIT,
+        search: searchQuery || undefined,
+        category,
+        showAll,
+      });
+      if (response.success) {
+        setProducts(response.data.products || []);
+        setPagination(response.data.pagination || null);
+      } else {
+        throw new Error(response.message || "Failed to fetch products");
       }
-    };
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPage, searchQuery, selectedCategory, selectedStatus]);
 
+  useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [fetchProducts]);
 
-  // Filter products
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch =
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.sku.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      selectedCategory === "All" || product.category.name === selectedCategory;
-    const productStatus = getStatusFromProduct(product);
-    const matchesStatus =
-      selectedStatus === "All" ||
-      (selectedStatus === "Active" && productStatus === "active") ||
-      (selectedStatus === "Out of Stock" && productStatus === "out-of-stock") ||
-      (selectedStatus === "Draft" && productStatus === "draft") ||
-      (selectedStatus === "Archived" && productStatus === "archived");
-
-    return matchesSearch && matchesCategory && matchesStatus;
-  });
-
-  // Pagination
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-  const startIndex = (currentPage - 1) * productsPerPage;
-  const paginatedProducts = filteredProducts.slice(
-    startIndex,
-    startIndex + productsPerPage,
-  );
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategory, selectedStatus]);
 
   const handleDelete = async (productId: string) => {
     if (confirm("Are you sure you want to delete this product?")) {
       try {
-        const response = await fetch(
-          `http://localhost:5000/products/${productId}`,
-          {
-            method: "DELETE",
-          },
-        );
-        if (response.ok) {
-          setProducts(products.filter((p) => p.id !== productId));
+        const result = await productApi.delete(productId);
+        if (result.success) {
+          fetchProducts();
         } else {
           alert("Failed to delete product");
         }
@@ -176,6 +142,9 @@ export default function ProductsPage() {
       }
     }
   };
+
+  const totalPages = pagination?.pages || 0;
+  const totalProducts = pagination?.total || 0;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -213,17 +182,14 @@ export default function ProductsPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <Card>
           <CardContent className="p-6">
-            <div className="text-2xl font-bold">{products.length}</div>
+            <div className="text-2xl font-bold">{totalProducts}</div>
             <p className="text-sm text-muted-foreground">Total Products</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold">
-              {
-                products.filter((p: Product) => p.isActive && p.stock > 0)
-                  .length
-              }
+              {products.filter((p) => p.isActive && p.stock > 0).length}
             </div>
             <p className="text-sm text-muted-foreground">Active Products</p>
           </CardContent>
@@ -231,7 +197,7 @@ export default function ProductsPage() {
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold">
-              {products.filter((p: Product) => p.stock === 0).length}
+              {products.filter((p) => p.stock === 0).length}
             </div>
             <p className="text-sm text-muted-foreground">Out of Stock</p>
           </CardContent>
@@ -239,7 +205,7 @@ export default function ProductsPage() {
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold">
-              {products.reduce((sum: number, p: Product) => sum + p.stock, 0)}
+              {products.reduce((sum, p) => sum + Number(p.stock || 0), 0)}
             </div>
             <p className="text-sm text-muted-foreground">Total Stock</p>
           </CardContent>
@@ -255,8 +221,13 @@ export default function ProductsPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search products by name or SKU..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    setSearchQuery(searchInput);
+                  }
+                }}
                 className="pl-10"
               />
             </div>
@@ -307,7 +278,7 @@ export default function ProductsPage() {
       {/* Products Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Products ({filteredProducts.length})</CardTitle>
+          <CardTitle>Products ({totalProducts})</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -326,7 +297,7 @@ export default function ProductsPage() {
                 </tr>
               </thead>
               <tbody>
-                {paginatedProducts.map((product: Product) => {
+                {products.map((product) => {
                   const productStatus = getStatusFromProduct(product);
                   return (
                     <tr key={product.id} className="border-b hover:bg-muted/50">
@@ -409,7 +380,7 @@ export default function ProductsPage() {
             </table>
           </div>
 
-          {filteredProducts.length === 0 && (
+          {!loading && products.length === 0 && (
             <div className="text-center py-12">
               <p className="text-muted-foreground mb-4">
                 No products found matching your criteria.
@@ -418,6 +389,7 @@ export default function ProductsPage() {
                 variant="outline"
                 onClick={() => {
                   setSearchQuery("");
+                  setSearchInput("");
                   setSelectedCategory("All");
                   setSelectedStatus("All");
                 }}
@@ -433,7 +405,7 @@ export default function ProductsPage() {
               <Button
                 variant="outline"
                 disabled={currentPage === 1}
-                onClick={() => setCurrentPage(currentPage - 1)}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               >
                 Previous
               </Button>
@@ -456,7 +428,7 @@ export default function ProductsPage() {
               <Button
                 variant="outline"
                 disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(currentPage + 1)}
+                onClick={() => setCurrentPage((p) => p + 1)}
               >
                 Next
               </Button>
