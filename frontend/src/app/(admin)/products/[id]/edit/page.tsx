@@ -89,7 +89,7 @@ export default function EditProductPage() {
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [currentTag, setCurrentTag] = useState("");
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -113,6 +113,7 @@ export default function EditProductPage() {
         const rawProduct = (productData as any).product || productData;
         const productWithImageFlags = {
           ...rawProduct,
+          categoryId: rawProduct.categoryId ?? rawProduct.category?.id ?? "",
           images:
             (rawProduct.images || [])?.map((img: any) => ({
               ...img,
@@ -142,30 +143,30 @@ export default function EditProductPage() {
           setCategories(data.categories);
         } else {
           setCategories([
-            "Electronics",
-            "Clothing",
-            "Home & Garden",
-            "Sports",
-            "Books",
-            "Toys",
-            "Beauty",
-            "Health",
-            "Food",
-            "Other",
+            { id: "1", name: "Electronics", slug: "electronics" },
+            { id: "2", name: "Clothing", slug: "clothing" },
+            { id: "3", name: "Home & Garden", slug: "home-garden" },
+            { id: "4", name: "Sports", slug: "sports" },
+            { id: "5", name: "Books", slug: "books" },
+            { id: "6", name: "Toys", slug: "toys" },
+            { id: "7", name: "Beauty", slug: "beauty" },
+            { id: "8", name: "Health", slug: "health" },
+            { id: "9", name: "Food", slug: "food" },
+            { id: "10", name: "Other", slug: "other" },
           ]);
         }
       } catch (error) {
         setCategories([
-          "Electronics",
-          "Clothing",
-          "Home & Garden",
-          "Sports",
-          "Books",
-          "Toys",
-          "Beauty",
-          "Health",
-          "Food",
-          "Other",
+          { id: "1", name: "Electronics", slug: "electronics" },
+          { id: "2", name: "Clothing", slug: "clothing" },
+          { id: "3", name: "Home & Garden", slug: "home-garden" },
+          { id: "4", name: "Sports", slug: "sports" },
+          { id: "5", name: "Books", slug: "books" },
+          { id: "6", name: "Toys", slug: "toys" },
+          { id: "7", name: "Beauty", slug: "beauty" },
+          { id: "8", name: "Health", slug: "health" },
+          { id: "9", name: "Food", slug: "food" },
+          { id: "10", name: "Other", slug: "other" },
         ]);
       } finally {
         setIsLoadingCategories(false);
@@ -559,10 +560,14 @@ export default function EditProductPage() {
                       <Label htmlFor="category">Category *</Label>
                       <select
                         id="category"
-                        value={product.category?.name || ""}
-                        onChange={(e) =>
-                          handleInputChange("categoryId", e.target.value)
-                        }
+                        value={product.categoryId || String(product.category?.id ?? "")}
+                        onChange={(e) => {
+                          handleInputChange("categoryId", e.target.value);
+                          setProduct((prev) => prev ? {
+                            ...prev,
+                            category: { ...prev.category, id: e.target.value },
+                          } : prev);
+                        }}
                         disabled={isLoadingCategories}
                         className={`w-full border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring ${errors.category ? "border-red-500" : ""
                           } ${isLoadingCategories ? "bg-gray-100" : ""}`}
@@ -573,8 +578,8 @@ export default function EditProductPage() {
                             : "Select category"}
                         </option>
                         {(categories || []).map((category) => (
-                          <option key={category} value={category}>
-                            {category}
+                          <option key={category.id} value={category.id}>
+                            {category.name}
                           </option>
                         ))}
                       </select>
