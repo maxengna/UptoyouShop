@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Plus, Search, Edit, Trash2, Eye, ChevronDown } from "lucide-react";
+import { Plus, Search, Edit, Trash2, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -379,11 +379,6 @@ export default function ProductsPage() {
                       <td className="p-4 font-medium">-</td>
                       <td className="p-4">
                         <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="icon" asChild>
-                            <Link href={`/products/${product.id}`}>
-                              <Eye className="h-4 w-4" />
-                            </Link>
-                          </Button>
                           <Button variant="ghost" size="icon" asChild>
                             <Link href={`/products/${product.id}/edit`}>
                               <Edit className="h-4 w-4" />

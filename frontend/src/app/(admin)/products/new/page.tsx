@@ -469,7 +469,7 @@ export default function NewProductPage() {
         slug: product.slug || generateSlug(product.name),
         price: Number(product.price),
         stock: product.trackInventory ? Number(product.stock) : 0,
-        status: "draft",
+        isActive: false,
         tags: product.tags,
         categoryId: product.category,
       };
