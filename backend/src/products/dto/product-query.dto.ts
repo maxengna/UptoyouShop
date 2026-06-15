@@ -55,4 +55,10 @@ export class ProductQueryDto {
   @IsOptional()
   @IsBoolean()
   inStock?: boolean;
+
+  @ApiPropertyOptional({ description: "If true, returns all products including inactive" })
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  showAll?: boolean;
 }

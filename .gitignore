@@ -62,3 +62,6 @@ download-images.js
 download-images-simple.js
 download-real-images.ps1
 backend/dist/
+
+# continue extensions
+.continue/*

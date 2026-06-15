@@ -47,11 +47,14 @@ export class ProductsService {
       maxPrice,
       sortBy = SortBy.NEWEST,
       inStock,
+      showAll,
     } = query;
 
-    const where: any = {
-      isActive: true,
-    };
+    const where: any = {};
+
+    if (!showAll) {
+      where.isActive = true;
+    }
 
     if (category) {
       where.category = {
@@ -435,11 +438,11 @@ export class ProductsService {
   }
 
   async deleteProduct(id: string) {
-    // Check if product exists
     const existingProduct = await this.prisma.product.findUnique({
       where: { id },
       include: {
         orderItems: true,
+        images: { select: { imageKey: true } },
       },
     });
 
@@ -447,12 +450,18 @@ export class ProductsService {
       throw new NotFoundException("Product not found");
     }
 
-    // Check if product has orders
     if (existingProduct.orderItems.length > 0) {
       throw new BadRequestException(
         "Cannot delete product with existing orders",
       );
     }
+
+    // Delete images from S3
+    await Promise.all(
+      existingProduct.images.map((img) =>
+        this.s3Service.deleteFile(img.imageKey),
+      ),
+    );
 
     // Delete product (cascade will handle related records)
     await this.prisma.product.delete({

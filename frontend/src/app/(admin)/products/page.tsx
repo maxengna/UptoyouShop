@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Plus, Search, Edit, Trash2, Eye, ChevronDown } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -128,19 +129,44 @@ export default function ProductsPage() {
     setCurrentPage(1);
   }, [searchQuery, selectedCategory, selectedStatus]);
 
-  const handleDelete = async (productId: string) => {
-    if (confirm("Are you sure you want to delete this product?")) {
-      try {
-        const result = await productApi.delete(productId);
-        if (result.success) {
-          fetchProducts();
-        } else {
-          alert("Failed to delete product");
-        }
-      } catch (err) {
-        alert("Error deleting product");
+  const deleteProduct = async (productId: string) => {
+    try {
+      const result = await productApi.delete(productId);
+      if (result.success) {
+        toast.success("Product deleted successfully");
+        fetchProducts();
+      } else {
+        toast.error("Failed to delete product");
       }
+    } catch (err) {
+      toast.error("Error deleting product");
     }
+  };
+
+  const handleDelete = (productId: string) => {
+    toast.custom(
+      (t) => (
+        <div className="bg-background border rounded-lg shadow-lg p-4 max-w-sm">
+        <p className="font-medium mb-3">Are you sure you want to delete this product?</p>
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" size="sm" onClick={() => toast.dismiss(t)}>
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={async () => {
+              toast.dismiss(t);
+              await deleteProduct(productId);
+            }}
+          >
+            Delete
+          </Button>
+        </div>
+      </div>
+    ),
+    { position: "top-center" }
+  );
   };
 
   const totalPages = pagination?.pages || 0;
