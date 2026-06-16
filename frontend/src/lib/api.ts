@@ -190,6 +190,7 @@ export const productApi = {
     const qs = query.toString();
     return apiRequest<{
       success: boolean;
+      message: string;
       data: { products: Product[]; pagination: PaginationMeta };
     }>(`/api/products${qs ? `?${qs}` : ""}`);
   },
@@ -214,7 +215,7 @@ export const productApi = {
   },
 
   // Delete a product
-  delete: async (id: number) => {
+  delete: async (id: string | number) => {
     return apiRequest<{ success: boolean; message: string }>(
       `/api/products/${id}`,
       {
@@ -227,6 +228,87 @@ export const productApi = {
   health: async () => {
     return apiRequest<{ status: string }>("/api/health", {
       method: "GET",
+    });
+  },
+};
+
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  image?: string;
+  parentId?: string;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+  _count?: { products: number };
+}
+
+// Category API functions
+export const categoryApi = {
+  getAll: async () => {
+    return apiRequest<{
+      success: boolean;
+      data: { categories: Category[] };
+      categories: Category[];
+      message: string;
+    }>("/api/categories");
+  },
+
+  getById: async (id: string) => {
+    return apiRequest<{
+      success: boolean;
+      data: Category;
+      message: string;
+    }>(`/api/categories/${id}`);
+  },
+
+  create: async (data: {
+    name: string;
+    slug: string;
+    description?: string;
+    image?: string;
+    parentId?: string;
+    isActive?: boolean;
+    sortOrder?: number;
+  }) => {
+    return apiRequest<{
+      success: boolean;
+      data: Category;
+      message: string;
+    }>("/api/categories", {
+      method: "POST",
+      body: data,
+    });
+  },
+
+  update: async (id: string, data: Partial<{
+    name: string;
+    slug: string;
+    description?: string;
+    image?: string;
+    parentId?: string;
+    isActive?: boolean;
+    sortOrder?: number;
+  }>) => {
+    return apiRequest<{
+      success: boolean;
+      data: Category;
+      message: string;
+    }>(`/api/categories/${id}`, {
+      method: "PUT",
+      body: data,
+    });
+  },
+
+  delete: async (id: string) => {
+    return apiRequest<{
+      success: boolean;
+      message: string;
+    }>(`/api/categories/${id}`, {
+      method: "DELETE",
     });
   },
 };

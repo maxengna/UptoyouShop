@@ -109,7 +109,7 @@ export default function ProductsPage() {
         showAll,
       });
       if (response.success) {
-        setProducts(response.data.products || []);
+        setProducts((response.data.products || []) as any);
         setPagination(response.data.pagination || null);
       } else {
         throw new Error(response.message || "Failed to fetch products");

@@ -13,6 +13,7 @@ import {
   Calendar,
   ArrowUpRight,
   ArrowDownRight,
+  Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -367,6 +368,16 @@ export default function AdminDashboard() {
                 <Link href="/products">
                   <Package className="h-4 w-4 mr-2" />
                   Add New Product
+                </Link>
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                asChild
+              >
+                <Link href="/categories">
+                  <Tag className="h-4 w-4 mr-2" />
+                  Manage Categories
                 </Link>
               </Button>
               <Button

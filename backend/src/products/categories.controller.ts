@@ -1,56 +1,66 @@
-import { Controller, Get } from "@nestjs/common";
-import { PrismaService } from "../prisma/prisma.service";
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
+import { CategoriesService } from "./categories.service";
+import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import { RolesGuard } from "../auth/roles.guard";
+import { Roles } from "../common/decorators/roles.decorator";
+import { UserRole } from "@prisma/client";
+import { CreateCategoryDto } from "./dto/create-category.dto";
+import { UpdateCategoryDto } from "./dto/update-category.dto";
 
+@ApiTags("Categories")
 @Controller("categories")
 export class CategoriesController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly categoriesService: CategoriesService) {}
 
   @Get()
-  async getCategories() {
-    let dbCategories = await this.prisma.category.findMany({
-      where: { isActive: true },
-      orderBy: { sortOrder: "asc" },
-    });
+  @ApiOperation({ summary: "Get all active categories" })
+  async getAll() {
+    return this.categoriesService.getAll();
+  }
 
-    // If database categories list is empty, seed defaults into database
-    if (dbCategories.length === 0) {
-      const defaultCategories = [
-        "Electronics",
-        "Clothing",
-        "Home & Garden",
-        "Sports",
-        "Books",
-        "Toys",
-        "Beauty",
-        "Health",
-        "Food",
-        "Other",
-      ];
+  @Get(":id")
+  @ApiOperation({ summary: "Get category by ID" })
+  async getById(@Param("id") id: string) {
+    return this.categoriesService.getById(id);
+  }
 
-      const seedData = defaultCategories.map((name) => ({
-        name,
-        slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
-      }));
+  @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Create category (Admin only)" })
+  async create(@Body() createCategoryDto: CreateCategoryDto) {
+    return this.categoriesService.create(createCategoryDto);
+  }
 
-      await this.prisma.category.createMany({
-        data: seedData,
-        skipDuplicates: true,
-      });
+  @Put(":id")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Update category (Admin only)" })
+  async update(
+    @Param("id") id: string,
+    @Body() updateCategoryDto: UpdateCategoryDto,
+  ) {
+    return this.categoriesService.update(id, updateCategoryDto);
+  }
 
-      dbCategories = await this.prisma.category.findMany({
-        where: { isActive: true },
-        orderBy: { sortOrder: "asc" },
-      });
-    }
-
-    return {
-      success: true,
-      data: {
-        categories: dbCategories,
-      },
-      categories: dbCategories,
-      message: "Categories retrieved successfully",
-      errors: [],
-    };
+  @Delete(":id")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Delete category (Admin only)" })
+  async delete(@Param("id") id: string) {
+    return this.categoriesService.delete(id);
   }
 }
