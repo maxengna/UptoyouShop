@@ -24,20 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { productApi, uploadApi, ApiError, Product } from "@/lib/api";
-
-const categories = [
-  "Electronics",
-  "Clothing",
-  "Home & Garden",
-  "Sports",
-  "Books",
-  "Toys",
-  "Beauty",
-  "Health",
-  "Food",
-  "Other",
-];
+import { productApi, uploadApi, categoryApi, ApiError, Product } from "@/lib/api";
 
 // Generate slug from text
 function generateSlug(text: string): string {
@@ -46,26 +33,6 @@ function generateSlug(text: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 }
-
-// Helper function to get or create category
-const getOrCreateCategory = async (
-  categoryName: string,
-): Promise<string | null> => {
-  // For now, return a simple ID - in real app this would call API
-  const categoryMap: Record<string, string> = {
-    Electronics: "electronics",
-    Clothing: "clothing",
-    "Home & Garden": "home-garden",
-    Sports: "sports",
-    Books: "books",
-    Toys: "toys",
-    Beauty: "beauty",
-    Health: "health",
-    Food: "food",
-    Other: "other",
-  };
-  return categoryMap[categoryName] || null;
-};
 
 interface ProductImage {
   id: number;
@@ -125,7 +92,7 @@ export default function NewProductPage() {
   const [previewMode, setPreviewMode] = useState(false);
   const [images, setImages] = useState<ProductImage[]>([]);
   const [currentTag, setCurrentTag] = useState("");
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -133,41 +100,16 @@ export default function NewProductPage() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch("/categories");
-        const data = await response.json();
-
-        if (data.success) {
-          setCategories(data.categories);
-        } else {
-          // Fallback to default categories if API fails
-          setCategories([
-            "Electronics",
-            "Clothing",
-            "Home & Garden",
-            "Sports",
-            "Books",
-            "Toys",
-            "Beauty",
-            "Health",
-            "Food",
-            "Other",
-          ]);
+        const response = await categoryApi.getAll();
+        if (response.success) {
+          const cats = (response.categories || []).map((c) => ({
+            id: c.id,
+            name: c.name,
+          }));
+          setCategories(cats);
         }
       } catch (error) {
         console.error("Error fetching categories:", error);
-        // Fallback to default categories
-        setCategories([
-          "Electronics",
-          "Clothing",
-          "Home & Garden",
-          "Sports",
-          "Books",
-          "Toys",
-          "Beauty",
-          "Health",
-          "Food",
-          "Other",
-        ]);
       } finally {
         setIsLoadingCategories(false);
       }
@@ -775,9 +717,9 @@ export default function NewProductPage() {
                             ? "Loading categories..."
                             : "Select a category"}
                         </option>
-                        {(categories || []).map((category) => (
-                          <option key={category} value={category}>
-                            {category}
+                        {(categories || []).map((cat) => (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.name}
                           </option>
                         ))}
                       </select>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import {
   Search,
@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCartStore } from "@/store/cart-store";
 import { useUserStore } from "@/store/user-store";
+import { categoryApi } from "@/lib/api";
 
 export function Header() {
   const { getTotalItems, toggleCart } = useCartStore();
@@ -43,13 +44,17 @@ export function Header() {
     setIsCategoryMenuOpen(!isCategoryMenuOpen);
   };
 
-  const categories = [
-    { name: "Electronics", href: "/category/electronics" },
-    { name: "Clothing", href: "/category/clothing" },
-    { name: "Home & Garden", href: "/category/home" },
-    { name: "Sports", href: "/category/sports" },
-    { name: "Sale", href: "/category/sale" },
-  ];
+  const [categories, setCategories] = useState<{ name: string; href: string }[]>([]);
+
+  useEffect(() => {
+    categoryApi.getAll().then((res) => {
+      const cats = (res.categories || []).map((c) => ({
+        name: c.name,
+        href: `/category/${c.slug}`,
+      }));
+      setCategories(cats);
+    }).catch(() => {});
+  }, []);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

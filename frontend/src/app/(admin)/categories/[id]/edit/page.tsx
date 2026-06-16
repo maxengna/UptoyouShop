@@ -3,14 +3,15 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save } from "lucide-react";
+import Image from "next/image";
+import { ArrowLeft, Save, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { categoryApi } from "@/lib/api";
+import { categoryApi, uploadApi } from "@/lib/api";
 
 export default function EditCategoryPage() {
   const router = useRouter();
@@ -28,6 +29,11 @@ export default function EditCategoryPage() {
     sortOrder: 0,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const [uploading, setUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [imageKey, setImageKey] = useState<string>("");
 
   useEffect(() => {
     const fetchCategory = async () => {
@@ -43,6 +49,7 @@ export default function EditCategoryPage() {
             isActive: cat.isActive,
             sortOrder: cat.sortOrder,
           });
+          setImageKey(cat.imageKey || "");
         } else {
           throw new Error("Category not found");
         }
@@ -63,6 +70,24 @@ export default function EditCategoryPage() {
     }
   };
 
+  const handleFilesUpload = (files: File[]) => {
+    const file = files.find((f) => f.type.startsWith("image/"));
+    if (!file) return;
+
+    if (imagePreview && imagePreview.startsWith("blob:"))
+      URL.revokeObjectURL(imagePreview);
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const removeImage = () => {
+    if (imagePreview && imagePreview.startsWith("blob:"))
+      URL.revokeObjectURL(imagePreview);
+    setImageFile(null);
+    setImagePreview("");
+    setImageKey("");
+  };
+
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!form.name.trim()) newErrors.name = "Category name is required";
@@ -77,10 +102,24 @@ export default function EditCategoryPage() {
 
     setSaving(true);
     try {
+      let currentImageKey = imageKey;
+
+      if (imageFile) {
+        setUploading(true);
+        const uploadResult = await uploadApi.uploadFile(imageFile, "category");
+        if (uploadResult.success) {
+          currentImageKey = uploadResult.data.imageKey;
+        } else {
+          throw new Error("Failed to upload image");
+        }
+        setUploading(false);
+      }
+
       const result = await categoryApi.update(categoryId, {
         name: form.name.trim(),
         slug: form.slug.trim(),
         description: form.description.trim() || undefined,
+        imageKey: currentImageKey || undefined,
         isActive: form.isActive,
         sortOrder: form.sortOrder,
       });
@@ -192,6 +231,74 @@ export default function EditCategoryPage() {
           <div className="lg:col-span-4 space-y-6">
             <Card>
               <CardHeader>
+                <CardTitle>Category Image</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {imagePreview ? (
+                  <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 group">
+                    <Image
+                      src={imagePreview}
+                      alt="Category image preview"
+                      fill
+                      className="object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsDragging(true);
+                    }}
+                    onDragLeave={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsDragging(false);
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsDragging(false);
+                      handleFilesUpload(Array.from(e.dataTransfer.files));
+                    }}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
+                      isDragging
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-300 hover:border-gray-400"
+                    }`}
+                  >
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleFilesUpload(Array.from(e.target.files || []))
+                      }
+                      className="hidden"
+                      id="category-image-upload"
+                    />
+                    <label htmlFor="category-image-upload" className="cursor-pointer block">
+                      <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                      <p className="text-sm font-medium text-gray-700 mb-1">
+                        {isDragging ? "Drop file here" : "Upload image"}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        JPG, PNG, WebP (Max 5MB)
+                      </p>
+                    </label>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
                 <CardTitle>Settings</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -227,9 +334,9 @@ export default function EditCategoryPage() {
             </Card>
 
             <div className="flex gap-2">
-              <Button type="submit" disabled={saving} className="flex-1">
+              <Button type="submit" disabled={saving || uploading} className="flex-1">
                 <Save className="h-4 w-4 mr-2" />
-                {saving ? "Saving..." : "Save Changes"}
+                {saving || uploading ? "Saving..." : "Save Changes"}
               </Button>
               <Button variant="outline" asChild className="flex-1">
                 <Link href="/categories">Cancel</Link>

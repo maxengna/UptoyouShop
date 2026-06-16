@@ -129,9 +129,11 @@ async function apiRequest<T>(
 // Upload API (files stored in AWS S3, imageKey saved in product_images)
 export const uploadApi = {
   // Upload a single file to S3
-  uploadFile: async (file: File) => {
+  uploadFile: async (file: File, folder?: string) => {
     const formData = new FormData();
     formData.append("file", file);
+
+    const query = folder ? `?folder=${encodeURIComponent(folder)}` : "";
 
     return apiRequest<{
       success: boolean;
@@ -143,7 +145,7 @@ export const uploadApi = {
         type: string;
       };
     }>(
-      "/api/upload",
+      `/api/upload${query}`,
       {
         method: "POST",
         body: formData,
@@ -153,9 +155,11 @@ export const uploadApi = {
   },
 
   // Delete a file from S3
-  deleteFile: async (imageKey: string) => {
+  deleteFile: async (imageKey: string, bucket?: "products" | "categories") => {
+    let query = `key=${encodeURIComponent(imageKey)}`;
+    if (bucket) query += `&bucket=${bucket}`;
     return apiRequest<{ success: boolean; message: string }>(
-      `/api/upload?key=${encodeURIComponent(imageKey)}`,
+      `/api/upload?${query}`,
       {
         method: "DELETE",
       },
@@ -237,7 +241,7 @@ export interface Category {
   name: string;
   slug: string;
   description?: string;
-  image?: string;
+  imageKey?: string;
   parentId?: string;
   isActive: boolean;
   sortOrder: number;
@@ -269,7 +273,7 @@ export const categoryApi = {
     name: string;
     slug: string;
     description?: string;
-    image?: string;
+    imageKey?: string;
     parentId?: string;
     isActive?: boolean;
     sortOrder?: number;
@@ -288,7 +292,7 @@ export const categoryApi = {
     name: string;
     slug: string;
     description?: string;
-    image?: string;
+    imageKey?: string;
     parentId?: string;
     isActive?: boolean;
     sortOrder?: number;

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Plus,
   Search,
@@ -118,20 +119,30 @@ export default function CategoriesPage() {
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full">
+              <table className="w-full">
               <thead>
                 <tr className="border-b">
+                  <th className="text-left p-4 font-medium">Image</th>
                   <th className="text-left p-4 font-medium">Name</th>
                   <th className="text-left p-4 font-medium">Slug</th>
-                  <th className="text-left p-4 font-medium">Products</th>
                   <th className="text-left p-4 font-medium">Status</th>
-                  <th className="text-left p-4 font-medium">Sort Order</th>
                   <th className="text-left p-4 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((cat) => (
                   <tr key={cat.id} className="border-b hover:bg-muted/50">
+                    <td className="p-4">
+                      {cat.imageKey ? (
+                        <div className="relative w-12 h-12 bg-muted rounded-md overflow-hidden flex items-center justify-center">
+                          <span className="text-xs text-muted-foreground">img</span>
+                        </div>
+                      ) : (
+                        <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center">
+                          <span className="text-xs text-muted-foreground">-</span>
+                        </div>
+                      )}
+                    </td>
                     <td className="p-4">
                       <div>
                         <p className="font-medium">{cat.name}</p>
@@ -143,7 +154,6 @@ export default function CategoriesPage() {
                       </div>
                     </td>
                     <td className="p-4 font-mono text-sm">{cat.slug}</td>
-                    <td className="p-4">{cat._count?.products ?? "-"}</td>
                     <td className="p-4">
                       <span
                         className={`inline-block px-2 py-1 text-xs rounded-full ${
@@ -155,7 +165,6 @@ export default function CategoriesPage() {
                         {cat.isActive ? "Active" : "Inactive"}
                       </span>
                     </td>
-                    <td className="p-4">{cat.sortOrder}</td>
                     <td className="p-4">
                       <div className="flex items-center gap-2">
                         <Button variant="ghost" size="icon" asChild>

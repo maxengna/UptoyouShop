@@ -8,9 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { productApi, PaginationMeta } from "@/lib/api";
-
-const statuses = ["All", "Active", "Out of Stock", "Draft", "Archived"];
+import { productApi, categoryApi, PaginationMeta } from "@/lib/api";
 
 interface Product {
   id: any;
@@ -46,13 +44,7 @@ interface Product {
   reviewCount: string;
 }
 
-const categories = [
-  "All",
-  "Electronics",
-  "Clothing",
-  "Home & Garden",
-  "Sports",
-];
+const statuses = ["All", "Active", "Out of Stock", "Draft", "Archived"];
 
 const getStatusFromProduct = (product: Product): string => {
   if (product.stock === 0) return "out-of-stock";
@@ -92,8 +84,16 @@ export default function ProductsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const [searchInput, setSearchInput] = useState("");
+  const [categoryOptions, setCategoryOptions] = useState<{ name: string; slug: string }[]>([]);
 
   const LIMIT = 10;
+
+  useEffect(() => {
+    categoryApi.getAll().then((res) => {
+      const cats = (res.categories || []).map((c) => ({ name: c.name, slug: c.slug }));
+      setCategoryOptions(cats);
+    }).catch(() => {});
+  }, []);
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -267,9 +267,10 @@ export default function ProductsPage() {
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   className="appearance-none bg-background border border-input rounded-md px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
-                  {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
+                  <option value="All">All</option>
+                  {categoryOptions.map((cat) => (
+                    <option key={cat.slug} value={cat.slug}>
+                      {cat.name}
                     </option>
                   ))}
                 </select>

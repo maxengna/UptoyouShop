@@ -11,12 +11,14 @@ import { randomUUID } from "crypto";
 @Injectable()
 export class S3Service {
   private readonly client: S3Client;
-  private readonly bucket: string;
+  private readonly productBucket: string;
+  private readonly categoryBucket: string;
   private readonly region: string;
 
   constructor(private readonly configService: ConfigService) {
     this.region = this.configService.get<string>("AWS_REGION") || "ap-southeast-1";
-    this.bucket = this.configService.get<string>("AWS_S3_BUCKET") || "";
+    this.productBucket = this.configService.get<string>("AWS_S3_PRODUCTS_BUCKET") || "";
+    this.categoryBucket = this.configService.get<string>("AWS_S3_CATEGORIES_BUCKET") || this.productBucket;
 
     this.client = new S3Client({
       region: this.region,
@@ -30,14 +32,17 @@ export class S3Service {
 
   async uploadFile(
     file: Express.Multer.File,
-    folder = "products",
+    options?: { folder?: string; bucket?: "products" | "categories" },
   ): Promise<{ imageKey: string; url: string }> {
+    const folder = options?.folder || "products";
+    const bucketType = options?.bucket || "products";
+    const bucket = bucketType === "categories" ? this.categoryBucket : this.productBucket;
     const ext = file.originalname.split(".").pop()?.toLowerCase() || "jpg";
     const imageKey = `${folder}/${randomUUID()}.${ext}`;
 
     await this.client.send(
       new PutObjectCommand({
-        Bucket: this.bucket,
+        Bucket: bucket,
         Key: imageKey,
         Body: file.buffer,
         ContentType: file.mimetype,
@@ -46,31 +51,32 @@ export class S3Service {
 
     return {
       imageKey,
-      url: await this.getSignedUrl(imageKey), // signed URL for private bucket
+      url: await this.getSignedUrl(imageKey, bucket),
     };
   }
 
-  async deleteFile(imageKey: string): Promise<void> {
+  async deleteFile(imageKey: string, bucket?: "products" | "categories"): Promise<void> {
+    const targetBucket = bucket === "categories" ? this.categoryBucket : this.productBucket;
+
     await this.client.send(
       new DeleteObjectCommand({
-        Bucket: this.bucket,
+        Bucket: targetBucket,
         Key: imageKey,
       }),
     );
   }
 
-  async getSignedUrl(imageKey: string): Promise<string> {
+  async getSignedUrl(imageKey: string, bucketOverride?: string): Promise<string> {
     const { getSignedUrl } = await import('@aws-sdk/s3-request-presigner');
     const command = new GetObjectCommand({
-      Bucket: this.bucket,
+      Bucket: bucketOverride || this.productBucket,
       Key: imageKey,
     });
-    // URL expires in 1 hour
     return getSignedUrl(this.client, command, { expiresIn: 3600 });
   }
 
-  // Retain public URL method if needed elsewhere
-  getPublicUrl(imageKey: string): string {
-    return `https://${this.bucket}.s3.${this.region}.amazonaws.com/${imageKey}`;
+  getPublicUrl(imageKey: string, bucketType?: "products" | "categories"): string {
+    const bucket = bucketType === "categories" ? this.categoryBucket : this.productBucket;
+    return `https://${bucket}.s3.${this.region}.amazonaws.com/${imageKey}`;
   }
 }

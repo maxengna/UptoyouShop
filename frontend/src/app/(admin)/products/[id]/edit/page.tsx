@@ -25,7 +25,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { productApi, uploadApi, API_BASE } from "@/lib/api";
+import { productApi, uploadApi, categoryApi, API_BASE } from "@/lib/api";
 
 interface ProductImage {
   id: number;
@@ -138,37 +138,12 @@ export default function EditProductPage() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/categories");
-        const data = await response.json();
-        if (data.success) {
-          setCategories(data.categories);
-        } else {
-          setCategories([
-            { id: "1", name: "Electronics", slug: "electronics" },
-            { id: "2", name: "Clothing", slug: "clothing" },
-            { id: "3", name: "Home & Garden", slug: "home-garden" },
-            { id: "4", name: "Sports", slug: "sports" },
-            { id: "5", name: "Books", slug: "books" },
-            { id: "6", name: "Toys", slug: "toys" },
-            { id: "7", name: "Beauty", slug: "beauty" },
-            { id: "8", name: "Health", slug: "health" },
-            { id: "9", name: "Food", slug: "food" },
-            { id: "10", name: "Other", slug: "other" },
-          ]);
+        const res = await categoryApi.getAll();
+        if (res.success) {
+          setCategories(res.categories || []);
         }
       } catch (error) {
-        setCategories([
-          { id: "1", name: "Electronics", slug: "electronics" },
-          { id: "2", name: "Clothing", slug: "clothing" },
-          { id: "3", name: "Home & Garden", slug: "home-garden" },
-          { id: "4", name: "Sports", slug: "sports" },
-          { id: "5", name: "Books", slug: "books" },
-          { id: "6", name: "Toys", slug: "toys" },
-          { id: "7", name: "Beauty", slug: "beauty" },
-          { id: "8", name: "Health", slug: "health" },
-          { id: "9", name: "Food", slug: "food" },
-          { id: "10", name: "Other", slug: "other" },
-        ]);
+        console.error("Error fetching categories:", error);
       } finally {
         setIsLoadingCategories(false);
       }

@@ -24,10 +24,10 @@ export class CreateCategoryDto {
   @IsString()
   description?: string;
 
-  @ApiPropertyOptional({ example: "https://example.com/image.jpg" })
+  @ApiPropertyOptional({ example: "category/uuid.jpg" })
   @IsOptional()
   @IsString()
-  image?: string;
+  imageKey?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

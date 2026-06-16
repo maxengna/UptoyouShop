@@ -2,13 +2,13 @@ import {
   Controller,
   Post,
   Delete,
-  Query,
   UploadedFile,
   UseInterceptors,
   BadRequestException,
+  Query,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { ApiTags, ApiOperation, ApiConsumes } from "@nestjs/swagger";
+import { ApiTags, ApiOperation, ApiConsumes, ApiQuery } from "@nestjs/swagger";
 import { memoryStorage } from "multer";
 import { S3Service } from "./s3.service";
 
@@ -23,13 +23,17 @@ export class UploadController {
   @Post()
   @ApiOperation({ summary: "Upload image to S3" })
   @ApiConsumes("multipart/form-data")
+  @ApiQuery({ name: "folder", required: false, description: "Folder prefix (e.g. products, category)" })
   @UseInterceptors(
     FileInterceptor("file", {
       storage: memoryStorage(),
       limits: { fileSize: MAX_SIZE },
     }),
   )
-  async uploadFile(@UploadedFile() file: Express.Multer.File) {
+  async uploadFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Query("folder") folder?: string,
+  ) {
     if (!file) {
       throw new BadRequestException("No file uploaded");
     }
@@ -40,7 +44,13 @@ export class UploadController {
       );
     }
 
-    const { imageKey, url } = await this.s3Service.uploadFile(file);
+    const options: { folder?: string; bucket?: "products" | "categories" } = {};
+    if (folder === "category") {
+      options.folder = "category";
+      options.bucket = "categories";
+    }
+
+    const { imageKey, url } = await this.s3Service.uploadFile(file, options);
 
     return {
       success: true,
@@ -58,12 +68,17 @@ export class UploadController {
 
   @Delete()
   @ApiOperation({ summary: "Delete image from S3" })
-  async deleteFile(@Query("key") key: string) {
+  @ApiQuery({ name: "key", required: true, description: "Image key to delete" })
+  @ApiQuery({ name: "bucket", required: false, description: "Bucket type (products, categories)" })
+  async deleteFile(
+    @Query("key") key: string,
+    @Query("bucket") bucket?: "products" | "categories",
+  ) {
     if (!key) {
       throw new BadRequestException("No image key provided");
     }
 
-    await this.s3Service.deleteFile(key);
+    await this.s3Service.deleteFile(key, bucket);
 
     return {
       success: true,
