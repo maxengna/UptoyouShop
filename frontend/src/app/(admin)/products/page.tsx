@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Plus, Search, Edit, Trash2, ChevronDown } from "lucide-react";
+import { ArrowLeft, Plus, Search, Edit, Trash2, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -174,8 +174,14 @@ export default function ProductsPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <div>
+      <div className="flex items-center gap-4 mb-8">
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/dashboard">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Link>
+        </Button>
+        <div className="flex-1">
           <h1 className="text-3xl font-bold">Products</h1>
           <p className="text-muted-foreground">
             Manage your product catalog and inventory
