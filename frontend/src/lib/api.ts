@@ -242,6 +242,7 @@ export interface Category {
   slug: string;
   description?: string;
   imageKey?: string;
+  imageUrl?: string;
   parentId?: string;
   isActive: boolean;
   sortOrder: number;
@@ -250,15 +251,24 @@ export interface Category {
   _count?: { products: number };
 }
 
+export interface CategoryQueryParams {
+  page?: number;
+  limit?: number;
+}
+
 // Category API functions
 export const categoryApi = {
-  getAll: async () => {
+  getAll: async (params?: CategoryQueryParams) => {
+    const query = new URLSearchParams();
+    if (params?.page) query.set("page", String(params.page));
+    if (params?.limit) query.set("limit", String(params.limit));
+    const qs = query.toString();
     return apiRequest<{
       success: boolean;
-      data: { categories: Category[] };
+      data: { categories: Category[]; pagination?: PaginationMeta };
       categories: Category[];
       message: string;
-    }>("/api/categories");
+    }>(`/api/categories${qs ? `?${qs}` : ""}`);
   },
 
   getById: async (id: string) => {

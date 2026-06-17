@@ -25,7 +25,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { productApi, uploadApi, categoryApi, API_BASE } from "@/lib/api";
+import { productApi, uploadApi, API_BASE } from "@/lib/api";
+import { useCategoryStore } from "@/store/category-store";
 
 interface ProductImage {
   id: number;
@@ -90,9 +91,9 @@ export default function EditProductPage() {
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [currentTag, setCurrentTag] = useState("");
-  const [categories, setCategories] = useState<any[]>([]);
-  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
+  const { categories: storeCategories, fetchCategories, loading: isLoadingCategories } = useCategoryStore();
+  const categories = storeCategories;
 
   // Fetch product data
   useEffect(() => {
@@ -134,23 +135,9 @@ export default function EditProductPage() {
     }
   }, [productId]);
 
-  // Fetch categories
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await categoryApi.getAll();
-        if (res.success) {
-          setCategories(res.categories || []);
-        }
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      } finally {
-        setIsLoadingCategories(false);
-      }
-    };
-
     fetchCategories();
-  }, []);
+  }, [fetchCategories]);
 
   const handleInputChange = (
     field: string,

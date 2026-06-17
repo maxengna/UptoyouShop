@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { categoryApi, uploadApi } from "@/lib/api";
+import { useCategoryStore } from "@/store/category-store";
 
 function generateSlug(text: string): string {
   return text
@@ -22,6 +23,7 @@ function generateSlug(text: string): string {
 
 export default function NewCategoryPage() {
   const router = useRouter();
+  const refreshCategories = useCategoryStore((s) => s.refreshCategories);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     name: "",
@@ -81,11 +83,14 @@ export default function NewCategoryPage() {
 
     setSaving(true);
     try {
+      let currentImageKey = uploadedImageKey;
+
       if (imageFile) {
         setUploading(true);
         const uploadResult = await uploadApi.uploadFile(imageFile, "category");
         if (uploadResult.success) {
-          setUploadedImageKey(uploadResult.data.imageKey);
+          currentImageKey = uploadResult.data.imageKey;
+          setUploadedImageKey(currentImageKey);
         } else {
           throw new Error("Failed to upload image");
         }
@@ -95,14 +100,15 @@ export default function NewCategoryPage() {
       const result = await categoryApi.create({
         name: form.name.trim(),
         slug: form.slug.trim(),
-        description: form.description.trim() || undefined,
-        imageKey: uploadedImageKey || undefined,
+        description: form.description.trim() || null,
+        imageKey: currentImageKey || undefined,
         isActive: form.isActive,
         sortOrder: form.sortOrder,
       });
 
       if (result.success) {
         toast.success("Category created successfully");
+        refreshCategories();
         router.push("/categories");
       } else {
         toast.error(result.message || "Failed to create category");

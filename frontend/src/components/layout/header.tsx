@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCartStore } from "@/store/cart-store";
 import { useUserStore } from "@/store/user-store";
-import { categoryApi } from "@/lib/api";
+import { useCategoryStore } from "@/store/category-store";
 
 export function Header() {
   const { getTotalItems, toggleCart } = useCartStore();
@@ -44,17 +44,15 @@ export function Header() {
     setIsCategoryMenuOpen(!isCategoryMenuOpen);
   };
 
-  const [categories, setCategories] = useState<{ name: string; href: string }[]>([]);
+  const { categories: storeCategories, fetchCategories } = useCategoryStore();
+  const categories = storeCategories.map((c) => ({
+    name: c.name,
+    href: `/category/${c.slug}`,
+  }));
 
   useEffect(() => {
-    categoryApi.getAll().then((res) => {
-      const cats = (res.categories || []).map((c) => ({
-        name: c.name,
-        href: `/category/${c.slug}`,
-      }));
-      setCategories(cats);
-    }).catch(() => {});
-  }, []);
+    fetchCategories();
+  }, [fetchCategories]);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

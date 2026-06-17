@@ -12,10 +12,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { categoryApi, uploadApi } from "@/lib/api";
+import { useCategoryStore } from "@/store/category-store";
 
 export default function EditCategoryPage() {
   const router = useRouter();
   const params = useParams();
+  const refreshCategories = useCategoryStore((s) => s.refreshCategories);
   const categoryId = params.id as string;
 
   const [loading, setLoading] = useState(true);
@@ -50,6 +52,7 @@ export default function EditCategoryPage() {
             sortOrder: cat.sortOrder,
           });
           setImageKey(cat.imageKey || "");
+          setImagePreview(cat.imageUrl || "");
         } else {
           throw new Error("Category not found");
         }
@@ -118,7 +121,7 @@ export default function EditCategoryPage() {
       const result = await categoryApi.update(categoryId, {
         name: form.name.trim(),
         slug: form.slug.trim(),
-        description: form.description.trim() || undefined,
+        description: form.description.trim() || null,
         imageKey: currentImageKey || undefined,
         isActive: form.isActive,
         sortOrder: form.sortOrder,
@@ -126,6 +129,7 @@ export default function EditCategoryPage() {
 
       if (result.success) {
         toast.success("Category updated successfully");
+        refreshCategories();
         router.push("/categories");
       } else {
         toast.error(result.message || "Failed to update category");

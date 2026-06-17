@@ -8,7 +8,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { productApi, categoryApi, PaginationMeta } from "@/lib/api";
+import { productApi, PaginationMeta } from "@/lib/api";
+import { useCategoryStore } from "@/store/category-store";
 
 interface Product {
   id: any;
@@ -84,16 +85,14 @@ export default function ProductsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const [searchInput, setSearchInput] = useState("");
-  const [categoryOptions, setCategoryOptions] = useState<{ name: string; slug: string }[]>([]);
+  const { categories: storeCategories, fetchCategories } = useCategoryStore();
+  const categoryOptions = storeCategories.map((c) => ({ name: c.name, slug: c.slug }));
 
   const LIMIT = 10;
 
   useEffect(() => {
-    categoryApi.getAll().then((res) => {
-      const cats = (res.categories || []).map((c) => ({ name: c.name, slug: c.slug }));
-      setCategoryOptions(cats);
-    }).catch(() => {});
-  }, []);
+    fetchCategories();
+  }, [fetchCategories]);
 
   const fetchProducts = useCallback(async () => {
     try {

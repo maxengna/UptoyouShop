@@ -66,10 +66,15 @@ export class S3Service {
     );
   }
 
-  async getSignedUrl(imageKey: string, bucketOverride?: string): Promise<string> {
+  async getSignedUrl(imageKey: string, bucketOrType?: string | "products" | "categories"): Promise<string> {
+    const bucket = !bucketOrType || bucketOrType === "products"
+      ? this.productBucket
+      : bucketOrType === "categories"
+        ? this.categoryBucket
+        : bucketOrType;
     const { getSignedUrl } = await import('@aws-sdk/s3-request-presigner');
     const command = new GetObjectCommand({
-      Bucket: bucketOverride || this.productBucket,
+      Bucket: bucket,
       Key: imageKey,
     });
     return getSignedUrl(this.client, command, { expiresIn: 3600 });

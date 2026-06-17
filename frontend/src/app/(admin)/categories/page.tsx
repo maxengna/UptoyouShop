@@ -14,12 +14,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { categoryApi, Category } from "@/lib/api";
+import { useCategoryStore } from "@/store/category-store";
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const refreshCategories = useCategoryStore((s) => s.refreshCategories);
+
+  const LIMIT = 5;
 
   const fetchCategories = async () => {
     try {
@@ -37,6 +42,10 @@ export default function CategoriesPage() {
     fetchCategories();
   }, []);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchInput]);
+
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
 
@@ -44,6 +53,7 @@ export default function CategoriesPage() {
       const result = await categoryApi.delete(id);
       if (result.success) {
         toast.success("Category deleted successfully");
+        refreshCategories();
         fetchCategories();
       } else {
         toast.error(result.message || "Failed to delete category");
@@ -56,6 +66,9 @@ export default function CategoriesPage() {
   const filtered = categories.filter((cat) =>
     cat.name.toLowerCase().includes(searchInput.toLowerCase()),
   );
+
+  const totalPages = Math.ceil(filtered.length / LIMIT);
+  const paginated = filtered.slice((currentPage - 1) * LIMIT, currentPage * LIMIT);
 
   if (loading) {
     return (
@@ -124,18 +137,23 @@ export default function CategoriesPage() {
                 <tr className="border-b">
                   <th className="text-left p-4 font-medium">Image</th>
                   <th className="text-left p-4 font-medium">Name</th>
-                  <th className="text-left p-4 font-medium">Slug</th>
                   <th className="text-left p-4 font-medium">Status</th>
                   <th className="text-left p-4 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((cat) => (
+                {paginated.map((cat) => (
                   <tr key={cat.id} className="border-b hover:bg-muted/50">
                     <td className="p-4">
-                      {cat.imageKey ? (
-                        <div className="relative w-12 h-12 bg-muted rounded-md overflow-hidden flex items-center justify-center">
-                          <span className="text-xs text-muted-foreground">img</span>
+                      {cat.imageUrl ? (
+                        <div className="relative w-12 h-12 bg-muted rounded-md overflow-hidden">
+                          <Image
+                            src={cat.imageUrl}
+                            alt={cat.name}
+                            width={48}
+                            height={48}
+                            className="w-full h-full object-cover"
+                          />
                         </div>
                       ) : (
                         <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center">
@@ -153,7 +171,6 @@ export default function CategoriesPage() {
                         )}
                       </div>
                     </td>
-                    <td className="p-4 font-mono text-sm">{cat.slug}</td>
                     <td className="p-4">
                       <span
                         className={`inline-block px-2 py-1 text-xs rounded-full ${
@@ -195,6 +212,41 @@ export default function CategoriesPage() {
                   ? "No categories match your search."
                   : "No categories yet."}
               </p>
+            </div>
+          )}
+
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-6">
+              <Button
+                variant="outline"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              >
+                Previous
+              </Button>
+
+              <div className="flex gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      size="icon"
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </Button>
+                  ),
+                )}
+              </div>
+
+              <Button
+                variant="outline"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => p + 1)}
+              >
+                Next
+              </Button>
             </div>
           )}
         </CardContent>

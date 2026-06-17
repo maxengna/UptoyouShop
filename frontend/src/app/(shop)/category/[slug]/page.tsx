@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { ProductCard } from '@/components/shop/product-card'
 import { useProductStore } from '@/store/product-store'
 import { debounce } from '@/lib/utils'
-import { categoryApi } from '@/lib/api'
+import { useCategoryStore } from '@/store/category-store'
 import { Product } from '@/types/product'
 
 // Mock products data - in real app this would come from API
@@ -128,27 +128,16 @@ export default function CategoryPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [showFilters, setShowFilters] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
-  const [fetchedCategories, setFetchedCategories] = useState<CategoryNav[]>([])
+  const { categories: storeCategories, fetchCategories } = useCategoryStore()
+  const fetchedCategories: CategoryNav[] = [
+    { id: 'all', name: 'All Products', slug: 'all' },
+    ...storeCategories.map((c) => ({ id: c.id, name: c.name, slug: c.slug })),
+  ]
   const productsPerPage = 12
 
   useEffect(() => {
-    categoryApi.getAll().then((res) => {
-      const cats = (res.categories || []).map((c) => ({
-        id: c.id,
-        name: c.name,
-        slug: c.slug,
-      }));
-      setFetchedCategories([{ id: 'all', name: 'All Products', slug: 'all' }, ...cats]);
-    }).catch(() => {
-      setFetchedCategories([
-        { id: 'all', name: 'All Products', slug: 'all' },
-        { id: 'electronics', name: 'Electronics', slug: 'electronics' },
-        { id: 'clothing', name: 'Clothing', slug: 'clothing' },
-        { id: 'home', name: 'Home & Garden', slug: 'home' },
-        { id: 'sports', name: 'Sports', slug: 'sports' },
-      ]);
-    });
-  }, []);
+    fetchCategories()
+  }, [fetchCategories])
 
   // Initialize products on mount
   useEffect(() => {

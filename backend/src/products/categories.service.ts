@@ -5,6 +5,7 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { S3Service } from "../upload/s3.service";
 import { CreateCategoryDto } from "./dto/create-category.dto";
 import { UpdateCategoryDto } from "./dto/update-category.dto";
 
@@ -23,9 +24,20 @@ const DEFAULT_CATEGORIES = [
 
 @Injectable()
 export class CategoriesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly s3Service: S3Service,
+  ) {}
 
-  async getAll() {
+  private async mapCategoryImages<T extends { imageKey?: string | null }>(category: T): Promise<T & { imageUrl?: string }> {
+    if (!category.imageKey) return category;
+    return {
+      ...category,
+      imageUrl: await this.s3Service.getSignedUrl(category.imageKey, "categories"),
+    };
+  }
+
+  async getAll(page?: number, limit?: number) {
     let dbCategories = await this.prisma.category.findMany({
       where: { isActive: true },
       orderBy: { sortOrder: "asc" },
@@ -51,13 +63,38 @@ export class CategoriesService {
       });
     }
 
-    return {
+    const total = dbCategories.length;
+    let result = dbCategories;
+
+    if (page && limit) {
+      const skip = (page - 1) * limit;
+      result = dbCategories.slice(skip, skip + limit);
+    }
+
+    const mapped = await Promise.all(
+      result.map((cat) => this.mapCategoryImages(cat)),
+    );
+
+    const response: any = {
       success: true,
-      data: { categories: dbCategories },
-      categories: dbCategories,
+      data: { categories: mapped },
+      categories: mapped,
       message: "Categories retrieved successfully",
       errors: [],
     };
+
+    if (page && limit) {
+      response.data.pagination = {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+        hasNext: page * limit < total,
+        hasPrev: page > 1,
+      };
+    }
+
+    return response;
   }
 
   async getById(id: string) {
@@ -74,7 +111,7 @@ export class CategoriesService {
 
     return {
       success: true,
-      data: category,
+      data: await this.mapCategoryImages(category),
       message: "Category retrieved successfully",
       errors: [],
     };
@@ -103,7 +140,7 @@ export class CategoriesService {
 
     return {
       success: true,
-      data: category,
+      data: await this.mapCategoryImages(category),
       message: "Category created successfully",
       errors: [],
     };
@@ -143,7 +180,7 @@ export class CategoriesService {
 
     return {
       success: true,
-      data: category,
+      data: await this.mapCategoryImages(category),
       message: "Category updated successfully",
       errors: [],
     };
@@ -165,6 +202,10 @@ export class CategoriesService {
       throw new BadRequestException(
         `Cannot delete category "${existing.name}" because it has ${existing._count.products} product(s) associated with it. Reassign products first.`,
       );
+    }
+
+    if (existing.imageKey) {
+      await this.s3Service.deleteFile(existing.imageKey, "categories").catch(() => {});
     }
 
     await this.prisma.category.delete({

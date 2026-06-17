@@ -6,9 +6,10 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
 } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
+import { ApiTags, ApiOperation, ApiQuery, ApiBearerAuth } from "@nestjs/swagger";
 import { CategoriesService } from "./categories.service";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { RolesGuard } from "../auth/roles.guard";
@@ -24,8 +25,16 @@ export class CategoriesController {
 
   @Get()
   @ApiOperation({ summary: "Get all active categories" })
-  async getAll() {
-    return this.categoriesService.getAll();
+  @ApiQuery({ name: "page", required: false, type: Number })
+  @ApiQuery({ name: "limit", required: false, type: Number })
+  async getAll(
+    @Query("page") page?: string,
+    @Query("limit") limit?: string,
+  ) {
+    return this.categoriesService.getAll(
+      page ? parseInt(page, 10) : undefined,
+      limit ? parseInt(limit, 10) : undefined,
+    );
   }
 
   @Get(":id")

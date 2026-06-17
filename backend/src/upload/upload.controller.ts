@@ -13,7 +13,7 @@ import { memoryStorage } from "multer";
 import { S3Service } from "./s3.service";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_SIZE = 5 * 1024 * 1024;
+const MAX_SIZE = 10 * 1024 * 1024;
 
 @ApiTags("Upload")
 @Controller("upload")

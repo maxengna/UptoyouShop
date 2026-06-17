@@ -24,7 +24,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { productApi, uploadApi, categoryApi, ApiError, Product } from "@/lib/api";
+import { productApi, uploadApi, ApiError, Product } from "@/lib/api";
+import { useCategoryStore } from "@/store/category-store";
 
 // Generate slug from text
 function generateSlug(text: string): string {
@@ -92,31 +93,13 @@ export default function NewProductPage() {
   const [previewMode, setPreviewMode] = useState(false);
   const [images, setImages] = useState<ProductImage[]>([]);
   const [currentTag, setCurrentTag] = useState("");
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
-  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
+  const { categories: storeCategories, fetchCategories, loading: isLoadingCategories } = useCategoryStore();
+  const categories = storeCategories.map((c) => ({ id: c.id, name: c.name }));
 
-  // Fetch categories from API
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await categoryApi.getAll();
-        if (response.success) {
-          const cats = (response.categories || []).map((c) => ({
-            id: c.id,
-            name: c.name,
-          }));
-          setCategories(cats);
-        }
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      } finally {
-        setIsLoadingCategories(false);
-      }
-    };
-
     fetchCategories();
-  }, []);
+  }, [fetchCategories]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setProduct((prev) => ({
