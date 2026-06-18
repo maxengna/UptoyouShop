@@ -12,7 +12,7 @@ async function main() {
       name: 'Electronics',
       slug: 'electronics',
       description: 'Electronic devices and accessories',
-      image: '/categories/electronics.jpg',
+      imageKey: '/categories/electronics.jpg',
     },
   })
 
@@ -21,7 +21,7 @@ async function main() {
       name: 'Clothing',
       slug: 'clothing',
       description: 'Fashion and apparel',
-      image: '/categories/clothing.jpg',
+      imageKey: '/categories/clothing.jpg',
     },
   })
 
@@ -30,7 +30,7 @@ async function main() {
       name: 'Home & Garden',
       slug: 'home',
       description: 'Home decor and garden supplies',
-      image: '/categories/home.jpg',
+      imageKey: '/categories/home.jpg',
     },
   })
 
@@ -39,7 +39,7 @@ async function main() {
       name: 'Sports',
       slug: 'sports',
       description: 'Sports equipment and accessories',
-      image: '/categories/sports.jpg',
+      imageKey: '/categories/sports.jpg',
     },
   })
 
@@ -179,10 +179,10 @@ async function main() {
 
   // Create product images
   for (const product of createdProducts) {
-    const images = [
-      { url: `/products/${product.slug}-1.jpg`, isMain: true },
-      { url: `/products/${product.slug}-2.jpg`, isMain: false },
-      { url: `/products/${product.slug}-3.jpg`, isMain: false },
+      const images = [
+      { imageKey: `/products/${product.slug}-1.jpg`, isMain: true },
+      { imageKey: `/products/${product.slug}-2.jpg`, isMain: false },
+      { imageKey: `/products/${product.slug}-3.jpg`, isMain: false },
     ]
 
     for (const imageData of images) {

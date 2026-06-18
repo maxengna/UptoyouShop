@@ -38,7 +38,7 @@ export class ProductsController {
   }
 
   @Post()
-  // @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: "Create product (Admin only)" })
@@ -47,7 +47,7 @@ export class ProductsController {
   }
 
   @Put(":id")
-  // @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: "Update product (Admin only)" })
@@ -59,7 +59,7 @@ export class ProductsController {
   }
 
   @Delete(":id")
-  // @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: "Delete product (Admin only)" })

@@ -158,8 +158,11 @@ export function Header() {
               size="icon"
               className="hidden sm:flex"
               aria-label="Wishlist"
+              asChild
             >
-              <Heart className="h-5 w-5" />
+              <Link href="/shop/wishlist">
+                <Heart className="h-5 w-5" />
+              </Link>
             </Button>
 
             {/* Cart */}
@@ -200,19 +203,19 @@ export function Header() {
                         </p>
                       </div>
                       <Link
-                        href="/profile"
+                        href="/shop/profile"
                         className="block px-4 py-2 text-sm hover:bg-muted transition-colors"
                       >
                         My Profile
                       </Link>
                       <Link
-                        href="/orders"
+                        href="/shop/orders"
                         className="block px-4 py-2 text-sm hover:bg-muted transition-colors"
                       >
                         Order History
                       </Link>
                       <Link
-                        href="/wishlist"
+                        href="/shop/wishlist"
                         className="block px-4 py-2 text-sm hover:bg-muted transition-colors"
                       >
                         Wishlist
@@ -315,7 +318,7 @@ export function Header() {
                 <div className="border-t pt-4 space-y-2">
                   <Button variant="outline" className="w-full" asChild>
                     <Link
-                      href="/auth/signin"
+                      href="/signin"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Sign In
@@ -323,7 +326,7 @@ export function Header() {
                   </Button>
                   <Button className="w-full" asChild>
                     <Link
-                      href="/auth/signup"
+                      href="/signup"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Sign Up
@@ -341,21 +344,21 @@ export function Header() {
                     </p>
                   </div>
                   <Link
-                    href="/profile"
+                    href="/shop/profile"
                     className="block px-4 py-2 text-sm hover:bg-muted transition-colors"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     My Profile
                   </Link>
                   <Link
-                    href="/orders"
+                    href="/shop/orders"
                     className="block px-4 py-2 text-sm hover:bg-muted transition-colors"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Order History
                   </Link>
                   <Link
-                    href="/wishlist"
+                    href="/shop/wishlist"
                     className="block px-4 py-2 text-sm hover:bg-muted transition-colors"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >

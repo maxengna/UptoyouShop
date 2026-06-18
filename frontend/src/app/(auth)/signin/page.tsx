@@ -40,7 +40,7 @@ export default function SigninPage() {
       if (success) {
         const currentUser = useUserStore.getState().user
         if (currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN') {
-          router.push('/admin/dashboard')
+          router.push('/dashboard')
         } else {
           router.push('/')
         }

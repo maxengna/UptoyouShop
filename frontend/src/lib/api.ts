@@ -72,6 +72,26 @@ class ApiError extends Error {
   }
 }
 
+// Token management
+let _accessToken: string | null = null
+let _refreshPromise: Promise<boolean> | null = null
+
+export function setAccessToken(token: string | null) {
+  _accessToken = token
+}
+
+export function getAccessToken(): string | null {
+  return _accessToken
+}
+
+export function setRefreshPromise(promise: Promise<boolean> | null) {
+  _refreshPromise = promise
+}
+
+export function getRefreshPromise(): Promise<boolean> | null {
+  return _refreshPromise
+}
+
 async function apiRequest<T>(
   endpoint: string,
   options?: {
@@ -87,6 +107,14 @@ async function apiRequest<T>(
     headers: {},
   };
 
+  // Attach access token if available
+  if (_accessToken) {
+    config.headers = {
+      ...config.headers,
+      "Authorization": `Bearer ${_accessToken}`,
+    };
+  }
+
   // Only set Content-Type if not FormData and body exists
   if (!skipContentType && options?.body) {
     config.headers = {
@@ -101,6 +129,22 @@ async function apiRequest<T>(
 
   try {
     const response = await fetch(url, config);
+
+    if (response.status === 401 && _refreshPromise) {
+      // Token expired, try refresh
+      const refreshed = await _refreshPromise
+      if (refreshed && _accessToken) {
+        config.headers = {
+          ...config.headers,
+          "Authorization": `Bearer ${_accessToken}`,
+        };
+        const retryResponse = await fetch(url, config);
+        if (retryResponse.ok) {
+          return retryResponse.json();
+        }
+      }
+      throw new ApiError("Unauthorized", 401);
+    }
 
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
@@ -342,12 +386,15 @@ export interface LoginData {
 export interface AuthResponse {
   success: boolean;
   data?: {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-    emailVerified?: boolean;
-    createdAt?: string;
+    user: {
+      id: string;
+      name: string;
+      email: string;
+      role: string;
+      phone?: string;
+    };
+    accessToken: string;
+    refreshToken: string;
   };
   message?: string;
   error?: string;
@@ -368,6 +415,60 @@ export const authApi = {
       method: "POST",
       body: data,
     });
+  },
+};
+
+// User API functions
+export const userApi = {
+  getProfile: async () => {
+    return apiRequest<{
+      success: boolean;
+      data: {
+        id: string;
+        name: string;
+        email: string;
+        role: string;
+        phone?: string;
+        avatar?: string;
+        createdAt: string;
+      };
+    }>("/api/users");
+  },
+
+  updateProfile: async (data: { name?: string; phone?: string; avatar?: string }) => {
+    return apiRequest<{ success: boolean; message: string; data: any }>(
+      "/api/users",
+      { method: "PUT", body: data },
+    );
+  },
+
+  getOrders: async (params?: { page?: number; limit?: number; status?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.page) query.set("page", String(params.page));
+    if (params?.limit) query.set("limit", String(params.limit));
+    if (params?.status) query.set("status", params.status);
+    const qs = query.toString();
+    return apiRequest<{ success: boolean; data: { orders: any[]; pagination: any } }>(
+      `/api/users/orders${qs ? `?${qs}` : ""}`,
+    );
+  },
+
+  getWishlist: async () => {
+    return apiRequest<{ success: boolean; data: { items: any[] } }>("/api/wishlist");
+  },
+
+  addToWishlist: async (productId: string) => {
+    return apiRequest<{ success: boolean; message: string }>("/api/wishlist", {
+      method: "POST",
+      body: { productId },
+    });
+  },
+
+  removeFromWishlist: async (productId: string) => {
+    return apiRequest<{ success: boolean; message: string }>(
+      `/api/wishlist/${productId}`,
+      { method: "DELETE" },
+    );
   },
 };
 
