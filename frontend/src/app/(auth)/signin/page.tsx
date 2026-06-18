@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -26,6 +27,7 @@ export default function SigninPage() {
   const [isFacebookLoading, setIsFacebookLoading] = useState(false)
   const [error, setError] = useState('')
 
+  const router = useRouter()
   const { login } = useUserStore()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,11 +37,16 @@ export default function SigninPage() {
 
     try {
       const success = await login(formData.email, formData.password)
-      if (!success) {
-        setError('Invalid email or password')
+      if (success) {
+        const currentUser = useUserStore.getState().user
+        if (currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN') {
+          router.push('/admin/dashboard')
+        } else {
+          router.push('/')
+        }
       }
-    } catch (err) {
-      setError('An error occurred. Please try again.')
+    } catch (err: any) {
+      setError(err?.message || 'Invalid email or password')
     } finally {
       setIsLoading(false)
     }
@@ -256,9 +263,9 @@ export default function SigninPage() {
               </div>
 
               <div className="mt-6">
-                <Link href="/auth/signup">
+                <Link href="/signup">
                   <Button variant="outline" className="w-full">
-                    Sign In
+                    Create Account
                   </Button>
                 </Link>
               </div>

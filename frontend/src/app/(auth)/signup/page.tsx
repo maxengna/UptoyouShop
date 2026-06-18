@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,6 +30,7 @@ export default function SignupPage() {
   const [isFacebookLoading, setIsFacebookLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const router = useRouter();
   const { register } = useUserStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,11 +57,11 @@ export default function SignupPage() {
         email: formData.email,
         password: formData.password,
       });
-      if (!success) {
-        setError("Registration failed. Please try again.");
+      if (success) {
+        router.push("/signin");
       }
-    } catch (err) {
-      setError("An error occurred. Please try again.");
+    } catch (err: any) {
+      setError(err?.message || "Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -291,11 +293,9 @@ export default function SignupPage() {
                   </label>
                 </div>
 
-                <Link href="/signin">
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Creating Account..." : "Create Account"}
-                  </Button>
-                </Link>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Creating Account..." : "Create Account"}
+                </Button>
 
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">

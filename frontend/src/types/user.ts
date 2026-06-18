@@ -2,9 +2,10 @@ export interface User {
   id: string
   email: string
   name: string
-  role: 'user' | 'admin'
+  role: 'CUSTOMER' | 'ADMIN' | 'SUPER_ADMIN'
   avatar?: string
   phone?: string
+  emailVerified?: boolean
   addresses?: Address[]
 }
 

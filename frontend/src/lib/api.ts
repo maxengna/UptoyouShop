@@ -105,7 +105,7 @@ async function apiRequest<T>(
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
       throw new ApiError(
-        data.message || `HTTP error! status: ${response.status}`,
+        data.message || data.error || `HTTP error! status: ${response.status}`,
         response.status,
         data,
       );
@@ -323,6 +323,50 @@ export const categoryApi = {
       message: string;
     }>(`/api/categories/${id}`, {
       method: "DELETE",
+    });
+  },
+};
+
+// Auth API functions
+export interface RegisterData {
+  name: string;
+  email: string;
+  password: string;
+}
+
+export interface LoginData {
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  data?: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    emailVerified?: boolean;
+    createdAt?: string;
+  };
+  message?: string;
+  error?: string;
+  details?: any;
+  status?: number;
+}
+
+export const authApi = {
+  register: async (data: RegisterData) => {
+    return apiRequest<AuthResponse>("/api/auth/register", {
+      method: "POST",
+      body: data,
+    });
+  },
+
+  login: async (data: LoginData) => {
+    return apiRequest<AuthResponse>("/api/auth/login", {
+      method: "POST",
+      body: data,
     });
   },
 };
