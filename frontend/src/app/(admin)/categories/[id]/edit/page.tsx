@@ -121,7 +121,7 @@ export default function EditCategoryPage() {
       const result = await categoryApi.update(categoryId, {
         name: form.name.trim(),
         slug: form.slug.trim(),
-        description: form.description.trim() || null,
+        description: form.description.trim() || undefined,
         imageKey: currentImageKey || undefined,
         isActive: form.isActive,
         sortOrder: form.sortOrder,

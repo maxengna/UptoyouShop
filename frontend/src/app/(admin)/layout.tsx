@@ -1,5 +1,6 @@
 import { Sidebar } from '@/components/admin/sidebar'
 import { Topbar } from '@/components/admin/topbar'
+import { HydrationGate } from '@/lib/hydrated'
 
 export default function AdminLayout({
   children,
@@ -7,14 +8,16 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <Topbar />
-        <main className="flex-1 p-6 bg-muted/30">
-          {children}
-        </main>
+    <HydrationGate>
+      <div className="flex min-h-screen">
+        <Sidebar />
+        <div className="flex-1 flex flex-col">
+          <Topbar />
+          <main className="flex-1 p-6 bg-muted/30">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </HydrationGate>
   )
 }

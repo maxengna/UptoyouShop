@@ -217,10 +217,16 @@ export class AdminService {
     };
   }
 
-  async getAllUsers(page = 1, limit = 10, role?: string) {
+  async getAllUsers(page = 1, limit = 10, role?: string, search?: string) {
     const skip = (page - 1) * limit;
     const where: any = {};
     if (role) where.role = role.toUpperCase();
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+      ];
+    }
 
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
@@ -254,6 +260,64 @@ export class AdminService {
         },
       },
       message: 'Users retrieved successfully',
+      errors: [],
+    };
+  }
+
+  async getUserById(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        emailVerified: true,
+        avatar: true,
+        phone: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: { select: { orders: true } },
+        addresses: {
+          orderBy: { isDefault: 'desc' },
+          take: 5,
+        },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Get recent orders
+    const recentOrders = await this.prisma.order.findMany({
+      where: { userId: id },
+      include: {
+        items: {
+          take: 3,
+          include: {
+            product: { select: { id: true, name: true } },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+    });
+
+    // Get total spent
+    const orderAgg = await this.prisma.order.aggregate({
+      where: { userId: id, status: { not: 'CANCELLED' } },
+      _sum: { total: true },
+    });
+
+    return {
+      success: true,
+      data: {
+        ...user,
+        recentOrders,
+        totalSpent: orderAgg._sum.total || 0,
+      },
+      message: 'User retrieved successfully',
       errors: [],
     };
   }

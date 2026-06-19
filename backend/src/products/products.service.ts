@@ -441,6 +441,38 @@ export class ProductsService {
     };
   }
 
+  async getNextSku(prefix: string = "SKU"): Promise<string> {
+    const pattern = `${prefix}-`;
+    const lastProduct = await this.prisma.product.findFirst({
+      where: { sku: { startsWith: pattern } },
+      orderBy: { sku: "desc" },
+      select: { sku: true },
+    });
+
+    let nextNumber = 1;
+    if (lastProduct) {
+      const lastNumber = parseInt(lastProduct.sku.replace(pattern, ""), 10);
+      if (!isNaN(lastNumber)) {
+        nextNumber = lastNumber + 1;
+      }
+    }
+
+    // Safety: ensure the generated SKU doesn't exist (handle edge cases)
+    let sku = `${pattern}${String(nextNumber).padStart(3, "0")}`;
+    let attempts = 0;
+    while (attempts < 100) {
+      const existing = await this.prisma.product.findUnique({
+        where: { sku },
+      });
+      if (!existing) break;
+      nextNumber++;
+      sku = `${pattern}${String(nextNumber).padStart(3, "0")}`;
+      attempts++;
+    }
+
+    return sku;
+  }
+
   async getProductReviews(productId: string, page = 1, limit = 10) {
     const skip = (page - 1) * limit;
 

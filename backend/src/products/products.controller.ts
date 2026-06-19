@@ -31,6 +31,21 @@ export class ProductsController {
     return this.productsService.getProducts(query);
   }
 
+  @Get("next-sku")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Get next available SKU (Admin only)" })
+  async getNextSku(@Query("prefix") prefix?: string) {
+    const sku = await this.productsService.getNextSku(prefix);
+    return {
+      success: true,
+      data: { sku },
+      message: "Next SKU generated successfully",
+      errors: [],
+    };
+  }
+
   @Get(":id")
   @ApiOperation({ summary: "Get product by ID" })
   async getProductById(@Param("id") id: string) {

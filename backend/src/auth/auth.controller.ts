@@ -63,10 +63,23 @@ export class AuthController {
   async refreshToken(
     @Body() refreshTokenDto: RefreshTokenDto,
     @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
   ) {
     // Get refresh token from body or cookie
     const refreshToken = refreshTokenDto.refreshToken || request.cookies?.refreshToken;
-    return this.authService.refreshToken(refreshToken);
+    const result = await this.authService.refreshToken(refreshToken);
+
+    // Update refresh token cookie
+    if (result.data?.refreshToken) {
+      response.cookie('refreshToken', result.data.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+    }
+
+    return result;
   }
 
   @Post('logout')

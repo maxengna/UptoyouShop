@@ -84,12 +84,22 @@ export function getAccessToken(): string | null {
   return _accessToken
 }
 
-export function setRefreshPromise(promise: Promise<boolean> | null) {
-  _refreshPromise = promise
-}
-
-export function getRefreshPromise(): Promise<boolean> | null {
-  return _refreshPromise
+async function attemptRefresh(): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/refresh`, {
+      method: "POST",
+      credentials: "include",
+    })
+    if (!res.ok) return false
+    const data = await res.json()
+    if (data.success && data.data?.accessToken) {
+      setAccessToken(data.data.accessToken)
+      return true
+    }
+    return false
+  } catch {
+    return false
+  }
 }
 
 async function apiRequest<T>(
@@ -105,6 +115,7 @@ async function apiRequest<T>(
   const config: RequestInit = {
     method: options?.method || "GET",
     headers: {},
+    credentials: "include",
   };
 
   // Attach access token if available
@@ -130,9 +141,13 @@ async function apiRequest<T>(
   try {
     const response = await fetch(url, config);
 
-    if (response.status === 401 && _refreshPromise) {
+    if (response.status === 401) {
       // Token expired, try refresh
+      if (!_refreshPromise) {
+        _refreshPromise = attemptRefresh()
+      }
       const refreshed = await _refreshPromise
+      _refreshPromise = null
       if (refreshed && _accessToken) {
         config.headers = {
           ...config.headers,
@@ -269,6 +284,14 @@ export const productApi = {
       {
         method: "DELETE",
       },
+    );
+  },
+
+  // Get next available SKU
+  getNextSku: async (prefix?: string) => {
+    const query = prefix ? `?prefix=${encodeURIComponent(prefix)}` : "";
+    return apiRequest<{ success: boolean; data: { sku: string } }>(
+      `/api/products/next-sku${query}`,
     );
   },
 
@@ -469,6 +492,94 @@ export const userApi = {
       `/api/wishlist/${productId}`,
       { method: "DELETE" },
     );
+  },
+};
+
+// Admin API functions
+export const adminApi = {
+  getUsers: async (params?: {
+    page?: number;
+    limit?: number;
+    role?: string;
+    search?: string;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.page) query.set("page", String(params.page));
+    if (params?.limit) query.set("limit", String(params.limit));
+    if (params?.role) query.set("role", params.role);
+    if (params?.search) query.set("search", params.search);
+    const qs = query.toString();
+    return apiRequest<{
+      success: boolean;
+      message?: string;
+      data: {
+        users: Array<{
+          id: string;
+          email: string;
+          name: string | null;
+          role: string;
+          emailVerified: boolean;
+          createdAt: string;
+          updatedAt: string;
+          _count: { orders: number };
+        }>;
+        pagination: PaginationMeta;
+      };
+    }>(`/api/admin/users${qs ? `?${qs}` : ""}`);
+  },
+
+  getUserById: async (id: string) => {
+    return apiRequest<{
+      success: boolean;
+      message?: string;
+      data: {
+        id: string;
+        email: string;
+        name: string | null;
+        role: string;
+        emailVerified: boolean;
+        avatar: string | null;
+        phone: string | null;
+        createdAt: string;
+        updatedAt: string;
+        _count: { orders: number };
+        addresses: Array<{
+          id: string;
+          type: string;
+          firstName: string;
+          lastName: string;
+          address1: string;
+          address2?: string;
+          city: string;
+          state: string;
+          zipCode: string;
+          country: string;
+          phone?: string;
+          isDefault: boolean;
+        }>;
+        recentOrders: Array<{
+          id: string;
+          status: string;
+          total: number;
+          createdAt: string;
+          items: Array<{
+            product: { id: string; name: string };
+          }>;
+        }>;
+        totalSpent: number;
+      };
+    }>(`/api/admin/users/${id}`);
+  },
+
+  updateUserRole: async (id: string, role: string) => {
+    return apiRequest<{
+      success: boolean;
+      message?: string;
+      data: { id: string; email: string; name: string; role: string };
+    }>(`/api/admin/users/${id}/role`, {
+      method: "PUT",
+      body: { role },
+    });
   },
 };
 

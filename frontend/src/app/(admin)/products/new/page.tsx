@@ -35,6 +35,13 @@ function generateSlug(text: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
+function skuPrefixFromCategory(categoryName: string): string {
+  return categoryName
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .substring(0, 4)
+    .toUpperCase();
+}
+
 interface ProductImage {
   id: number;
   url: string;
@@ -100,6 +107,28 @@ export default function NewProductPage() {
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
+
+  // Auto-generate SKU on mount and when category changes
+  useEffect(() => {
+    generateSku();
+  }, [product.category]);
+
+  const generateSku = async () => {
+    try {
+      const categoryName = categories.find(
+        (c) => c.id === product.category,
+      )?.name;
+      const prefix = categoryName
+        ? skuPrefixFromCategory(categoryName)
+        : "SKU";
+      const res = await productApi.getNextSku(prefix);
+      if (res.success && res.data?.sku) {
+        setProduct((prev) => ({ ...prev, sku: res.data.sku }));
+      }
+    } catch {
+      // silently fail
+    }
+  };
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setProduct((prev) => ({
@@ -532,7 +561,7 @@ export default function NewProductPage() {
                   <div>
                     <h3 className="font-semibold mb-1">Category</h3>
                     <p className="text-muted-foreground">
-                      {product.category || "Not specified"}
+                      {categories.find((c) => c.id === product.category)?.name || "Not specified"}
                     </p>
                   </div>
                   <div>
@@ -646,15 +675,15 @@ export default function NewProductPage() {
 
                     <div>
                       <Label htmlFor="sku">Product SKU *</Label>
-                      <Input
-                        id="sku"
-                        value={product.sku}
-                        onChange={(e) =>
-                          handleInputChange("sku", e.target.value)
-                        }
-                        placeholder="Enter product SKU"
-                        className={errors.sku ? "border-red-500" : ""}
-                      />
+                      <div className="flex gap-2">
+                        <Input
+                          id="sku"
+                          value={product.sku}
+                          readOnly
+                          placeholder="Auto-generated SKU"
+                          className={errors.sku ? "border-red-500" : ""}
+                        />
+                      </div>
                       {errors.sku && (
                         <p className="text-sm text-red-500 mt-1">
                           {errors.sku}

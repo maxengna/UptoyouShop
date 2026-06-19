@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Truck, CreditCard, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -12,6 +12,12 @@ import { useUserStore } from '@/store/user-store'
 import { formatPrice } from '@/lib/utils'
 
 export default function CheckoutPage() {
+  const [hydrated, setHydrated] = useState(false)
+
+  useEffect(() => {
+    setHydrated(true)
+  }, [])
+
   const { items, getTotalPrice, getTotalItems, clearCart } = useCartStore()
   const { user, isAuthenticated } = useUserStore()
   const [currentStep, setCurrentStep] = useState(1)
@@ -37,6 +43,8 @@ export default function CheckoutPage() {
     { id: 2, name: 'Payment', icon: CreditCard },
     { id: 3, name: 'Review', icon: Check },
   ]
+
+  if (!hydrated) return null
 
   if (items.length === 0) {
     return (

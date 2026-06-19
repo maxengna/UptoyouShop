@@ -59,8 +59,15 @@ export class AdminController {
     @Query('page') page?: number,
     @Query('limit') limit?: number,
     @Query('role') role?: string,
+    @Query('search') search?: string,
   ) {
-    return this.adminService.getAllUsers(page, limit, role);
+    return this.adminService.getAllUsers(page, limit, role, search);
+  }
+
+  @Get('users/:id')
+  @ApiOperation({ summary: 'Get user by ID' })
+  async getUserById(@Param('id') id: string) {
+    return this.adminService.getUserById(id);
   }
 
   @Put('users/:id/role')

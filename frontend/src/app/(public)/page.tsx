@@ -8,7 +8,7 @@ import { useProductStore } from '@/store/product-store'
 import { useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { productApi } from '@/lib/api'
+import { productApi, categoryApi } from '@/lib/api'
 import { Product } from '@/types/product'
 
 const mapApiProduct = (p: any): Product => ({
@@ -41,23 +41,33 @@ export default function HomePage() {
           setProducts(mapped)
           setFeaturedProducts(mapped.slice(0, 4))
 
-          const categoryMap = new Map<string, { name: string; slug: string }>()
-          mapped.forEach(p => {
-            if (!categoryMap.has(p.category)) {
-              categoryMap.set(p.category, {
+          // Fetch real categories with images from API
+          try {
+            const catRes = await categoryApi.getAll()
+            if (catRes.success && catRes.data?.categories) {
+              const realCats = catRes.data.categories.map((c) => ({
+                id: c.id,
+                name: c.name,
+                slug: c.slug,
+                image: c.imageUrl || undefined,
+                description: c.description,
+                productCount: c._count?.products || 0,
+              }))
+              setCategories(realCats)
+            }
+          } catch {
+            // fallback: extract from products if category API fails
+            const fallbackCats = mapped
+              .filter((p, i, arr) => arr.findIndex((x) => x.category === p.category) === i)
+              .map((p, idx) => ({
+                id: String(idx + 1),
                 name: p.category.charAt(0).toUpperCase() + p.category.slice(1),
                 slug: p.category,
-              })
-            }
-          })
-          const categories = Array.from(categoryMap.entries()).map(([slug, cat], idx) => ({
-            id: String(idx + 1),
-            name: cat.name,
-            slug: cat.slug,
-            image: `/categories/${cat.slug}.jpg`,
-            productCount: mapped.filter(p => p.category === cat.slug).length,
-          }))
-          setCategories(categories)
+                image: undefined,
+                productCount: mapped.filter((x) => x.category === p.category).length,
+              }))
+            setCategories(fallbackCats)
+          }
         }
       } catch (err) {
         console.error('Failed to fetch products:', err)

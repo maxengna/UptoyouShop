@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Heart, Minus, Plus, Star, Truck, Shield, RotateCcw } from 'lucide-react'
+import { Heart, Minus, Plus, Star, Truck, Shield, RotateCcw, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
@@ -53,6 +53,7 @@ export default function ProductDetailPage() {
   const [selectedImage, setSelectedImage] = useState(0)
   const [selectedVariant, setSelectedVariant] = useState('')
   const [product, setProduct] = useState<Product | null>(null)
+const [categoryName, setCategoryName] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -67,6 +68,9 @@ export default function ProductDetailPage() {
             return productSlug === slug
           })
           if (found) {
+            const rawCat = found.category
+            const cat = rawCat && typeof rawCat === "object" ? rawCat : {}
+            setCategoryName((cat as any).name || "")
             setProduct({
               id: String(found.id ?? ''),
               name: found.name,
@@ -74,7 +78,7 @@ export default function ProductDetailPage() {
               price: parseFloat(String(found.price)) || 0,
               originalPrice: found.comparePrice ? parseFloat(String(found.comparePrice)) : undefined,
               images: found.images?.map(img => img.url) || [],
-              category: found.category,
+              category: (cat as any).slug || "",
               slug: (found as any).slug || found.name.toLowerCase().replace(/\s+/g, '-'),
               stock: parseInt(String(found.stock || '0'), 10),
               sku: found.sku,
@@ -154,17 +158,25 @@ export default function ProductDetailPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 mb-8 text-sm">
-        <Link href="/" className="text-muted-foreground hover:text-primary">
-          Home
-        </Link>
-        <span className="text-muted-foreground">/</span>
-        <Link href={`/category/${product.category}`} className="text-muted-foreground hover:text-primary capitalize">
-          {product.category}
-        </Link>
-        <span className="text-muted-foreground">/</span>
-        <span className="font-medium">{product.name}</span>
+      {/* Back & Breadcrumb */}
+      <div className="flex items-center gap-4 mb-8">
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/products">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Link>
+        </Button>
+        <div className="flex items-center gap-2 text-sm">
+          <Link href="/" className="text-muted-foreground hover:text-primary">
+            Home
+          </Link>
+          <span className="text-muted-foreground">/</span>
+          <Link href={`/category/${product.category}`} className="text-muted-foreground hover:text-primary capitalize">
+            {categoryName || product.category}
+          </Link>
+          <span className="text-muted-foreground">/</span>
+          <span className="font-medium">{product.name}</span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
