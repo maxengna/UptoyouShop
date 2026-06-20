@@ -177,6 +177,40 @@ export class AdminService {
     };
   }
 
+  async getOrderById(id: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: { id: true, name: true, email: true, phone: true },
+        },
+        items: {
+          include: {
+            product: {
+              include: {
+                images: true,
+                category: true,
+              },
+            },
+            variant: true,
+          },
+        },
+        payments: true,
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    return {
+      success: true,
+      data: order,
+      message: 'Order retrieved successfully',
+      errors: [],
+    };
+  }
+
   async getAllOrders(page = 1, limit = 10, status?: string) {
     const skip = (page - 1) * limit;
     const where: any = {};

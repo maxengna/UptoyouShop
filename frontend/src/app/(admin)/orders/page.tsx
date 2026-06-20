@@ -1,136 +1,33 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Search, Filter, Eye, Package, Truck, CheckCircle, XCircle, Clock, ChevronDown } from 'lucide-react'
+import { ArrowLeft, Search, Eye, Package, Truck, CheckCircle, XCircle, Clock, ChevronDown, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { adminApi, ApiError } from '@/lib/api'
 
-// Mock orders data
-const mockOrders = [
-  {
-    id: 'ORD-001',
-    customer: {
-      name: 'John Doe',
-      email: 'john@example.com',
-      phone: '+1 555-123-4567'
-    },
-    date: '2024-01-20',
-    amount: 299.99,
-    status: 'completed',
-    items: 3,
-    paymentMethod: 'Credit Card',
-    shippingAddress: {
-      street: '123 Main St',
-      city: 'New York',
-      state: 'NY',
-      zipCode: '10001',
-      country: 'United States'
-    },
-    products: [
-      { name: 'Wireless Headphones', quantity: 1, price: 299.99 }
-    ]
-  },
-  {
-    id: 'ORD-002',
-    customer: {
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      phone: '+1 555-987-6543'
-    },
-    date: '2024-01-20',
-    amount: 89.99,
-    status: 'processing',
-    items: 2,
-    paymentMethod: 'PayPal',
-    shippingAddress: {
-      street: '456 Oak Ave',
-      city: 'Los Angeles',
-      state: 'CA',
-      zipCode: '90210',
-      country: 'United States'
-    },
-    products: [
-      { name: 'USB-C Hub', quantity: 2, price: 44.995 }
-    ]
-  },
-  {
-    id: 'ORD-003',
-    customer: {
-      name: 'Mike Johnson',
-      email: 'mike@example.com',
-      phone: '+1 555-456-7890'
-    },
-    date: '2024-01-19',
-    amount: 156.50,
-    status: 'shipped',
-    items: 4,
-    paymentMethod: 'Credit Card',
-    shippingAddress: {
-      street: '789 Pine Rd',
-      city: 'Chicago',
-      state: 'IL',
-      zipCode: '60601',
-      country: 'United States'
-    },
-    products: [
-      { name: 'Laptop Stand', quantity: 1, price: 49.99 },
-      { name: 'Wireless Mouse', quantity: 1, price: 29.99 },
-      { name: 'Mechanical Keyboard', quantity: 1, price: 76.52 }
-    ]
-  },
-  {
-    id: 'ORD-004',
-    customer: {
-      name: 'Sarah Williams',
-      email: 'sarah@example.com',
-      phone: '+1 555-234-5678'
-    },
-    date: '2024-01-19',
-    amount: 445.00,
-    status: 'pending',
-    items: 6,
-    paymentMethod: 'Credit Card',
-    shippingAddress: {
-      street: '321 Elm St',
-      city: 'Houston',
-      state: 'TX',
-      zipCode: '77001',
-      country: 'United States'
-    },
-    products: [
-      { name: 'Smart Watch', quantity: 2, price: 199.99 },
-      { name: 'Wireless Headphones', quantity: 1, price: 45.02 }
-    ]
-  },
-  {
-    id: 'ORD-005',
-    customer: {
-      name: 'David Brown',
-      email: 'david@example.com',
-      phone: '+1 555-345-6789'
-    },
-    date: '2024-01-18',
-    amount: 78.25,
-    status: 'cancelled',
-    items: 1,
-    paymentMethod: 'PayPal',
-    shippingAddress: {
-      street: '654 Maple Dr',
-      city: 'Phoenix',
-      state: 'AZ',
-      zipCode: '85001',
-      country: 'United States'
-    },
-    products: [
-      { name: 'Organic Cotton T-Shirt', quantity: 1, price: 78.25 }
-    ]
-  }
-]
+const statusFilterOptions = ['All', 'Pending', 'Processing', 'Shipped', 'Completed', 'Cancelled']
+const paymentMethodFilterOptions = ['All', 'Credit Card', 'PayPal', 'Apple Pay', 'Google Pay']
 
-const statuses = ['All', 'Pending', 'Processing', 'Shipped', 'Completed', 'Cancelled']
-const paymentMethods = ['All', 'Credit Card', 'PayPal', 'Apple Pay', 'Google Pay']
+const statusApiMap: Record<string, string> = {
+  pending: 'PENDING',
+  processing: 'PROCESSING',
+  shipped: 'SHIPPED',
+  completed: 'DELIVERED',
+  cancelled: 'CANCELLED',
+  refunded: 'REFUNDED',
+}
+
+const statusDisplayMap: Record<string, string> = {
+  PENDING: 'pending',
+  PROCESSING: 'processing',
+  SHIPPED: 'shipped',
+  DELIVERED: 'completed',
+  CANCELLED: 'cancelled',
+  REFUNDED: 'refunded',
+}
 
 const formatPrice = (price: number) => {
   return new Intl.NumberFormat('en-US', {
@@ -150,6 +47,7 @@ const getStatusIcon = (status: string) => {
     case 'completed':
       return <CheckCircle className="h-4 w-4" />
     case 'cancelled':
+    case 'refunded':
       return <XCircle className="h-4 w-4" />
     default:
       return <Clock className="h-4 w-4" />
@@ -167,48 +65,154 @@ const getStatusColor = (status: string) => {
     case 'completed':
       return 'bg-green-100 text-green-800'
     case 'cancelled':
+    case 'refunded':
       return 'bg-red-100 text-red-800'
     default:
       return 'bg-gray-100 text-gray-800'
   }
 }
 
+function mapOrderFromApi(order: any) {
+  const address = order.shippingAddress || {}
+  const itemsCount = order.items?.length || 0
+  const displayStatus = statusDisplayMap[order.status] || order.status.toLowerCase()
+
+  return {
+    id: order.orderNumber || order.id,
+    _id: order.id,
+    customer: {
+      name: order.user?.name || `${address.firstName || ''} ${address.lastName || ''}`.trim() || 'Guest',
+      email: order.user?.email || address.email || '',
+      phone: address.phone || '',
+    },
+    date: order.createdAt,
+    amount: Number(order.total),
+    status: displayStatus,
+    items: itemsCount,
+    paymentMethod: order.paymentMethod || 'N/A',
+    shippingAddress: {
+      street: address.address1 || address.street || '',
+      city: address.city || '',
+      state: address.state || '',
+      zipCode: address.zipCode || '',
+      country: address.country || '',
+    },
+    products: (order.items || []).map((item: any) => ({
+      name: item.product?.name || item.productSnapshot?.name || 'Product',
+      quantity: item.quantity,
+      price: Number(item.price),
+    })),
+  }
+}
+
 export default function OrdersPage() {
+  const [orders, setOrders] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedStatus, setSelectedStatus] = useState('All')
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('All')
   const [currentPage, setCurrentPage] = useState(1)
-  
+  const [totalOrders, setTotalOrders] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null)
+
   const ordersPerPage = 10
 
-  // Filter orders
-  const filteredOrders = mockOrders.filter(order => {
-    const matchesSearch = 
+  const fetchOrders = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const apiStatus = selectedStatus === 'All' ? undefined : (statusApiMap[selectedStatus.toLowerCase()] || selectedStatus.toUpperCase())
+      const response = await adminApi.getOrders({
+        page: currentPage,
+        limit: ordersPerPage,
+        status: apiStatus,
+      })
+      const rawOrders = response.data?.orders || []
+      setOrders(rawOrders.map(mapOrderFromApi))
+      setTotalOrders(response.data?.pagination?.total || 0)
+      setTotalPages(response.data?.pagination?.pages || 1)
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message)
+      } else {
+        setError('Failed to load orders. Please try again.')
+      }
+      setOrders([])
+    } finally {
+      setLoading(false)
+    }
+  }, [currentPage, selectedStatus])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [selectedStatus])
+
+  useEffect(() => {
+    fetchOrders()
+  }, [fetchOrders])
+
+  const filteredOrders = orders.filter(order => {
+    const matchesSearch =
+      !searchQuery ||
       order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.customer.email.toLowerCase().includes(searchQuery.toLowerCase())
-    
-    const matchesStatus = selectedStatus === 'All' || order.status === selectedStatus.toLowerCase()
+
     const matchesPayment = selectedPaymentMethod === 'All' || order.paymentMethod === selectedPaymentMethod
-    
-    return matchesSearch && matchesStatus && matchesPayment
+
+    return matchesSearch && matchesPayment
   })
 
-  // Pagination
-  const totalPages = Math.ceil(filteredOrders.length / ordersPerPage)
-  const startIndex = (currentPage - 1) * ordersPerPage
-  const paginatedOrders = filteredOrders.slice(startIndex, startIndex + ordersPerPage)
-
-  const handleStatusUpdate = (orderId: string, newStatus: string) => {
-    // Handle status update logic
-    console.log('Update order status:', orderId, newStatus)
+  const handleStatusUpdate = async (orderId: string, newStatus: string) => {
+    setUpdatingOrderId(orderId)
+    try {
+      const apiStatus = statusApiMap[newStatus] || newStatus.toUpperCase()
+      await adminApi.updateOrderStatus(orderId, apiStatus)
+      setOrders(prev =>
+        prev.map(o =>
+          o._id === orderId ? { ...o, status: newStatus } : o
+        )
+      )
+    } catch (err) {
+      if (err instanceof ApiError) {
+        alert(`Failed to update status: ${err.message}`)
+      } else {
+        alert('Failed to update status. Please try again.')
+      }
+    } finally {
+      setUpdatingOrderId(null)
+    }
   }
 
-  const handleRefund = (orderId: string) => {
-    if (confirm('Are you sure you want to process a refund for this order?')) {
-      // Handle refund logic
-      console.log('Process refund for order:', orderId)
+  const handleRefund = async (orderId: string) => {
+    if (!confirm('Are you sure you want to process a refund for this order?')) return
+    setUpdatingOrderId(orderId)
+    try {
+      await adminApi.updateOrderStatus(orderId, 'REFUNDED')
+      setOrders(prev =>
+        prev.map(o =>
+          o._id === orderId ? { ...o, status: 'refunded' } : o
+        )
+      )
+    } catch (err) {
+      if (err instanceof ApiError) {
+        alert(`Failed to process refund: ${err.message}`)
+      } else {
+        alert('Failed to process refund. Please try again.')
+      }
+    } finally {
+      setUpdatingOrderId(null)
     }
+  }
+
+  const stats = {
+    total: totalOrders,
+    pending: orders.filter(o => o.status === 'pending').length,
+    processing: orders.filter(o => o.status === 'processing').length,
+    shipped: orders.filter(o => o.status === 'shipped').length,
+    completed: orders.filter(o => o.status === 'completed').length,
   }
 
   return (
@@ -238,39 +242,31 @@ export default function OrdersPage() {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
         <Card>
           <CardContent className="p-6">
-            <div className="text-2xl font-bold">{mockOrders.length}</div>
+            <div className="text-2xl font-bold">{stats.total}</div>
             <p className="text-sm text-muted-foreground">Total Orders</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
-            <div className="text-2xl font-bold">
-              {mockOrders.filter(o => o.status === 'pending').length}
-            </div>
+            <div className="text-2xl font-bold">{stats.pending}</div>
             <p className="text-sm text-muted-foreground">Pending</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
-            <div className="text-2xl font-bold">
-              {mockOrders.filter(o => o.status === 'processing').length}
-            </div>
+            <div className="text-2xl font-bold">{stats.processing}</div>
             <p className="text-sm text-muted-foreground">Processing</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
-            <div className="text-2xl font-bold">
-              {mockOrders.filter(o => o.status === 'shipped').length}
-            </div>
+            <div className="text-2xl font-bold">{stats.shipped}</div>
             <p className="text-sm text-muted-foreground">Shipped</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
-            <div className="text-2xl font-bold">
-              {mockOrders.filter(o => o.status === 'completed').length}
-            </div>
+            <div className="text-2xl font-bold">{stats.completed}</div>
             <p className="text-sm text-muted-foreground">Completed</p>
           </CardContent>
         </Card>
@@ -300,7 +296,7 @@ export default function OrdersPage() {
                   onChange={(e) => setSelectedStatus(e.target.value)}
                   className="appearance-none bg-background border border-input rounded-md px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
-                  {statuses.map(status => (
+                  {statusFilterOptions.map(status => (
                     <option key={status} value={status}>{status}</option>
                   ))}
                 </select>
@@ -314,7 +310,7 @@ export default function OrdersPage() {
                   onChange={(e) => setSelectedPaymentMethod(e.target.value)}
                   className="appearance-none bg-background border border-input rounded-md px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
-                  {paymentMethods.map(method => (
+                  {paymentMethodFilterOptions.map(method => (
                     <option key={method} value={method}>{method}</option>
                   ))}
                 </select>
@@ -334,146 +330,166 @@ export default function OrdersPage() {
       <Card>
         <CardHeader>
           <CardTitle>
-            Orders ({filteredOrders.length})
+            Orders ({totalOrders})
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-4 font-medium">Order ID</th>
-                  <th className="text-left p-4 font-medium">Customer</th>
-                  <th className="text-left p-4 font-medium">Date</th>
-                  <th className="text-left p-4 font-medium">Amount</th>
-                  <th className="text-left p-4 font-medium">Payment</th>
-                  <th className="text-left p-4 font-medium">Status</th>
-                  <th className="text-left p-4 font-medium">Items</th>
-                  <th className="text-left p-4 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedOrders.map((order) => (
-                  <tr key={order.id} className="border-b hover:bg-muted/50">
-                    <td className="p-4">
-                      <div>
-                        <p className="font-medium">{order.id}</p>
-                        <p className="text-sm text-muted-foreground">{order.customer.email}</p>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div>
-                        <p className="font-medium">{order.customer.name}</p>
-                        <p className="text-sm text-muted-foreground">{order.customer.phone}</p>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div>
-                        <p className="font-medium">{new Date(order.date).toLocaleDateString()}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {order.shippingAddress.city}, {order.shippingAddress.state}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="p-4 font-medium">{formatPrice(order.amount)}</td>
-                    <td className="p-4">{order.paymentMethod}</td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(order.status)}
-                        <span className={`inline-block px-2 py-1 text-xs rounded-full ${getStatusColor(order.status)}`}>
-                          {order.status}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="p-4">{order.items}</td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon" asChild>
-                          <Link href={`/admin/orders/${order.id}`}>
-                            <Eye className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                        
-                        {/* Status Update Dropdown */}
-                        {order.status !== 'completed' && order.status !== 'cancelled' && (
-                          <div className="relative">
-                            <select
-                              value={order.status}
-                              onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
-                              className="text-xs border border-input rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
-                            >
-                              <option value="pending">Pending</option>
-                              <option value="processing">Processing</option>
-                              <option value="shipped">Shipped</option>
-                              <option value="completed">Completed</option>
-                              <option value="cancelled">Cancelled</option>
-                            </select>
-                          </div>
-                        )}
-                        
-                        {order.status === 'completed' && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleRefund(order.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            Refund
-                          </Button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {filteredOrders.length === 0 && (
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : error ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground mb-4">No orders found matching your criteria.</p>
-              <Button variant="outline" onClick={() => {
-                setSearchQuery('')
-                setSelectedStatus('All')
-                setSelectedPaymentMethod('All')
-              }}>
-                Clear Filters
+              <p className="text-destructive mb-4">{error}</p>
+              <Button variant="outline" onClick={fetchOrders}>
+                Retry
               </Button>
             </div>
-          )}
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-4 font-medium">Order ID</th>
+                      <th className="text-left p-4 font-medium">Customer</th>
+                      <th className="text-left p-4 font-medium">Date</th>
+                      <th className="text-left p-4 font-medium">Amount</th>
+                      <th className="text-left p-4 font-medium">Payment</th>
+                      <th className="text-left p-4 font-medium">Status</th>
+                      <th className="text-left p-4 font-medium">Items</th>
+                      <th className="text-left p-4 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredOrders.map((order) => (
+                      <tr key={order._id} className="border-b hover:bg-muted/50">
+                        <td className="p-4">
+                          <div>
+                            <p className="font-medium">{order.id}</p>
+                            <p className="text-sm text-muted-foreground">{order.customer.email}</p>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div>
+                            <p className="font-medium">{order.customer.name}</p>
+                            <p className="text-sm text-muted-foreground">{order.customer.phone}</p>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div>
+                            <p className="font-medium">{new Date(order.date).toLocaleDateString()}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {order.shippingAddress.city}, {order.shippingAddress.state}
+                            </p>
+                          </div>
+                        </td>
+                        <td className="p-4 font-medium">{formatPrice(order.amount)}</td>
+                        <td className="p-4">{order.paymentMethod}</td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            {getStatusIcon(order.status)}
+                            <span className={`inline-block px-2 py-1 text-xs rounded-full ${getStatusColor(order.status)}`}>
+                              {order.status}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="p-4">{order.items}</td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="icon" asChild>
+                              <Link href={`/orders/${order._id}`}>
+                                <Eye className="h-4 w-4" />
+                              </Link>
+                            </Button>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 mt-6">
-              <Button
-                variant="outline"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              
-              <div className="flex gap-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <Button
-                    key={page}
-                    variant={currentPage === page ? 'default' : 'outline'}
-                    size="icon"
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </Button>
-                ))}
+                            {updatingOrderId === order._id ? (
+                              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                            ) : (
+                              <>
+                                {order.status !== 'completed' && order.status !== 'cancelled' && order.status !== 'refunded' && (
+                                  <div className="relative">
+                                    <select
+                                      value={order.status}
+                                      onChange={(e) => handleStatusUpdate(order._id, e.target.value)}
+                                      className="text-xs border border-input rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
+                                    >
+                                      <option value="pending">Pending</option>
+                                      <option value="processing">Processing</option>
+                                      <option value="shipped">Shipped</option>
+                                      <option value="completed">Completed</option>
+                                      <option value="cancelled">Cancelled</option>
+                                    </select>
+                                  </div>
+                                )}
+
+                                {order.status === 'completed' && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleRefund(order._id)}
+                                    className="text-red-600 hover:text-red-700"
+                                  >
+                                    Refund
+                                  </Button>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              
-              <Button
-                variant="outline"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
+
+              {filteredOrders.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground mb-4">No orders found matching your criteria.</p>
+                  <Button variant="outline" onClick={() => {
+                    setSearchQuery('')
+                    setSelectedStatus('All')
+                    setSelectedPaymentMethod('All')
+                  }}>
+                    Clear Filters
+                  </Button>
+                </div>
+              )}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 mt-6">
+                  <Button
+                    variant="outline"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                  >
+                    Previous
+                  </Button>
+
+                  <div className="flex gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? 'default' : 'outline'}
+                        size="icon"
+                        onClick={() => setCurrentPage(page)}
+                      >
+                        {page}
+                      </Button>
+                    ))}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

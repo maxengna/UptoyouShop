@@ -43,6 +43,12 @@ export class AdminController {
     return this.adminService.getCustomerAnalytics();
   }
 
+  @Get('orders/:id')
+  @ApiOperation({ summary: 'Get order by ID' })
+  async getOrderById(@Param('id') id: string) {
+    return this.adminService.getOrderById(id);
+  }
+
   @Get('orders')
   @ApiOperation({ summary: 'Get all orders' })
   async getAllOrders(

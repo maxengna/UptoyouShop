@@ -100,6 +100,60 @@ export async function getAdminOrders(request: NextRequest) {
   }
 }
 
+// Get single order by ID for admin
+export async function getAdminOrderById(orderId: string) {
+  try {
+    const authResult = await requireAdmin();
+    if (!authResult.success) return authResult;
+
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+          },
+        },
+        items: {
+          include: {
+            product: {
+              include: {
+                images: true,
+                category: true,
+              },
+            },
+            variant: true,
+          },
+        },
+        payments: true,
+      },
+    });
+
+    if (!order) {
+      return {
+        success: false,
+        error: "Order not found",
+        status: 404,
+      };
+    }
+
+    return {
+      success: true,
+      data: order,
+    };
+  } catch (error) {
+    console.error("Get admin order error:", error);
+    return {
+      success: false,
+      error: "Failed to fetch order",
+      status: 500,
+    };
+  }
+}
+
 // Update order status for admin
 export async function updateAdminOrderStatus(
   orderId: string,

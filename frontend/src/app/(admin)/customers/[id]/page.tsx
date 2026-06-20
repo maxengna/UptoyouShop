@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Mail, Phone, Calendar, ShoppingCart, DollarSign, Shield } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Calendar, ShoppingCart, DollarSign, Shield, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,6 +47,8 @@ export default function CustomerDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updatingRole, setUpdatingRole] = useState(false);
+  const [recentPage, setRecentPage] = useState(1);
+  const recentPerPage = 5;
 
   useEffect(() => {
     fetchUser();
@@ -264,42 +266,78 @@ export default function CustomerDetailPage() {
             </CardHeader>
             <CardContent>
               {user.recentOrders && user.recentOrders.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left p-3 font-medium">Order ID</th>
-                        <th className="text-left p-3 font-medium">Items</th>
-                        <th className="text-left p-3 font-medium">Total</th>
-                        <th className="text-left p-3 font-medium">Status</th>
-                        <th className="text-left p-3 font-medium">Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {user.recentOrders.map((order: any) => (
-                        <tr key={order.id} className="border-b hover:bg-muted/50">
-                          <td className="p-3 font-mono text-sm">
-                            #{order.id.slice(0, 8)}
-                          </td>
-                          <td className="p-3 text-sm">
-                            {order.items.map((item: any) => item.product?.name).join(", ") || "—"}
-                          </td>
-                          <td className="p-3 font-medium">
-                            ${Number(order.total).toLocaleString()}
-                          </td>
-                          <td className="p-3">
-                            <Badge variant={statusBadgeVariant(order.status)}>
-                              {order.status}
-                            </Badge>
-                          </td>
-                          <td className="p-3 text-sm text-muted-foreground">
-                            {new Date(order.createdAt).toLocaleDateString()}
-                          </td>
+                <>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left p-3 font-medium">Order ID</th>
+                          <th className="text-left p-3 font-medium">Items</th>
+                          <th className="text-left p-3 font-medium">Total</th>
+                          <th className="text-left p-3 font-medium">Status</th>
+                          <th className="text-left p-3 font-medium">Date</th>
+                          <th className="text-left p-3 font-medium">Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {user.recentOrders
+                          .slice((recentPage - 1) * recentPerPage, recentPage * recentPerPage)
+                          .map((order: any) => (
+                          <tr key={order.id} className="border-b hover:bg-muted/50">
+                            <td className="p-3 font-mono text-sm">
+                              #{order.id.slice(0, 8)}
+                            </td>
+                            <td className="p-3 text-sm">
+                              {order.items.map((item: any) => item.product?.name).join(", ") || "—"}
+                            </td>
+                            <td className="p-3 font-medium">
+                              ${Number(order.total).toLocaleString()}
+                            </td>
+                            <td className="p-3">
+                              <Badge variant={statusBadgeVariant(order.status)}>
+                                {order.status}
+                              </Badge>
+                            </td>
+                            <td className="p-3 text-sm text-muted-foreground">
+                              {new Date(order.createdAt).toLocaleDateString()}
+                            </td>
+                            <td className="p-3">
+                              <Button variant="ghost" size="icon" asChild>
+                                <Link href={`/orders/${order.id}`}>
+                                  <Eye className="h-4 w-4" />
+                                </Link>
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {user.recentOrders.length > recentPerPage && (
+                    <div className="flex items-center justify-center gap-2 mt-4">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        disabled={recentPage === 1}
+                        onClick={() => setRecentPage(recentPage - 1)}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <span className="text-sm text-muted-foreground">
+                        Page {recentPage} of {Math.ceil(user.recentOrders.length / recentPerPage)}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        disabled={recentPage >= Math.ceil(user.recentOrders.length / recentPerPage)}
+                        onClick={() => setRecentPage(recentPage + 1)}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </>
               ) : (
                 <p className="text-muted-foreground text-center py-8">
                   No orders yet

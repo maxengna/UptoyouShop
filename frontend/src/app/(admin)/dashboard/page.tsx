@@ -277,7 +277,7 @@ export default function AdminDashboard() {
             <CardHeader className="flex justify-between items-center">
               <CardTitle>Recent Orders</CardTitle>
               <Button variant="outline" size="sm" asChild>
-                <Link href="/admin/orders">View All</Link>
+                <Link href="/orders">View All</Link>
               </Button>
             </CardHeader>
             <CardContent>

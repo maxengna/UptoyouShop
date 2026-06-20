@@ -5,7 +5,8 @@ import { useUserStore } from "@/store/user-store"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { User, Mail, Phone, Calendar, Save, Loader2 } from "lucide-react"
+import { ArrowLeft, User, Mail, Phone, Calendar, Save, Loader2 } from "lucide-react"
+import Link from "next/link"
 import { toast } from "sonner"
 
 export default function ProfilePage() {
@@ -42,11 +43,19 @@ export default function ProfilePage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-2xl mx-auto space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold">My Profile</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your personal information
-          </p>
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/shop/orders">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Link>
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold">My Profile</h1>
+            <p className="text-muted-foreground mt-1">
+              Manage your personal information
+            </p>
+          </div>
         </div>
 
         <Card>

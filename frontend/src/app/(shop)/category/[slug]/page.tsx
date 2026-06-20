@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { Search, Filter, Grid, List, ChevronDown, Package } from 'lucide-react'
-import Image from 'next/image'
+import Link from 'next/link'
+import { Search, Filter, Grid, List, ChevronDown, Package, Loader2, ArrowLeft, PackageX } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -11,95 +11,8 @@ import { ProductCard } from '@/components/shop/product-card'
 import { useProductStore } from '@/store/product-store'
 import { debounce } from '@/lib/utils'
 import { useCategoryStore } from '@/store/category-store'
+import { productApi } from '@/lib/api'
 import { Product } from '@/types/product'
-
-// Mock products data - in real app this would come from API
-const mockProducts: Product[] = [
-  {
-    id: '1',
-    name: 'Wireless Headphones',
-    description: 'Premium noise-cancelling wireless headphones',
-    price: 299.99,
-    originalPrice: 399.99,
-    images: ['/products/wireless-headphones-1.jpg'],
-    category: 'electronics',
-    slug: 'wireless-headphones',
-    stock: 15,
-    sku: 'WH-001',
-    rating: 4.5,
-    reviews: 128,
-    isNew: true,
-    isOnSale: true,
-  },
-  {
-    id: '2',
-    name: 'Smart Watch',
-    description: 'Feature-rich smartwatch with health tracking',
-    price: 199.99,
-    originalPrice: 249.99,
-    images: ['/products/smart-watch-1.jpg'],
-    category: 'electronics',
-    slug: 'smart-watch',
-    stock: 8,
-    sku: 'SW-003',
-    rating: 4.7,
-    reviews: 203,
-    isOnSale: true,
-  },
-  {
-    id: '3',
-    name: 'Laptop Stand',
-    description: 'Adjustable aluminum laptop stand',
-    price: 49.99,
-    images: ['/products/laptop-stand-1.jpg'],
-    category: 'electronics',
-    slug: 'laptop-stand',
-    stock: 25,
-    sku: 'LS-004',
-    rating: 4.3,
-    reviews: 67,
-  },
-  {
-    id: '4',
-    name: 'USB-C Hub',
-    description: '7-in-1 USB-C hub with multiple ports',
-    price: 39.99,
-    images: ['/products/usb-c-hub-1.jpg'],
-    category: 'electronics',
-    slug: 'usb-c-hub',
-    stock: 30,
-    sku: 'UH-005',
-    rating: 4.1,
-    reviews: 45,
-  },
-  {
-    id: '5',
-    name: 'Wireless Mouse',
-    description: 'Ergonomic wireless mouse with precision tracking',
-    price: 29.99,
-    images: ['/products/wireless-mouse-1.jpg'],
-    category: 'electronics',
-    slug: 'wireless-mouse',
-    stock: 40,
-    sku: 'WM-006',
-    rating: 4.4,
-    reviews: 89,
-  },
-  {
-    id: '6',
-    name: 'Mechanical Keyboard',
-    description: 'RGB mechanical keyboard with blue switches',
-    price: 89.99,
-    images: ['/products/mechanical-keyboard-1.jpg'],
-    category: 'electronics',
-    slug: 'mechanical-keyboard',
-    stock: 12,
-    sku: 'MK-007',
-    rating: 4.6,
-    reviews: 156,
-    isNew: true,
-  },
-]
 
 interface CategoryNav {
   id: string;
@@ -107,12 +20,29 @@ interface CategoryNav {
   slug: string;
 }
 
+const mapApiProduct = (p: any): Product => ({
+  id: String(p.id ?? ''),
+  name: p.name,
+  description: p.description || '',
+  price: parseFloat(p.price) || 0,
+  originalPrice: p.comparePrice ? parseFloat(p.comparePrice) : undefined,
+  images: p.images?.map((img: any) => img.url).filter(Boolean) || [],
+  category: typeof p.category === 'string' ? p.category : (p.category?.slug || ''),
+  slug: p.slug || '',
+  stock: parseInt(p.stock ?? '0', 10),
+  sku: p.sku || '',
+  rating: p.averageRating ?? p.rating ?? undefined,
+  reviews: p.reviewCount ?? p.reviews ?? undefined,
+  isNew: p.isNew ?? undefined,
+  isOnSale: p.comparePrice ? parseFloat(p.comparePrice) > parseFloat(p.price) : undefined,
+  variants: p.variants?.map((v: any) => ({ id: v.id, name: v.name, value: v.value, price: v.price ? parseFloat(v.price) : undefined })) || undefined,
+})
+
 export default function CategoryPage() {
   const params = useParams()
   const categorySlug = params.slug as string
   
   const { 
-    products, 
     setProducts, 
     searchQuery, 
     setSearchQuery, 
@@ -128,6 +58,8 @@ export default function CategoryPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [showFilters, setShowFilters] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const { categories: storeCategories, fetchCategories } = useCategoryStore()
   const fetchedCategories: CategoryNav[] = [
     { id: 'all', name: 'All Products', slug: 'all' },
@@ -139,19 +71,31 @@ export default function CategoryPage() {
     fetchCategories()
   }, [fetchCategories])
 
-  // Initialize products on mount
   useEffect(() => {
-    setProducts(mockProducts)
     setSelectedCategory(categorySlug === 'all' ? '' : categorySlug)
-  }, [categorySlug, setProducts, setSelectedCategory])
+    fetchProducts()
+  }, [categorySlug, setSelectedCategory])
 
-  // Get filtered products
-  const filteredProducts = getFilteredProducts()
-  
-  // Pagination
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage)
-  const startIndex = (currentPage - 1) * productsPerPage
-  const paginatedProducts = filteredProducts.slice(startIndex, startIndex + productsPerPage)
+  const fetchProducts = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const params: any = { category: categorySlug === 'all' ? undefined : categorySlug, limit: 200 }
+      const response = await productApi.getAll(params)
+      if (response.success) {
+        const mapped = (response.data?.products || []).map(mapApiProduct)
+        setProducts(mapped)
+      } else {
+        setProducts([])
+        setError('Failed to fetch products')
+      }
+    } catch {
+      setProducts([])
+      setError('Failed to load products')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Debounced search
   const debouncedSearch = debounce((query: string) => {
@@ -174,17 +118,58 @@ export default function CategoryPage() {
   }
 
   const currentCategory = fetchedCategories.find(cat => cat.slug === categorySlug)
+  const filteredProducts = getFilteredProducts()
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage)
+  const startIndex = (currentPage - 1) * productsPerPage
+  const paginatedProducts = filteredProducts.slice(startIndex, startIndex + productsPerPage)
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-center items-center py-24">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-6">
+          <p className="text-destructive">{error}</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <Button variant="outline" asChild>
+            <Link href="/">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Link>
+          </Button>
+          <Button onClick={fetchProducts}>Retry</Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">
-          {currentCategory?.name || 'Products'}
-        </h1>
-        <p className="text-muted-foreground">
-          {filteredProducts.length} products found
-        </p>
+      <div className="mb-8 flex items-center gap-4">
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Link>
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold">
+            {currentCategory?.name || 'Products'}
+          </h1>
+          <p className="text-muted-foreground">
+            {filteredProducts.length} products found
+          </p>
+        </div>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8">
@@ -384,7 +369,7 @@ export default function CategoryPage() {
                           <h3 className="font-semibold mb-2">{product.name}</h3>
                           <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{product.description}</p>
                           <div className="flex items-center justify-between">
-                            <span className="font-bold">{product.price}</span>
+                            <span className="font-bold">${product.price.toFixed(2)}</span>
                             <Button size="sm">Add to Cart</Button>
                           </div>
                         </div>
@@ -396,6 +381,7 @@ export default function CategoryPage() {
             </div>
           ) : (
             <div className="text-center py-12">
+              <PackageX className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <p className="text-muted-foreground mb-4">No products found matching your criteria.</p>
               <Button variant="outline" onClick={() => {
                 setSearchQuery('')

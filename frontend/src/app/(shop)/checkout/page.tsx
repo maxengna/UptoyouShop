@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { useCartStore } from '@/store/cart-store'
 import { useUserStore } from '@/store/user-store'
 import { formatPrice } from '@/lib/utils'
+import { orderApi, ApiError } from '@/lib/api'
 
 export default function CheckoutPage() {
   const [hydrated, setHydrated] = useState(false)
@@ -21,6 +22,8 @@ export default function CheckoutPage() {
   const { items, getTotalPrice, getTotalItems, clearCart } = useCartStore()
   const { user, isAuthenticated } = useUserStore()
   const [currentStep, setCurrentStep] = useState(1)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [shippingAddress, setShippingAddress] = useState({
     firstName: user?.name?.split(' ')[0] || '',
     lastName: user?.name?.split(' ')[1] || '',
@@ -300,17 +303,51 @@ export default function CheckoutPage() {
                   </p>
                 </div>
                 
+                {error && (
+                  <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
+                    {error}
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <Button variant="outline" onClick={() => setCurrentStep(2)}>
                     Back to Payment
                   </Button>
-                  <Button onClick={() => {
-                    // Handle order submission
-                    alert('Order placed successfully!')
-                    clearCart()
-                    window.location.href = '/'
-                  }}>
-                    Place Order
+                  <Button onClick={async () => {
+                    setError(null)
+                    setIsSubmitting(true)
+                    try {
+                      await orderApi.create({
+                        items: items.map(item => ({
+                          productId: item.productId,
+                          quantity: item.quantity,
+                          ...(item.variant ? { variantId: item.variant } : {}),
+                        })),
+                        shippingAddress: {
+                          firstName: shippingAddress.firstName,
+                          lastName: shippingAddress.lastName,
+                          address1: shippingAddress.address,
+                          city: shippingAddress.city,
+                          state: shippingAddress.state,
+                          zipCode: shippingAddress.zipCode,
+                          country: shippingAddress.country,
+                          phone: shippingAddress.phone || undefined,
+                        },
+                        paymentMethod: 'credit_card',
+                      })
+                      alert('Order placed successfully!')
+                      clearCart()
+                      window.location.href = '/'
+                    } catch (err) {
+                      if (err instanceof ApiError) {
+                        setError(err.message)
+                      } else {
+                        setError('An unexpected error occurred. Please try again.')
+                      }
+                    } finally {
+                      setIsSubmitting(false)
+                    }
+                  }} disabled={isSubmitting}>
+                    {isSubmitting ? 'Placing Order...' : 'Place Order'}
                   </Button>
                 </div>
               </CardContent>

@@ -455,12 +455,12 @@ export const userApi = {
         avatar?: string;
         createdAt: string;
       };
-    }>("/api/users");
+    }>("/api/user");
   },
 
   updateProfile: async (data: { name?: string; phone?: string; avatar?: string }) => {
     return apiRequest<{ success: boolean; message: string; data: any }>(
-      "/api/users",
+      "/api/user",
       { method: "PUT", body: data },
     );
   },
@@ -472,7 +472,7 @@ export const userApi = {
     if (params?.status) query.set("status", params.status);
     const qs = query.toString();
     return apiRequest<{ success: boolean; data: { orders: any[]; pagination: any } }>(
-      `/api/users/orders${qs ? `?${qs}` : ""}`,
+      `/api/user/orders${qs ? `?${qs}` : ""}`,
     );
   },
 
@@ -580,6 +580,83 @@ export const adminApi = {
       method: "PUT",
       body: { role },
     });
+  },
+
+  getOrderById: async (id: string) => {
+    return apiRequest<{
+      success: boolean;
+      data: any;
+    }>(`/api/admin/orders/${id}`);
+  },
+
+  getOrders: async (params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    paymentStatus?: string;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.page) query.set("page", String(params.page));
+    if (params?.limit) query.set("limit", String(params.limit));
+    if (params?.status) query.set("status", params.status);
+    if (params?.paymentStatus) query.set("paymentStatus", params.paymentStatus);
+    const qs = query.toString();
+    return apiRequest<{
+      success: boolean;
+      data: {
+        orders: any[];
+        pagination: PaginationMeta;
+      };
+    }>(`/api/admin/orders${qs ? `?${qs}` : ""}`);
+  },
+
+  updateOrderStatus: async (orderId: string, status: string) => {
+    return apiRequest<{
+      success: boolean;
+      message: string;
+      data: any;
+    }>(`/api/orders/${orderId}/status`, {
+      method: "PUT",
+      body: { status },
+    });
+  },
+};
+
+// Order API functions
+export const orderApi = {
+  create: async (data: {
+    items: Array<{ productId: string; quantity: number; variantId?: string }>;
+    shippingAddress: {
+      firstName: string;
+      lastName: string;
+      address1: string;
+      address2?: string;
+      city: string;
+      state: string;
+      zipCode: string;
+      country: string;
+      phone?: string;
+    };
+    billingAddress?: Record<string, any>;
+    paymentMethod: string;
+    notes?: string;
+  }) => {
+    return apiRequest<{
+      success: boolean;
+      message: string;
+      data: any;
+    }>("/api/orders", {
+      method: "POST",
+      body: data,
+    });
+  },
+
+  getById: async (id: string) => {
+    return apiRequest<{
+      success: boolean;
+      data: any;
+      message?: string;
+    }>(`/api/orders/${id}`);
   },
 };
 
