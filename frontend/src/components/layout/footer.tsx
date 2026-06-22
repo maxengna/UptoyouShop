@@ -103,6 +103,9 @@ export function Footer() {
 
         <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
           <p>&copy; 2024 UpToYouShop. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground/60 mt-1">
+            {process.env.NEXT_PUBLIC_APP_VERSION}
+          </p>
           <div className="mt-2 space-x-4">
             <Link href="/privacy" className="hover:text-primary">
               Privacy Policy

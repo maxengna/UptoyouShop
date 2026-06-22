@@ -439,6 +439,20 @@ export const authApi = {
       body: data,
     });
   },
+
+  googleLogin: async (accessToken: string) => {
+    return apiRequest<AuthResponse>("/api/auth/google", {
+      method: "POST",
+      body: { accessToken },
+    });
+  },
+
+  facebookLogin: async (accessToken: string) => {
+    return apiRequest<AuthResponse>("/api/auth/facebook", {
+      method: "POST",
+      body: { accessToken },
+    });
+  },
 };
 
 // User API functions
@@ -477,26 +491,182 @@ export const userApi = {
   },
 
   getWishlist: async () => {
-    return apiRequest<{ success: boolean; data: { items: any[] } }>("/api/wishlist");
+    return apiRequest<{
+      success: boolean;
+      data: {
+        id: string;
+        userId: string;
+        name: string;
+        wishlistItems: Array<{
+          id: string;
+          productId: string;
+          addedAt: string;
+          product: {
+            id: string;
+            name: string;
+            slug: string;
+            price: number;
+            originalPrice: number | null;
+            stock: number;
+            image: string | null;
+            category: { name: string; slug: string } | null;
+          };
+        }>;
+      };
+    }>("/api/user/wishlist");
   },
 
   addToWishlist: async (productId: string) => {
-    return apiRequest<{ success: boolean; message: string }>("/api/wishlist", {
+    return apiRequest<{ success: boolean; data: any; message: string }>("/api/user/wishlist", {
       method: "POST",
       body: { productId },
     });
   },
 
-  removeFromWishlist: async (productId: string) => {
+  removeFromWishlist: async (wishlistItemId: string) => {
     return apiRequest<{ success: boolean; message: string }>(
-      `/api/wishlist/${productId}`,
+      `/api/user/wishlist/${wishlistItemId}`,
       { method: "DELETE" },
     );
   },
 };
 
+export interface DashboardStats {
+  totalRevenue: number;
+  totalOrders: number;
+  totalCustomers: number;
+  totalProducts: number;
+  revenueChange: number;
+  ordersChange: number;
+  customersChange: number;
+  productsChange: number;
+  recentOrders: Array<{
+    id: string;
+    customer: string;
+    amount: number;
+    status: string;
+    date: string;
+    items: number;
+  }>;
+  topProducts: Array<{
+    id: string;
+    name: string;
+    sales: number;
+    revenue: number;
+    stock: number;
+    image: string | null;
+  }>;
+  salesData: Array<{
+    date: string;
+    revenue: number;
+    orders: number;
+  }>;
+}
+
+export interface SalesAnalytics {
+  totalRevenue: number;
+  totalOrders: number;
+  averageOrderValue: number;
+  salesByDay: Array<{
+    createdAt: string;
+    _sum: { total: number };
+    _count: { id: number };
+  }>;
+  topProducts: Array<{
+    productId: string;
+    _sum: { quantity: number; price: number };
+  }>;
+}
+
+export interface ProductAnalytics {
+  totalProducts: number;
+  lowStockProducts: number;
+  outOfStockProducts: number;
+  topRatedProducts: Array<Record<string, any>>;
+  recentProducts: Array<Record<string, any>>;
+}
+
+export interface CustomerAnalytics {
+  totalCustomers: number;
+  newCustomers: number;
+  activeCustomers: number;
+  topCustomers: Array<Record<string, any>>;
+}
+
+export interface AnalyticsOverview {
+  totalRevenue: number;
+  totalOrders: number;
+  averageOrderValue: number;
+  totalProducts: number;
+  totalCustomers: number;
+  revenueChange: number;
+  ordersChange: number;
+  customersChange: number;
+  productsChange: number;
+  salesByDay: Array<{ date: string; revenue: number; orders: number }>;
+  topProducts: Array<{
+    id: string; name: string; sales: number; revenue: number; stock: number; image: string | null;
+  }>;
+  recentOrders: Array<{
+    id: string; customer: string; amount: number; status: string; date: string; items: number;
+  }>;
+  lowStockProducts: number;
+  outOfStockProducts: number;
+  topRatedProducts: Array<{ id: string; name: string; averageRating: number; reviewsCount: number }>;
+  newCustomers: number;
+  activeCustomers: number;
+  topCustomers: Array<{ id: string; name: string | null; email: string; totalSpent: number }>;
+}
+
 // Admin API functions
 export const adminApi = {
+  getDashboardStats: async (period?: string) => {
+    const query = period ? `?period=${period}` : '';
+    return apiRequest<{
+      success: boolean;
+      data: DashboardStats;
+    }>(`/api/admin/analytics/dashboard${query}`);
+  },
+
+  getSalesAnalytics: async (startDate?: string, endDate?: string) => {
+    const query = new URLSearchParams();
+    if (startDate) query.set('startDate', startDate);
+    if (endDate) query.set('endDate', endDate);
+    const qs = query.toString();
+    return apiRequest<{
+      success: boolean;
+      data: SalesAnalytics;
+      message: string;
+      errors: any[];
+    }>(`/api/admin/analytics/sales${qs ? `?${qs}` : ''}`);
+  },
+
+  getProductAnalytics: async () => {
+    return apiRequest<{
+      success: boolean;
+      data: ProductAnalytics;
+      message: string;
+      errors: any[];
+    }>('/api/admin/analytics/products');
+  },
+
+  getCustomerAnalytics: async () => {
+    return apiRequest<{
+      success: boolean;
+      data: CustomerAnalytics;
+      message: string;
+      errors: any[];
+    }>('/api/admin/analytics/customers');
+  },
+
+  getAnalyticsOverview: async (period?: string) => {
+    const query = period ? `?period=${period}` : '';
+    return apiRequest<{
+      success: boolean;
+      data: AnalyticsOverview;
+    }>(`/api/admin/analytics/overview${query}`);
+  },
+
   getUsers: async (params?: {
     page?: number;
     limit?: number;

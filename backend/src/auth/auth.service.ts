@@ -146,6 +146,94 @@ export class AuthService {
     };
   }
 
+  async socialLogin(provider: 'google' | 'facebook', accessToken: string) {
+    let profile: { email: string; name: string; avatar?: string };
+
+    if (provider === 'google') {
+      const googleRes = await fetch(
+        `https://www.googleapis.com/oauth2/v3/userinfo`,
+        { headers: { Authorization: `Bearer ${accessToken}` } },
+      );
+      const googleData = await googleRes.json();
+      if (googleData.error || !googleData.email) {
+        throw new UnauthorizedException('Invalid Google token');
+      }
+      profile = {
+        email: googleData.email,
+        name: googleData.name || googleData.email.split('@')[0],
+        avatar: googleData.picture,
+      };
+    } else {
+      const fbUrl = `https://graph.facebook.com/v18.0/me?fields=id,name,email,picture&access_token=${encodeURIComponent(accessToken)}`;
+      const fbRes = await fetch(fbUrl);
+      const fbData = await fbRes.json();
+      if (fbData.error || !fbData.email) {
+        throw new UnauthorizedException('Invalid Facebook token');
+      }
+      profile = {
+        email: fbData.email,
+        name: fbData.name || fbData.email.split('@')[0],
+        avatar: fbData.picture?.data?.url,
+      };
+    }
+
+    // Find or create user
+    let user = await this.prisma.user.findUnique({
+      where: { email: profile.email },
+    });
+
+    if (!user) {
+      user = await this.prisma.user.create({
+        data: {
+          email: profile.email,
+          name: profile.name,
+          avatar: profile.avatar,
+          emailVerified: true,
+        },
+      });
+    } else {
+      const updateData: any = {};
+      if (profile.name) updateData.name = profile.name;
+      if (profile.avatar) updateData.avatar = profile.avatar;
+      if (!user.emailVerified) updateData.emailVerified = true;
+      if (Object.keys(updateData).length > 0) {
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: updateData,
+        });
+      }
+    }
+
+    // Generate tokens
+    const tokens = await this.generateTokens(user);
+
+    // Store refresh token session
+    await this.prisma.session.create({
+      data: {
+        userId: user.id,
+        token: tokens.refreshToken,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    return {
+      success: true,
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          phone: user.phone,
+          role: user.role,
+        },
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+      },
+      message: `${provider} login successful`,
+      errors: [],
+    };
+  }
+
   async logout(userId: string) {
     // Delete all sessions for user
     await this.prisma.session.deleteMany({

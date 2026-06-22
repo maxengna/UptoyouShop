@@ -15,6 +15,7 @@ interface UserStore extends AuthState {
     email: string
     password: string
   }) => Promise<boolean>
+  socialLogin: (provider: 'google' | 'facebook', accessToken: string) => Promise<boolean>
 }
 
 export const useUserStore = create<UserStore>()(
@@ -113,6 +114,50 @@ export const useUserStore = create<UserStore>()(
           throw error
         }
       },
+
+      socialLogin: async (provider: 'google' | 'facebook', accessToken: string) => {
+        set({ isLoading: true })
+
+        try {
+          const response = provider === 'google'
+            ? await authApi.googleLogin(accessToken)
+            : await authApi.facebookLogin(accessToken)
+
+          if (!response.success || !response.data) {
+            set({ isLoading: false })
+            return false
+          }
+
+          const userData = response.data.user
+          const user: User = {
+            id: userData.id,
+            email: userData.email,
+            name: userData.name,
+            role: userData.role as User['role'],
+            phone: userData.phone,
+          }
+
+          setAuthCookie({
+            authenticated: true,
+            role: user.role,
+            name: user.name,
+          })
+
+          setAccessToken(response.data.accessToken)
+
+          set({
+            user,
+            isAuthenticated: true,
+            accessToken: response.data.accessToken,
+            isLoading: false,
+          })
+
+          return true
+        } catch (error) {
+          set({ isLoading: false })
+          throw error
+        }
+      },
     }),
     {
       name: 'user-storage',
@@ -121,6 +166,11 @@ export const useUserStore = create<UserStore>()(
         isAuthenticated: state.isAuthenticated,
         accessToken: state.accessToken,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (state?.accessToken) {
+          setAccessToken(state.accessToken)
+        }
+      },
     }
   )
 )

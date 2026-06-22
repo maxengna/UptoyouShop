@@ -4,13 +4,17 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { S3Service } from '../upload/s3.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly s3Service: S3Service,
+  ) {}
 
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
@@ -205,7 +209,7 @@ export class UsersService {
   }
 
   async getWishlist(userId: string) {
-    const wishlist = await this.prisma.wishlist.findUnique({
+    let wishlist = await this.prisma.wishlist.findUnique({
       where: { userId },
       include: {
         wishlistItems: {
@@ -227,23 +231,31 @@ export class UsersService {
     });
 
     if (!wishlist) {
-      // Create empty wishlist if doesn't exist
-      const newWishlist = await this.prisma.wishlist.create({
+      wishlist = await this.prisma.wishlist.create({
         data: { userId },
-        include: { wishlistItems: true },
+        include: { wishlistItems: { include: { product: { include: { images: { take: 1 }, category: { select: { name: true, slug: true } } } } } } },
       });
-
-      return {
-        success: true,
-        data: newWishlist,
-        message: 'Wishlist retrieved successfully',
-        errors: [],
-      };
     }
+
+    // Map signed URLs for product images
+    const items = await Promise.all(
+      wishlist.wishlistItems.map(async (item) => ({
+        ...item,
+        product: {
+          ...item.product,
+          image: item.product.images[0]
+            ? await this.s3Service.getSignedUrl(item.product.images[0].imageKey)
+            : null,
+        },
+      })),
+    );
 
     return {
       success: true,
-      data: wishlist,
+      data: {
+        ...wishlist,
+        wishlistItems: items,
+      },
       message: 'Wishlist retrieved successfully',
       errors: [],
     };

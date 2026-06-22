@@ -1,85 +1,59 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Heart, ShoppingCart, Trash2, HeartOff } from "lucide-react"
+import { Heart, ShoppingCart, Trash2, HeartOff, Loader2 } from "lucide-react"
 import { toast } from "sonner"
-
-interface WishlistItem {
-  id: string
-  name: string
-  price: number
-  originalPrice?: number
-  image: string
-  inStock: boolean
-  discount?: number
-}
-
-const mockWishlist: WishlistItem[] = [
-  {
-    id: "1",
-    name: "Wireless Noise-Cancelling Headphones",
-    price: 79.99,
-    originalPrice: 129.99,
-    image: "/placeholder.svg?height=200&width=200",
-    inStock: true,
-    discount: 38,
-  },
-  {
-    id: "2",
-    name: "Mechanical Gaming Keyboard RGB",
-    price: 149.99,
-    image: "/placeholder.svg?height=200&width=200",
-    inStock: true,
-  },
-  {
-    id: "3",
-    name: "Ultra HD Webcam 4K",
-    price: 89.99,
-    originalPrice: 119.99,
-    image: "/placeholder.svg?height=200&width=200",
-    inStock: false,
-    discount: 25,
-  },
-  {
-    id: "4",
-    name: "Ergonomic office chair",
-    price: 299.99,
-    image: "/placeholder.svg?height=200&width=200",
-    inStock: true,
-  },
-  {
-    id: "5",
-    name: "USB-C Hub 7-in-1",
-    price: 45.99,
-    image: "/placeholder.svg?height=200&width=200",
-    inStock: true,
-  },
-  {
-    id: "6",
-    name: "Portable Bluetooth Speaker",
-    price: 199.99,
-    originalPrice: 249.99,
-    image: "/placeholder.svg?height=200&width=200",
-    inStock: true,
-    discount: 20,
-  },
-]
+import { useWishlistStore } from "@/store/wishlist-store"
+import { useCartStore } from "@/store/cart-store"
+import { formatPrice } from "@/lib/utils"
 
 export default function WishlistPage() {
-  const [items, setItems] = useState(mockWishlist)
+  const { items, loading, fetchWishlist, removeItem } = useWishlistStore()
+  const { addItem: addToCart } = useCartStore()
+  const [removing, setRemoving] = useState<string | null>(null)
 
-  const removeItem = (id: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== id))
-    toast.success("Removed from wishlist")
+  useEffect(() => {
+    fetchWishlist()
+  }, [fetchWishlist])
+
+  const handleRemove = async (itemId: string) => {
+    setRemoving(itemId)
+    try {
+      await removeItem(itemId)
+      toast.success("Removed from wishlist")
+    } catch {
+      toast.error("Failed to remove item")
+    } finally {
+      setRemoving(null)
+    }
   }
 
-  const addToCart = (item: WishlistItem) => {
-    toast.success(`${item.name} added to cart`)
+  const handleAddToCart = (item: typeof items[0]) => {
+    addToCart({
+      id: item.product.id,
+      productId: item.product.id,
+      productName: item.product.name,
+      productImage: item.product.image || "/images/product-placeholder.jpg",
+      quantity: 1,
+      price: item.product.price,
+      product: item.product as any,
+    })
+    toast.success(`${item.product.name} added to cart`)
+  }
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto flex items-center justify-center min-h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -92,19 +66,6 @@ export default function WishlistPage() {
               {items.length} {items.length === 1 ? "item" : "items"} saved
             </p>
           </div>
-          {items.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setItems([])
-                toast.success("Wishlist cleared")
-              }}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Clear All
-            </Button>
-          )}
         </div>
 
         {items.length === 0 ? (
@@ -125,25 +86,30 @@ export default function WishlistPage() {
                 <CardContent className="p-0">
                   <div className="relative aspect-square bg-muted">
                     <Image
-                      src={item.image}
-                      alt={item.name}
+                      src={item.product.image || "/images/product-placeholder.jpg"}
+                      alt={item.product.name}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    {item.discount && (
+                    {item.product.originalPrice && (
                       <Badge className="absolute top-3 left-3 bg-red-500 text-white border-0">
-                        -{item.discount}%
+                        -{Math.round((1 - item.product.price / item.product.originalPrice) * 100)}%
                       </Badge>
                     )}
                     <Button
                       variant="ghost"
                       size="icon"
                       className="absolute top-3 right-3 bg-background/80 hover:bg-background"
-                      onClick={() => removeItem(item.id)}
+                      onClick={() => handleRemove(item.id)}
+                      disabled={removing === item.id}
                     >
-                      <Trash2 className="h-4 w-4 text-muted-foreground hover:text-red-500" />
+                      {removing === item.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4 text-muted-foreground hover:text-red-500" />
+                      )}
                     </Button>
-                    {!item.inStock && (
+                    {item.product.stock === 0 && (
                       <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
                         <Badge variant="secondary" className="text-sm">
                           Out of Stock
@@ -153,29 +119,29 @@ export default function WishlistPage() {
                   </div>
                   <div className="p-4 space-y-3">
                     <Link
-                      href={`/product/${item.id}`}
+                      href={`/product/${item.product.slug}`}
                       className="block font-medium hover:text-primary transition-colors line-clamp-2"
                     >
-                      {item.name}
+                      {item.product.name}
                     </Link>
                     <div className="flex items-center gap-2">
                       <span className="text-lg font-bold">
-                        ${item.price.toFixed(2)}
+                        {formatPrice(item.product.price)}
                       </span>
-                      {item.originalPrice && (
+                      {item.product.originalPrice && (
                         <span className="text-sm text-muted-foreground line-through">
-                          ${item.originalPrice.toFixed(2)}
+                          {formatPrice(item.product.originalPrice)}
                         </span>
                       )}
                     </div>
                     <Button
                       className="w-full gap-2"
                       size="sm"
-                      disabled={!item.inStock}
-                      onClick={() => addToCart(item)}
+                      disabled={item.product.stock === 0}
+                      onClick={() => handleAddToCart(item)}
                     >
                       <ShoppingCart className="h-4 w-4" />
-                      {item.inStock ? "Add to Cart" : "Out of Stock"}
+                      {item.product.stock > 0 ? "Add to Cart" : "Out of Stock"}
                     </Button>
                   </div>
                 </CardContent>

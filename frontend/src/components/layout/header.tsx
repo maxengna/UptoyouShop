@@ -16,10 +16,12 @@ import { Input } from "@/components/ui/input";
 import { useCartStore } from "@/store/cart-store";
 import { useUserStore } from "@/store/user-store";
 import { useCategoryStore } from "@/store/category-store";
+import { useWishlistStore } from "@/store/wishlist-store";
 
 export function Header() {
   const { getTotalItems, toggleCart } = useCartStore();
   const { user, isAuthenticated, logout } = useUserStore();
+  const { items: wishlistItems, fetchWishlist } = useWishlistStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
@@ -53,6 +55,12 @@ export function Header() {
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchWishlist();
+    }
+  }, [isAuthenticated, fetchWishlist]);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -156,12 +164,17 @@ export function Header() {
             <Button
               variant="ghost"
               size="icon"
-              className="hidden sm:flex"
-              aria-label="Wishlist"
+              className="hidden sm:flex relative"
+              aria-label={`Wishlist with ${wishlistItems.length} items`}
               asChild
             >
               <Link href="/shop/wishlist">
                 <Heart className="h-5 w-5" />
+                {wishlistItems.length > 0 && (
+                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                    {wishlistItems.length}
+                  </span>
+                )}
               </Link>
             </Button>
 

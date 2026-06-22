@@ -43,6 +43,18 @@ export class AdminController {
     return this.adminService.getCustomerAnalytics();
   }
 
+  @Get('analytics/dashboard')
+  @ApiOperation({ summary: 'Get dashboard statistics' })
+  async getDashboardStats(@Query('period') period?: string) {
+    return this.adminService.getDashboardStats(period);
+  }
+
+  @Get('analytics/overview')
+  @ApiOperation({ summary: 'Get analytics overview' })
+  async getAnalyticsOverview(@Query('period') period?: string) {
+    return this.adminService.getAnalyticsOverview(period);
+  }
+
   @Get('orders/:id')
   @ApiOperation({ summary: 'Get order by ID' })
   async getOrderById(@Param('id') id: string) {

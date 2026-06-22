@@ -15,6 +15,7 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { SocialLoginDto } from './dto/social-login.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { GetUser } from '../common/decorators/get-user.decorator';
 
@@ -29,6 +30,52 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Invalid input' })
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
+  }
+
+  @Post('google')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Login with Google' })
+  @ApiResponse({ status: 200, description: 'Google login successful' })
+  @ApiResponse({ status: 401, description: 'Invalid Google token' })
+  async googleLogin(
+    @Body() socialLoginDto: SocialLoginDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const result = await this.authService.socialLogin('google', socialLoginDto.accessToken);
+
+    if (result.data?.refreshToken) {
+      response.cookie('refreshToken', result.data.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+    }
+
+    return result;
+  }
+
+  @Post('facebook')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Login with Facebook' })
+  @ApiResponse({ status: 200, description: 'Facebook login successful' })
+  @ApiResponse({ status: 401, description: 'Invalid Facebook token' })
+  async facebookLogin(
+    @Body() socialLoginDto: SocialLoginDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const result = await this.authService.socialLogin('facebook', socialLoginDto.accessToken);
+
+    if (result.data?.refreshToken) {
+      response.cookie('refreshToken', result.data.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+    }
+
+    return result;
   }
 
   @Post('login')

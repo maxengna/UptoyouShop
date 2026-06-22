@@ -31,7 +31,7 @@ export default function SignupPage() {
   const [error, setError] = useState("");
 
   const router = useRouter();
-  const { register } = useUserStore();
+  const { register, socialLogin } = useUserStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,15 +87,23 @@ export default function SignupPage() {
       const result: SocialAuthResult =
         provider === "google" ? await googleAuth() : await facebookAuth();
 
-      if (result.success && result.user) {
-        // Store user data and redirect
-        localStorage.setItem("user", JSON.stringify(result.user));
-        window.location.href = "/";
+      if (result.success && result.accessToken) {
+        const success = await socialLogin(provider, result.accessToken);
+        if (success) {
+          const currentUser = useUserStore.getState().user;
+          if (currentUser?.role === "ADMIN" || currentUser?.role === "SUPER_ADMIN") {
+            router.push("/dashboard");
+          } else {
+            router.push("/");
+          }
+        } else {
+          setError(`Failed to sign in with ${provider}`);
+        }
       } else {
         setError(result.error || `Failed to authenticate with ${provider}`);
       }
-    } catch (err) {
-      setError(`An error occurred with ${provider} authentication`);
+    } catch (err: any) {
+      setError(err?.message || `An error occurred with ${provider} authentication`);
     } finally {
       setIsGoogleLoading(false);
       setIsFacebookLoading(false);

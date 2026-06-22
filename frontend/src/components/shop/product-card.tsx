@@ -1,10 +1,11 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { Heart, ShoppingCart } from 'lucide-react'
+import { Heart, ShoppingCart, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { formatPrice, formatDiscountPercentage } from '@/lib/utils'
 import { useCartStore } from '@/store/cart-store'
+import { useWishlistStore } from '@/store/wishlist-store'
 import { Product } from '@/types/product'
 
 interface ProductCardProps {
@@ -13,6 +14,8 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useCartStore()
+  const { isInWishlist, addItem: addToWishlist, removeItem: removeFromWishlist } = useWishlistStore()
+  const inWishlist = isInWishlist(product.id)
 
   const handleAddToCart = () => {
     addItem({
@@ -24,6 +27,21 @@ export function ProductCard({ product }: ProductCardProps) {
       price: product.price,
       product,
     })
+  }
+
+  const handleToggleWishlist = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    try {
+      if (inWishlist) {
+        const item = useWishlistStore.getState().items.find(i => i.productId === product.id)
+        if (item) await removeFromWishlist(item.id)
+      } else {
+        await addToWishlist(product.id)
+      }
+    } catch {
+      // Silently fail - toast is handled by store
+    }
   }
 
   const discountPercentage = product.originalPrice
@@ -62,8 +80,11 @@ export function ProductCard({ product }: ProductCardProps) {
             size="icon"
             variant="ghost"
             className="absolute top-2 right-2 bg-white/80 hover:bg-white"
+            onClick={handleToggleWishlist}
           >
-            <Heart className="h-4 w-4" />
+            <Heart
+              className={`h-4 w-4 ${inWishlist ? 'fill-red-500 text-red-500' : ''}`}
+            />
           </Button>
         </div>
       </CardContent>
