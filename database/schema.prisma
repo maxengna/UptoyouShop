@@ -48,6 +48,19 @@ model Session {
   @@map("sessions")
 }
 
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  email     String
+  token     String    @unique
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  usedAt    DateTime?
+
+  @@index([email])
+  @@index([token])
+  @@map("password_reset_tokens")
+}
+
 // Product Management
 model Category {
   id          String   @id @default(cuid())

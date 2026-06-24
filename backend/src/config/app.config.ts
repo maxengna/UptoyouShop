@@ -18,4 +18,8 @@ export default registerAs("app", () => ({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
     s3Bucket: process.env.AWS_S3_BUCKET || "",
   },
+  ses: {
+    fromEmail: process.env.AWS_SES_FROM_EMAIL || "noreply@uptoyoushop.com",
+  },
+  frontendUrl: process.env.FRONTEND_URL || "http://localhost:3000",
 }));

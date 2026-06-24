@@ -18,6 +18,12 @@ export const resetPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
 })
 
+// Reset password confirm validation (set new password with token)
+export const resetPasswordConfirmSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+  password: z.string().min(6, 'Password must be at least 6 characters').max(100, 'Password must not exceed 100 characters'),
+})
+
 // Change password validation
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
@@ -171,6 +177,7 @@ export const createShippingMethodSchema = z.object({
 export type RegisterInput = z.infer<typeof registerSchema>
 export type LoginInput = z.infer<typeof loginSchema>
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
+export type ResetPasswordConfirmInput = z.infer<typeof resetPasswordConfirmSchema>
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>
 export type AddressInput = z.infer<typeof addressSchema>

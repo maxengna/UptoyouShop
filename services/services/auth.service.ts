@@ -1,8 +1,11 @@
 import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
+import crypto from "crypto";
 import { prisma } from "../../database/prisma";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
+import { sendPasswordResetEmail } from "@/lib/utils/email";
+import { resetPasswordConfirmSchema } from "@/lib/validations/auth";
 
 // Registration schema
 const registerSchema = z.object({
@@ -192,7 +195,6 @@ export async function getCurrentUser() {
   }
 }
 
-// Password reset schema
 const resetPasswordSchema = z.object({
   email: z.string().email(),
 });
@@ -206,17 +208,17 @@ export async function requestPasswordReset(request: NextRequest) {
       where: { email },
     });
 
-    if (!user) {
-      // Don't reveal if user exists or not for security
-      return {
-        success: true,
-        message:
-          "If an account with this email exists, a password reset link has been sent",
-      };
+    if (user) {
+      const token = crypto.randomBytes(32).toString("hex");
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+      await prisma.passwordResetToken.create({
+        data: { email: user.email, token, expiresAt },
+      });
+
+      await sendPasswordResetEmail(user.email, token);
     }
 
-    // TODO: Generate and send password reset token via email
-    // For now, just return success
     return {
       success: true,
       message:
@@ -242,7 +244,103 @@ export async function requestPasswordReset(request: NextRequest) {
   }
 }
 
-// Change password schema
+export async function verifyResetToken(token: string) {
+  try {
+    const record = await prisma.passwordResetToken.findUnique({
+      where: { token },
+    });
+
+    if (!record || record.usedAt || record.expiresAt < new Date()) {
+      return {
+        success: false,
+        error: "Invalid or expired reset token",
+        status: 400,
+      };
+    }
+
+    return {
+      success: true,
+      data: { email: record.email },
+    };
+  } catch (error) {
+    console.error("Verify reset token error:", error);
+    return {
+      success: false,
+      error: "Failed to verify reset token",
+      status: 500,
+    };
+  }
+}
+
+export async function confirmPasswordReset(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { token, password } = resetPasswordConfirmSchema.parse(body);
+
+    const record = await prisma.passwordResetToken.findUnique({
+      where: { token },
+    });
+
+    if (!record || record.usedAt || record.expiresAt < new Date()) {
+      return {
+        success: false,
+        error: "Invalid or expired reset token",
+        status: 400,
+      };
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: record.email },
+    });
+
+    if (!user) {
+      return {
+        success: false,
+        error: "User not found",
+        status: 404,
+      };
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: user.id },
+        data: { passwordHash },
+      }),
+      prisma.passwordResetToken.update({
+        where: { id: record.id },
+        data: { usedAt: new Date() },
+      }),
+      prisma.session.deleteMany({
+        where: { userId: user.id },
+      }),
+    ]);
+
+    return {
+      success: true,
+      message: "Password has been reset successfully",
+    };
+  } catch (error) {
+    console.error("Confirm password reset error:", error);
+
+    if (error instanceof z.ZodError) {
+      return {
+        success: false,
+        error: "Invalid password data",
+        details: error.errors,
+        status: 400,
+      };
+    }
+
+    return {
+      success: false,
+      error: "Failed to reset password",
+      status: 500,
+    };
+  }
+}
+
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1),
   newPassword: z.string().min(6),

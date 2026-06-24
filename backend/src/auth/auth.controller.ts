@@ -8,7 +8,10 @@ import {
   Get,
   UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ConfirmResetPasswordDto } from './dto/confirm-reset-password.dto';
 import { Response, Request } from 'express';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
@@ -149,6 +152,31 @@ export class AuthController {
       message: 'Logged out successfully',
       errors: [],
     };
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Send password reset email' })
+  @ApiResponse({ status: 200, description: 'Reset email sent if account exists' })
+  async requestPasswordReset(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(forgotPasswordDto);
+  }
+
+  @Get('reset-password/verify')
+  @ApiOperation({ summary: 'Verify reset token' })
+  @ApiResponse({ status: 200, description: 'Token is valid' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired token' })
+  async verifyResetToken(@Query('token') token: string) {
+    return this.authService.verifyResetToken(token);
+  }
+
+  @Post('reset-password/confirm')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Confirm password reset' })
+  @ApiResponse({ status: 200, description: 'Password reset successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired token' })
+  async confirmResetPassword(@Body() confirmResetPasswordDto: ConfirmResetPasswordDto) {
+    return this.authService.confirmResetPassword(confirmResetPasswordDto);
   }
 
   @Get('me')

@@ -6,6 +6,7 @@ import { Mail, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { authApi } from '@/lib/api'
 
 export default function ForgotPasswordPage() {
   const [isHydrated, setIsHydrated] = useState(false)
@@ -23,7 +24,6 @@ export default function ForgotPasswordPage() {
     setIsLoading(true)
     setError('')
 
-    // Basic email validation
     if (!email || !email.includes('@')) {
       setError('Please enter a valid email address')
       setIsLoading(false)
@@ -31,11 +31,15 @@ export default function ForgotPasswordPage() {
     }
 
     try {
-      // Mock API call - in real app, this would call your backend
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
+      const response = await authApi.requestPasswordReset(email)
+
+      if (!response.success) {
+        setError(response.message || 'An error occurred. Please try again.')
+        return
+      }
+
       setIsSubmitted(true)
-    } catch (err) {
+    } catch {
       setError('An error occurred. Please try again.')
     } finally {
       setIsLoading(false)
@@ -135,7 +139,7 @@ export default function ForgotPasswordPage() {
 
                   <div className="pt-4 border-t">
                     <Link 
-                      href="/auth/signin" 
+                      href="/signin" 
                       className="inline-flex items-center text-sm text-gray-600 hover:text-primary transition-colors"
                     >
                       <ArrowLeft className="h-4 w-4 mr-1" />

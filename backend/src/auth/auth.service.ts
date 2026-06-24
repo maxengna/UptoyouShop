@@ -2,13 +2,18 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
+import { MailService } from '../mail/mail.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ConfirmResetPasswordDto } from './dto/confirm-reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +21,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly mailService: MailService,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -244,6 +250,106 @@ export class AuthService {
       success: true,
       data: null,
       message: 'Logged out successfully',
+      errors: [],
+    };
+  }
+
+  async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
+    const { email } = forgotPasswordDto;
+
+    // Always return success to prevent email enumeration
+    const user = await this.prisma.user.findUnique({ where: { email } });
+
+    if (user) {
+      // Generate reset token (32 random bytes = 64 hex chars)
+      const token = crypto.randomBytes(32).toString('hex');
+
+      // Expires in 1 hour
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+      await this.prisma.passwordResetToken.create({
+        data: { email, token, expiresAt },
+      });
+
+      const nodeEnv = this.configService.get<string>('NODE_ENV', 'development');
+      const resetLink = `${this.configService.get<string>('app.frontendUrl', 'http://localhost:3000')}/reset-password/${token}`;
+
+      if (nodeEnv === 'development') {
+        console.log('\n========================================');
+        console.log('  PASSWORD RESET LINK');
+        console.log(`  To: ${email}`);
+        console.log(`  Link: ${resetLink}`);
+        console.log('========================================\n');
+      }
+
+      this.mailService.sendForgotPasswordEmail(email, token).catch((err) => {
+        console.error('Failed to send password reset email:', err);
+        if (nodeEnv === 'development') {
+          console.log(`\n⚠️  SES failed. Use this link directly: ${resetLink}\n`);
+        }
+      });
+    }
+
+    return {
+      success: true,
+      data: null,
+      message: 'If the email exists, a reset link has been sent',
+      errors: [],
+    };
+  }
+
+  async verifyResetToken(token: string) {
+    const resetToken = await this.prisma.passwordResetToken.findUnique({
+      where: { token },
+    });
+
+    if (!resetToken || resetToken.usedAt || resetToken.expiresAt < new Date()) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    return {
+      success: true,
+      data: { email: resetToken.email },
+      message: 'Token is valid',
+      errors: [],
+    };
+  }
+
+  async confirmResetPassword(confirmResetPasswordDto: ConfirmResetPasswordDto) {
+    const { token, password } = confirmResetPasswordDto;
+
+    const resetToken = await this.prisma.passwordResetToken.findUnique({
+      where: { token },
+    });
+
+    if (!resetToken) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    if (resetToken.usedAt) {
+      throw new BadRequestException('Reset token has already been used');
+    }
+
+    if (resetToken.expiresAt < new Date()) {
+      throw new BadRequestException('Reset token has expired');
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    await this.prisma.user.update({
+      where: { email: resetToken.email },
+      data: { passwordHash },
+    });
+
+    await this.prisma.passwordResetToken.update({
+      where: { id: resetToken.id },
+      data: { usedAt: new Date() },
+    });
+
+    return {
+      success: true,
+      data: null,
+      message: 'Password reset successfully',
       errors: [],
     };
   }
