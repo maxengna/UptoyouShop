@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Put,
+  Delete,
   Body,
   Param,
   Query,
@@ -95,5 +96,43 @@ export class AdminController {
     @Body('role') role: UserRole,
   ) {
     return this.adminService.updateUserRole(userId, role);
+  }
+
+  @Get('reviews')
+  @ApiOperation({ summary: 'Get all reviews (admin)' })
+  async getAllReviews(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('productId') productId?: string,
+    @Query('userId') userId?: string,
+    @Query('rating') rating?: number,
+    @Query('isActive') isActive?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.adminService.getAllReviews(page, limit, {
+      productId,
+      userId,
+      rating: rating ? Number(rating) : undefined,
+      isActive: isActive !== undefined ? isActive === 'true' : undefined,
+      search,
+    });
+  }
+
+  @Get('reviews/:id')
+  @ApiOperation({ summary: 'Get review by ID' })
+  async getReviewById(@Param('id') id: string) {
+    return this.adminService.getReviewById(id);
+  }
+
+  @Put('reviews/:id/toggle-active')
+  @ApiOperation({ summary: 'Toggle review active status' })
+  async toggleReviewActive(@Param('id') id: string) {
+    return this.adminService.toggleReviewActive(id);
+  }
+
+  @Delete('reviews/:id')
+  @ApiOperation({ summary: 'Delete review' })
+  async deleteReview(@Param('id') id: string) {
+    return this.adminService.deleteReview(id);
   }
 }

@@ -853,5 +853,138 @@ export const orderApi = {
   },
 };
 
+// Review API functions
+export const reviewApi = {
+  getProductReviews: async (productId: string, page = 1, limit = 10) => {
+    return apiRequest<{
+      success: boolean
+      data: {
+        reviews: any[]
+        stats: {
+          averageRating: number
+          totalReviews: number
+          ratingDistribution: Record<number, number>
+        }
+        pagination: {
+          page: number
+          limit: number
+          total: number
+          pages: number
+        }
+      }
+      message: string
+      errors: any[]
+    }>(`/api/reviews/product/${productId}?page=${page}&limit=${limit}`);
+  },
+
+  create: async (data: {
+    productId: string
+    orderId?: string
+    rating: number
+    title?: string
+    content: string
+  }) => {
+    return apiRequest<{
+      success: boolean
+      data: any
+      message: string
+      errors: any[]
+    }>("/api/reviews", {
+      method: "POST",
+      body: data,
+    });
+  },
+
+  update: async (id: string, data: {
+    rating?: number
+    title?: string
+    content?: string
+  }) => {
+    return apiRequest<{
+      success: boolean
+      data: any
+      message: string
+      errors: any[]
+    }>(`/api/reviews/${id}`, {
+      method: "PUT",
+      body: data,
+    });
+  },
+
+  delete: async (id: string) => {
+    return apiRequest<{
+      success: boolean
+      data: null
+      message: string
+      errors: any[]
+    }>(`/api/reviews/${id}`, {
+      method: "DELETE",
+    });
+  },
+}
+
+// Admin Review API functions
+export const adminReviewApi = {
+  getAll: async (params?: {
+    page?: number
+    limit?: number
+    productId?: string
+    userId?: string
+    rating?: number
+    isActive?: string
+    search?: string
+  }) => {
+    const query = new URLSearchParams()
+    if (params?.page) query.set("page", String(params.page))
+    if (params?.limit) query.set("limit", String(params.limit))
+    if (params?.productId) query.set("productId", params.productId)
+    if (params?.userId) query.set("userId", params.userId)
+    if (params?.rating) query.set("rating", String(params.rating))
+    if (params?.isActive) query.set("isActive", params.isActive)
+    if (params?.search) query.set("search", params.search)
+    const qs = query.toString()
+    return apiRequest<{
+      success: boolean
+      data: {
+        reviews: any[]
+        pagination: { page: number; limit: number; total: number; pages: number }
+      }
+      message: string
+      errors: any[]
+    }>(`/api/admin/reviews${qs ? `?${qs}` : ""}`);
+  },
+
+  getById: async (id: string) => {
+    return apiRequest<{
+      success: boolean
+      data: any
+      message: string
+      errors: any[]
+    }>(`/api/admin/reviews/${id}`);
+  },
+
+  toggleActive: async (id: string) => {
+    return apiRequest<{
+      success: boolean
+      data: any
+      message: string
+      errors: any[]
+    }>(`/api/admin/reviews/${id}/toggle-active`, {
+      method: "PUT",
+    });
+  },
+
+  delete: async (id: string) => {
+    return apiRequest<{
+      success: boolean
+      data: null
+      message: string
+      errors: any[]
+    }>(`/api/admin/reviews/${id}`, {
+      method: "DELETE",
+    });
+  },
+}
+
 // Export API error class for error handling
 export { ApiError };

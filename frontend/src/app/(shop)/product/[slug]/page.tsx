@@ -4,45 +4,34 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Heart, Minus, Plus, Star, Truck, Shield, RotateCcw, ArrowLeft } from 'lucide-react'
+import { Heart, Minus, Plus, Star, Truck, Shield, RotateCcw, ArrowLeft, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { useCartStore } from '@/store/cart-store'
 import { formatPrice } from '@/lib/utils'
 import { Product } from '@/types/product'
-import { productApi } from '@/lib/api'
+import { productApi, reviewApi, getAccessToken } from '@/lib/api'
+import { ReviewSummary } from '@/components/shop/review-summary'
+import { ReviewCard } from '@/components/shop/review-card'
+import { ReviewForm } from '@/components/shop/review-form'
 
-// Mock reviews data
-const mockReviews = [
-  {
-    id: '1',
-    author: 'John D.',
-    rating: 5,
-    date: '2024-01-15',
-    title: 'Excellent sound quality!',
-    content: 'These headphones exceeded my expectations. The noise cancellation is incredible and the battery life is amazing.',
-    verified: true,
-  },
-  {
-    id: '2',
-    author: 'Sarah M.',
-    rating: 4,
-    date: '2024-01-10',
-    title: 'Great value for money',
-    content: 'Really good headphones for the price. Comfortable to wear for long periods.',
-    verified: true,
-  },
-  {
-    id: '3',
-    author: 'Mike R.',
-    rating: 3,
-    date: '2024-01-05',
-    title: 'Good but not perfect',
-    content: 'Sound quality is good but the build quality could be better. Still happy with the purchase.',
-    verified: true,
-  },
-]
+interface ReviewData {
+  id: string
+  userId: string
+  rating: number
+  title?: string
+  content: string
+  isVerified: boolean
+  createdAt: string
+  user?: { id: string; name: string }
+}
+
+interface ReviewStatsData {
+  averageRating: number
+  totalReviews: number
+  ratingDistribution: Record<number, number>
+}
 
 export default function ProductDetailPage() {
   const params = useParams()
@@ -56,6 +45,14 @@ export default function ProductDetailPage() {
 const [categoryName, setCategoryName] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const [reviews, setReviews] = useState<ReviewData[]>([])
+  const [reviewStats, setReviewStats] = useState<ReviewStatsData | null>(null)
+  const [reviewPage, setReviewPage] = useState(1)
+  const [reviewTotalPages, setReviewTotalPages] = useState(1)
+  const [reviewsLoading, setReviewsLoading] = useState(false)
+  const [showReviewForm, setShowReviewForm] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>()
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -105,7 +102,56 @@ const [categoryName, setCategoryName] = useState("")
       }
     }
     fetchProduct()
+
+    // Get current user ID from token
+    const token = getAccessToken()
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]))
+        setCurrentUserId(payload.sub || payload.id)
+      } catch {
+        // ignore
+      }
+    }
   }, [slug])
+
+  useEffect(() => {
+    if (product?.id) {
+      fetchReviews(product.id, reviewPage)
+    }
+  }, [product?.id, reviewPage])
+
+  const fetchReviews = async (productId: string, page: number) => {
+    setReviewsLoading(true)
+    try {
+      const res = await reviewApi.getProductReviews(productId, page)
+      if (res.success && res.data) {
+        if (page === 1) {
+          setReviews(res.data.reviews)
+        } else {
+          setReviews((prev) => [...prev, ...res.data.reviews])
+        }
+        setReviewStats(res.data.stats)
+        setReviewTotalPages(res.data.pagination.pages)
+      }
+    } catch {
+      // silent
+    } finally {
+      setReviewsLoading(false)
+    }
+  }
+
+  const handleReviewSuccess = () => {
+    setShowReviewForm(false)
+    if (product) {
+      setReviewPage(1)
+      fetchReviews(product.id, 1)
+    }
+  }
+
+  const handleReviewDeleted = (reviewId: string) => {
+    setReviews((prev) => prev.filter((r) => r.id !== reviewId))
+  }
 
   if (loading) {
     return (
@@ -340,73 +386,70 @@ const [categoryName, setCategoryName] = useState("")
 
           {/* Reviews Section */}
           <div>
-            <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
-
-            {/* Review Summary */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-              <div className="text-center">
-                <div className="text-4xl font-bold mb-2">{product.rating || 0}</div>
-                <div className="flex justify-center mb-2">
-                  {renderStars(product.rating || 0)}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Based on {product.reviews || 0} reviews
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                {[5, 4, 3, 2, 1].map((stars) => (
-                  <div key={stars} className="flex items-center gap-2">
-                    <span className="text-sm w-8">{stars}★</span>
-                    <div className="flex-1 bg-muted rounded-full h-2">
-                      <div
-                        className="bg-yellow-400 h-2 rounded-full"
-                        style={{
-                          width: `${stars === 5 ? 60 : stars === 4 ? 25 : stars === 3 ? 10 : stars === 2 ? 3 : 2}%`
-                        }}
-                      />
-                    </div>
-                    <span className="text-sm text-muted-foreground w-8">
-                      {stars === 5 ? 60 : stars === 4 ? 25 : stars === 3 ? 10 : stars === 2 ? 3 : 2}%
-                    </span>
-                  </div>
-                ))}
-              </div>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">Customer Reviews</h2>
+              <Button
+                variant="outline"
+                onClick={() => setShowReviewForm(!showReviewForm)}
+              >
+                {showReviewForm ? 'Cancel' : 'Write a Review'}
+              </Button>
             </div>
+
+            {showReviewForm && (
+              <div className="mb-6">
+                <ReviewForm
+                  productId={product.id}
+                  onSuccess={handleReviewSuccess}
+                  onCancel={() => setShowReviewForm(false)}
+                />
+              </div>
+            )}
+
+            {reviewStats && (
+              <ReviewSummary
+                averageRating={reviewStats.averageRating}
+                totalReviews={reviewStats.totalReviews}
+                ratingDistribution={reviewStats.ratingDistribution}
+              />
+            )}
 
             {/* Individual Reviews */}
             <div className="space-y-6">
-              {mockReviews.map((review) => (
-                <Card key={review.id}>
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <h4 className="font-medium">{review.author}</h4>
-                          {review.verified && (
-                            <span className="bg-green-100 text-green-600 text-xs px-2 py-1 rounded">
-                              Verified Purchase
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <div className="flex">{renderStars(review.rating)}</div>
-                          <span>•</span>
-                          <span>{new Date(review.date).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                    </div>
+              {reviews.length === 0 && !reviewsLoading ? (
+                <p className="text-center text-muted-foreground py-8">
+                  No reviews yet. Be the first to review this product!
+                </p>
+              ) : (
+                reviews.map((review) => (
+                  <ReviewCard
+                    key={review.id}
+                    review={review}
+                    productId={product.id}
+                    currentUserId={currentUserId}
+                    onDelete={handleReviewDeleted}
+                    onUpdate={() => fetchReviews(product.id, reviewPage)}
+                  />
+                ))
+              )}
 
-                    <h5 className="font-medium mb-2">{review.title}</h5>
-                    <p className="text-muted-foreground">{review.content}</p>
-                  </CardContent>
-                </Card>
-              ))}
+              {reviewsLoading && (
+                <div className="flex justify-center py-4">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              )}
             </div>
 
-            <Button variant="outline" className="w-full mt-6">
-              Load More Reviews
-            </Button>
+            {reviewPage < reviewTotalPages && (
+              <Button
+                variant="outline"
+                className="w-full mt-6"
+                onClick={() => setReviewPage((p) => p + 1)}
+                disabled={reviewsLoading}
+              >
+                Load More Reviews
+              </Button>
+            )}
           </div>
         </div>
       </div>

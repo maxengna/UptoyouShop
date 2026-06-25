@@ -9,6 +9,7 @@ import {
   ShoppingCart,
   Users,
   TrendingUp,
+  MessageSquare,
   ChevronLeft,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -19,6 +20,7 @@ const navItems = [
   { label: 'Categories', href: '/categories', icon: Tag },
   { label: 'Orders', href: '/orders', icon: ShoppingCart },
   { label: 'Customers', href: '/customers', icon: Users },
+  { label: 'Reviews', href: '/reviews', icon: MessageSquare },
   { label: 'Analytics', href: '/analytics', icon: TrendingUp },
 ]
 

@@ -850,4 +850,168 @@ export class AdminService {
       errors: [],
     };
   }
+
+  async getAllReviews(
+    page = 1,
+    limit = 10,
+    filters?: {
+      productId?: string;
+      userId?: string;
+      rating?: number;
+      isActive?: boolean;
+      search?: string;
+    },
+  ) {
+    const skip = (page - 1) * limit;
+    const where: any = {};
+
+    if (filters?.productId) where.productId = filters.productId;
+    if (filters?.userId) where.userId = filters.userId;
+    if (filters?.rating) where.rating = filters.rating;
+    if (filters?.isActive !== undefined) where.isActive = filters.isActive;
+    if (filters?.search) {
+      where.OR = [
+        { content: { contains: filters.search, mode: 'insensitive' } },
+        { title: { contains: filters.search, mode: 'insensitive' } },
+        { user: { name: { contains: filters.search, mode: 'insensitive' } } },
+      ];
+    }
+
+    const [reviews, total] = await Promise.all([
+      this.prisma.review.findMany({
+        where,
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+          product: {
+            select: {
+              id: true,
+              name: true,
+              images: { take: 1, orderBy: { sortOrder: 'asc' }, select: { imageKey: true } },
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.review.count({ where }),
+    ]);
+
+    const reviewsWithImages = await Promise.all(
+      reviews.map(async (review) => {
+        const imageKey = review.product?.images?.[0]?.imageKey;
+        const productImage = imageKey
+          ? await this.s3Service.getSignedUrl(imageKey)
+          : null;
+        return {
+          ...review,
+          product: {
+            id: review.product.id,
+            name: review.product.name,
+            image: productImage,
+          },
+        };
+      }),
+    );
+
+    return {
+      success: true,
+      data: {
+        reviews: reviewsWithImages,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+        },
+      },
+      message: 'Reviews retrieved successfully',
+      errors: [],
+    };
+  }
+
+  async getReviewById(id: string) {
+    const review = await this.prisma.review.findUnique({
+      where: { id },
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        product: {
+          select: {
+            id: true,
+            name: true,
+            images: { take: 1, orderBy: { sortOrder: 'asc' }, select: { imageKey: true } },
+          },
+        },
+      },
+    });
+
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+
+    const imageKey = review.product?.images?.[0]?.imageKey;
+    const productImage = imageKey
+      ? await this.s3Service.getSignedUrl(imageKey)
+      : null;
+
+    return {
+      success: true,
+      data: {
+        ...review,
+        product: {
+          id: review.product.id,
+          name: review.product.name,
+          image: productImage,
+        },
+      },
+      message: 'Review retrieved successfully',
+      errors: [],
+    };
+  }
+
+  async toggleReviewActive(id: string) {
+    const review = await this.prisma.review.findUnique({
+      where: { id },
+    });
+
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+
+    const updated = await this.prisma.review.update({
+      where: { id },
+      data: { isActive: !review.isActive },
+      include: {
+        user: { select: { id: true, name: true } },
+      },
+    });
+
+    return {
+      success: true,
+      data: updated,
+      message: `Review ${updated.isActive ? 'activated' : 'deactivated'} successfully`,
+      errors: [],
+    };
+  }
+
+  async deleteReview(id: string) {
+    const review = await this.prisma.review.findUnique({
+      where: { id },
+    });
+
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+
+    await this.prisma.review.delete({
+      where: { id },
+    });
+
+    return {
+      success: true,
+      data: null,
+      message: 'Review deleted successfully',
+      errors: [],
+    };
+  }
 }
