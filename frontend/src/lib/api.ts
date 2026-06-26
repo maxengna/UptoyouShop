@@ -2,7 +2,7 @@
 
 export const API_BASE =
   process.env.NODE_ENV === "production"
-    ? "https://your-domain.com"
+    ? ""
     : "http://localhost:5000";
 
 export interface ApiResponse<T = any> {
