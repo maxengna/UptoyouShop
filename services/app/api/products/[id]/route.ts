@@ -8,6 +8,7 @@ import {
   successResponse,
   errorResponse,
 } from "../../../../lib/utils/api";
+import { requireAdmin } from "@/services/admin.service";
 
 // GET /api/products/[id] - Get a single product
 export async function GET(
@@ -34,6 +35,12 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Require admin authentication
+    const authResult = await requireAdmin();
+    if (!authResult.success) {
+      return errorResponse(authResult.error, authResult.status);
+    }
+
     const result = await updateProduct(params.id, request);
 
     if (!result.success) {
@@ -53,6 +60,12 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Require admin authentication
+    const authResult = await requireAdmin();
+    if (!authResult.success) {
+      return errorResponse(authResult.error, authResult.status);
+    }
+
     const result = await deleteProduct(params.id);
 
     if (!result.success) {

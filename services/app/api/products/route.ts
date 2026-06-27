@@ -10,6 +10,7 @@ import {
   getProducts as getProductsService,
   createProduct as createProductService,
 } from "@/services/products.service";
+import { requireAdmin } from "@/services/admin.service";
 
 // Validation schema
 const createProductSchema = z.object({
@@ -72,6 +73,12 @@ function generateSlug(text: string): string {
 
 export async function POST(request: NextRequest) {
   try {
+    // Require admin authentication
+    const authResult = await requireAdmin();
+    if (!authResult.success) {
+      return errorResponse(authResult.error, authResult.status);
+    }
+
     const body = await request.json();
     console.log("POST /api/products - body:", body);
     console.log("POST /api/products - body type:", typeof body);
