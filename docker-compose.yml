@@ -51,6 +51,8 @@ services:
       dockerfile: frontend/Dockerfile
     # depends_on:
     #   - backend
+    env_file:
+      - .env
     environment:
       - NODE_ENV=production
     ports:

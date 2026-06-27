@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { jwtVerify } from 'jose'
 
 const publicRoutes = [
   '/',
@@ -15,7 +16,7 @@ const publicRoutes = [
 
 const adminRoutes = ['/admin', '/dashboard', '/products', '/categories', '/orders', '/customers', '/analytics']
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Allow static files, API routes, and Next.js internals
@@ -37,10 +38,13 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(signinUrl)
   }
 
-  // Check role for admin routes
+  // Verify JWT auth cookie (HttpOnly, signed by backend)
   try {
-    const authData = JSON.parse(authCookie.value)
-    const role = authData.role
+    const { payload } = await jwtVerify(
+      authCookie.value,
+      new TextEncoder().encode(process.env.JWT_SECRET!),
+    )
+    const role = payload.role as string
 
     if (adminRoutes.some((route) => pathname === route || pathname.startsWith(route + '/'))) {
       if (role !== 'ADMIN' && role !== 'SUPER_ADMIN') {
@@ -48,7 +52,7 @@ export function middleware(request: NextRequest) {
       }
     }
   } catch {
-    // Invalid cookie, redirect to signin
+    // Invalid or expired token, redirect to signin
     return NextResponse.redirect(new URL('/signin', request.url))
   }
 

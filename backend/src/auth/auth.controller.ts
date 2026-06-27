@@ -14,6 +14,8 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ConfirmResetPasswordDto } from './dto/confirm-reset-password.dto';
 import { Response, Request } from 'express';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -25,7 +27,30 @@ import { GetUser } from '../common/decorators/get-user.decorator';
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+  ) {}
+
+  private setAuthCookie(result: any, response: Response) {
+    if (result.data?.user) {
+      const authToken = this.jwtService.sign(
+        { role: result.data.user.role, name: result.data.user.name },
+        {
+          secret: this.configService.get<string>('JWT_SECRET'),
+          expiresIn: '7d',
+        },
+      );
+      response.cookie('auth', authToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/',
+      });
+    }
+  }
 
   @Post('register')
   @ApiOperation({ summary: 'Register new user' })
@@ -55,6 +80,8 @@ export class AuthController {
       });
     }
 
+    this.setAuthCookie(result, response);
+
     return result;
   }
 
@@ -77,6 +104,8 @@ export class AuthController {
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
     }
+
+    this.setAuthCookie(result, response);
 
     return result;
   }
@@ -101,6 +130,9 @@ export class AuthController {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
     }
+
+    // Set auth cookie with user role (HttpOnly, for middleware validation)
+    this.setAuthCookie(result, response);
 
     return result;
   }
@@ -143,8 +175,9 @@ export class AuthController {
   ) {
     await this.authService.logout(userId);
     
-    // Clear refresh token cookie
+    // Clear refresh token and auth cookies
     response.clearCookie('refreshToken');
+    response.clearCookie('auth');
     
     return {
       success: true,

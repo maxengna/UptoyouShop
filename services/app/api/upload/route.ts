@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
+import { join, resolve } from "path";
 import { v4 as uuidv4 } from "uuid";
+import { requireAdmin } from "@/services/admin.service";
 
 export async function OPTIONS(request: NextRequest) {
   const headers = {
@@ -22,6 +23,15 @@ export async function POST(request: NextRequest) {
   };
 
   try {
+    // Require admin authentication
+    const authResult = await requireAdmin();
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error },
+        { status: authResult.status, headers },
+      );
+    }
+
     const data = await request.formData();
     const file: File | null = data.get("file") as unknown as File;
 
@@ -53,9 +63,28 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Generate unique filename
-    const fileExtension = file.name.split(".").pop();
-    const uniqueFilename = `${uuidv4()}.${fileExtension}`;
+    // Validate file content via magic bytes
+    const MAGIC_BYTES: Record<string, Uint8Array> = {
+      "image/jpeg": new Uint8Array([0xFF, 0xD8, 0xFF]),
+      "image/png": new Uint8Array([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]),
+      "image/webp": new Uint8Array([0x52, 0x49, 0x46, 0x46]), // "RIFF"
+    };
+
+    const magic = MAGIC_BYTES[file.type];
+    if (!magic || !magic.every((byte, i) => buffer[i] === byte)) {
+      return NextResponse.json(
+        { error: "File content does not match declared type" },
+        { status: 400, headers },
+      );
+    }
+
+    // Hardcode extension based on validated MIME type
+    const EXTENSION_MAP: Record<string, string> = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+    };
+    const uniqueFilename = `${uuidv4()}.${EXTENSION_MAP[file.type]}`;
 
     // Create uploads directory if it doesn't exist
     const uploadsDir = join(process.cwd(), "public", "uploads");
@@ -116,6 +145,15 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    // Require admin authentication
+    const authResult = await requireAdmin();
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error },
+        { status: authResult.status },
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const filePath = searchParams.get("path");
 
@@ -127,12 +165,12 @@ export async function DELETE(request: NextRequest) {
     }
 
     // For security, only allow deleting files from uploads directory
-    const allowedPath = filePath.startsWith("/uploads/");
-    if (!allowedPath) {
+    const uploadsDir = resolve(process.cwd(), "public", "uploads");
+    const fullPath = resolve(process.cwd(), "public", filePath);
+
+    if (!fullPath.startsWith(uploadsDir)) {
       return NextResponse.json({ error: "Invalid file path" }, { status: 400 });
     }
-
-    const fullPath = join(process.cwd(), "public", filePath);
 
     // Use fs/promises for delete operation
     const { unlink } = await import("fs/promises");

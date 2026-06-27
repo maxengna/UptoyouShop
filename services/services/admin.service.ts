@@ -4,7 +4,7 @@ import { prisma } from "../../database/prisma";
 import { z } from "zod";
 
 // Admin authentication check
-async function requireAdmin() {
+export async function requireAdmin() {
   const session = await getServerSession();
 
   if (!session?.user?.email) {

@@ -2,7 +2,6 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { User, AuthState } from '@/types/user'
 import { authApi, setAccessToken } from '@/lib/api'
-import { setAuthCookie, clearAuthCookie } from '@/lib/auth-cookie'
 
 interface UserStore extends AuthState {
   accessToken: string | null
@@ -57,12 +56,6 @@ export const useUserStore = create<UserStore>()(
             phone: userData.phone,
           }
 
-          setAuthCookie({
-            authenticated: true,
-            role: user.role,
-            name: user.name,
-          })
-
           setAccessToken(response.data.accessToken)
 
           set({
@@ -80,7 +73,6 @@ export const useUserStore = create<UserStore>()(
       },
 
       logout: () => {
-        clearAuthCookie()
         setAccessToken(null)
         set({
           user: null,
@@ -136,12 +128,6 @@ export const useUserStore = create<UserStore>()(
             role: userData.role as User['role'],
             phone: userData.phone,
           }
-
-          setAuthCookie({
-            authenticated: true,
-            role: user.role,
-            name: user.name,
-          })
 
           setAccessToken(response.data.accessToken)
 
