@@ -22,4 +22,9 @@ export default registerAs("app", () => ({
     fromEmail: process.env.AWS_SES_FROM_EMAIL || "noreply@uptoyoushop.com",
   },
   frontendUrl: process.env.FRONTEND_URL || "http://localhost:3000",
+  stripe: {
+    secretKey: process.env.STRIPE_SECRET_KEY || "",
+    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || "",
+    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || "",
+  },
 }));

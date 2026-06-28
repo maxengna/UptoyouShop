@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Truck, CreditCard, Check } from 'lucide-react'
+import { loadStripe } from '@stripe/stripe-js'
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
+import { Truck, CreditCard, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
@@ -10,7 +12,165 @@ import { Input } from '@/components/ui/input'
 import { useCartStore } from '@/store/cart-store'
 import { useUserStore } from '@/store/user-store'
 import { formatPrice } from '@/lib/utils'
-import { orderApi, ApiError } from '@/lib/api'
+import { orderApi, paymentApi, ApiError } from '@/lib/api'
+
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
+)
+
+function PaymentSteps({
+  currentStep,
+  orderId,
+  items,
+  shippingAddress,
+  subtotal,
+  shipping,
+  tax,
+  total,
+  getTotalItems,
+  error,
+  isSubmitting,
+  setError,
+  setIsSubmitting,
+  onBackToShipping,
+  onReviewOrder,
+  onBackToPayment,
+  clearCart,
+}: {
+  currentStep: number
+  orderId: string | null
+  items: any[]
+  shippingAddress: any
+  subtotal: number
+  shipping: number
+  tax: number
+  total: number
+  getTotalItems: () => number
+  error: string | null
+  isSubmitting: boolean
+  setError: (e: string | null) => void
+  setIsSubmitting: (v: boolean) => void
+  onBackToShipping: () => void
+  onReviewOrder: () => void
+  onBackToPayment: () => void
+  clearCart: () => void
+}) {
+  const stripe = useStripe()
+  const elements = useElements()
+  const [ready, setReady] = useState(false)
+
+  if (currentStep === 2) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Payment Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="text-sm text-muted-foreground mb-2">
+            Test card: <code className="bg-muted px-1 rounded">4242 4242 4242 4242</code> — any future expiry, any CVC
+          </div>
+          <PaymentElement onReady={() => setReady(true)} />
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={onBackToShipping}>
+              Back to Shipping
+            </Button>
+            <Button onClick={onReviewOrder} disabled={!ready}>
+              Review Order
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (currentStep === 3) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Review Order</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div>
+            <h3 className="font-medium mb-4">Order Items ({getTotalItems()})</h3>
+            <div className="space-y-4">
+              {items.map((item: any) => (
+                <div key={item.id} className="flex justify-between">
+                  <div>
+                    <p className="font-medium">{item.productName}</p>
+                    <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+                  </div>
+                  <p className="font-medium">{formatPrice(item.price * item.quantity)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <Separator />
+
+          <div>
+            <h3 className="font-medium mb-2">Shipping Address</h3>
+            <p className="text-sm text-muted-foreground">
+              {shippingAddress.firstName} {shippingAddress.lastName}<br />
+              {shippingAddress.address}<br />
+              {shippingAddress.city}, {shippingAddress.state} {shippingAddress.zipCode}<br />
+              {shippingAddress.country}
+            </p>
+          </div>
+
+          <Separator />
+
+          <div>
+            <h3 className="font-medium mb-2">Payment Method</h3>
+            <p className="text-sm text-muted-foreground">Credit Card (Stripe)</p>
+          </div>
+
+          {error && (
+            <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
+              {error}
+            </div>
+          )}
+
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={onBackToPayment}>
+              Back to Payment
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!stripe || !elements) return
+                setError(null)
+                setIsSubmitting(true)
+                try {
+                  const { error: confirmError } = await stripe.confirmPayment({
+                    elements,
+                    redirect: 'if_required',
+                    confirmParams: {
+                      return_url: `${window.location.origin}/orders/${orderId}`,
+                    },
+                  })
+                  if (confirmError) {
+                    setError(confirmError.message || 'Payment failed')
+                  } else {
+                    clearCart()
+                    window.location.href = `/orders/${orderId}?success=true`
+                  }
+                } catch {
+                  setError('An unexpected error occurred. Please try again.')
+                } finally {
+                  setIsSubmitting(false)
+                }
+              }}
+              disabled={isSubmitting || !stripe}
+            >
+              {isSubmitting ? 'Processing Payment...' : 'Place Order'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return null
+}
 
 export default function CheckoutPage() {
   const [hydrated, setHydrated] = useState(false)
@@ -20,10 +180,12 @@ export default function CheckoutPage() {
   }, [])
 
   const { items, getTotalPrice, getTotalItems, clearCart } = useCartStore()
-  const { user, isAuthenticated } = useUserStore()
+  const { user } = useUserStore()
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [orderId, setOrderId] = useState<string | null>(null)
+  const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [shippingAddress, setShippingAddress] = useState({
     firstName: user?.name?.split(' ')[0] || '',
     lastName: user?.name?.split(' ')[1] || '',
@@ -47,6 +209,46 @@ export default function CheckoutPage() {
     { id: 3, name: 'Review', icon: Check },
   ]
 
+  const handleContinueToPayment = async () => {
+    setError(null)
+    setIsSubmitting(true)
+    try {
+      const orderRes = await orderApi.create({
+        items: items.map((item: any) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          ...(item.variant ? { variantId: item.variant } : {}),
+        })),
+        shippingAddress: {
+          firstName: shippingAddress.firstName,
+          lastName: shippingAddress.lastName,
+          address1: shippingAddress.address,
+          city: shippingAddress.city,
+          state: shippingAddress.state,
+          zipCode: shippingAddress.zipCode,
+          country: shippingAddress.country,
+          phone: shippingAddress.phone || undefined,
+        },
+        paymentMethod: 'credit_card',
+      })
+
+      const orderId = orderRes.data.id
+      setOrderId(orderId)
+
+      const payRes = await paymentApi.createPaymentIntent(orderId)
+      setClientSecret(payRes.data.clientSecret)
+      setCurrentStep(2)
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message)
+      } else {
+        setError('Failed to create order. Please try again.')
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   if (!hydrated) return null
 
   if (items.length === 0) {
@@ -67,7 +269,6 @@ export default function CheckoutPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Breadcrumb */}
       <div className="flex items-center gap-2 mb-8">
         <Link href="/" className="text-muted-foreground hover:text-primary">
           Home
@@ -79,21 +280,19 @@ export default function CheckoutPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content */}
         <div className="lg:col-span-2">
-          {/* Progress Steps */}
           <div className="flex items-center justify-between mb-8">
             {steps.map((step, index) => {
               const Icon = step.icon
               const isActive = step.id === currentStep
               const isCompleted = step.id < currentStep
-              
+
               return (
                 <div key={step.id} className="flex items-center">
                   <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
-                    isActive 
-                      ? 'border-primary bg-primary text-primary-foreground' 
-                      : isCompleted 
+                    isActive
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : isCompleted
                         ? 'border-green-500 bg-green-500 text-white'
                         : 'border-muted-foreground text-muted-foreground'
                   }`}>
@@ -114,7 +313,6 @@ export default function CheckoutPage() {
             })}
           </div>
 
-          {/* Step 1: Shipping */}
           {currentStep === 1 && (
             <Card>
               <CardHeader>
@@ -139,7 +337,7 @@ export default function CheckoutPage() {
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium mb-2">Email</label>
                   <Input
@@ -149,7 +347,7 @@ export default function CheckoutPage() {
                     placeholder="john@example.com"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium mb-2">Phone</label>
                   <Input
@@ -159,7 +357,7 @@ export default function CheckoutPage() {
                     placeholder="+1 (555) 123-4567"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium mb-2">Address</label>
                   <Input
@@ -168,7 +366,7 @@ export default function CheckoutPage() {
                     placeholder="123 Main St"
                   />
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">City</label>
@@ -195,176 +393,61 @@ export default function CheckoutPage() {
                     />
                   </div>
                 </div>
-                
-                <div className="flex justify-end">
-                  <Button onClick={() => setCurrentStep(2)}>
-                    Continue to Payment
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
-          {/* Step 2: Payment */}
-          {currentStep === 2 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Payment Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Card Number</label>
-                  <Input
-                    placeholder="1234 5678 9012 3456"
-                    maxLength={19}
-                  />
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Expiry Date</label>
-                    <Input
-                      placeholder="MM/YY"
-                      maxLength={5}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">CVV</label>
-                    <Input
-                      placeholder="123"
-                      maxLength={3}
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2">Name on Card</label>
-                  <Input
-                    value={`${shippingAddress.firstName} ${shippingAddress.lastName}`}
-                    placeholder="John Doe"
-                  />
-                </div>
-                
-                <div className="flex justify-between">
-                  <Button variant="outline" onClick={() => setCurrentStep(1)}>
-                    Back to Shipping
-                  </Button>
-                  <Button onClick={() => setCurrentStep(3)}>
-                    Review Order
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Step 3: Review */}
-          {currentStep === 3 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Review Order</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Order Items */}
-                <div>
-                  <h3 className="font-medium mb-4">Order Items ({getTotalItems()})</h3>
-                  <div className="space-y-4">
-                    {items.map((item) => (
-                      <div key={item.id} className="flex justify-between">
-                        <div>
-                          <p className="font-medium">{item.productName}</p>
-                          <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
-                        </div>
-                        <p className="font-medium">{formatPrice(item.price * item.quantity)}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                
-                <Separator />
-                
-                {/* Shipping Address */}
-                <div>
-                  <h3 className="font-medium mb-2">Shipping Address</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {shippingAddress.firstName} {shippingAddress.lastName}<br />
-                    {shippingAddress.address}<br />
-                    {shippingAddress.city}, {shippingAddress.state} {shippingAddress.zipCode}<br />
-                    {shippingAddress.country}
-                  </p>
-                </div>
-                
-                <Separator />
-                
-                {/* Payment Method */}
-                <div>
-                  <h3 className="font-medium mb-2">Payment Method</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Credit Card ending in ****
-                  </p>
-                </div>
-                
                 {error && (
                   <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
                     {error}
                   </div>
                 )}
-                <div className="flex justify-between">
-                  <Button variant="outline" onClick={() => setCurrentStep(2)}>
-                    Back to Payment
-                  </Button>
-                  <Button onClick={async () => {
-                    setError(null)
-                    setIsSubmitting(true)
-                    try {
-                      await orderApi.create({
-                        items: items.map(item => ({
-                          productId: item.productId,
-                          quantity: item.quantity,
-                          ...(item.variant ? { variantId: item.variant } : {}),
-                        })),
-                        shippingAddress: {
-                          firstName: shippingAddress.firstName,
-                          lastName: shippingAddress.lastName,
-                          address1: shippingAddress.address,
-                          city: shippingAddress.city,
-                          state: shippingAddress.state,
-                          zipCode: shippingAddress.zipCode,
-                          country: shippingAddress.country,
-                          phone: shippingAddress.phone || undefined,
-                        },
-                        paymentMethod: 'credit_card',
-                      })
-                      alert('Order placed successfully!')
-                      clearCart()
-                      window.location.href = '/'
-                    } catch (err) {
-                      if (err instanceof ApiError) {
-                        setError(err.message)
-                      } else {
-                        setError('An unexpected error occurred. Please try again.')
-                      }
-                    } finally {
-                      setIsSubmitting(false)
-                    }
-                  }} disabled={isSubmitting}>
-                    {isSubmitting ? 'Placing Order...' : 'Place Order'}
+
+                <div className="flex justify-end">
+                  <Button onClick={handleContinueToPayment} disabled={isSubmitting}>
+                    {isSubmitting ? 'Creating Order...' : 'Continue to Payment'}
                   </Button>
                 </div>
               </CardContent>
             </Card>
           )}
+
+          {currentStep >= 2 && clientSecret && (
+            <Elements
+              stripe={stripePromise}
+              options={{ clientSecret } as any}
+            >
+              <PaymentSteps
+                currentStep={currentStep}
+                orderId={orderId}
+                items={items}
+                shippingAddress={shippingAddress}
+                subtotal={subtotal}
+                shipping={shipping}
+                tax={tax}
+                total={total}
+                getTotalItems={getTotalItems}
+                error={error}
+                isSubmitting={isSubmitting}
+                setError={setError}
+                setIsSubmitting={setIsSubmitting}
+                onBackToShipping={() => {
+                  setCurrentStep(1)
+                  setError(null)
+                }}
+                onReviewOrder={() => setCurrentStep(3)}
+                onBackToPayment={() => setCurrentStep(2)}
+                clearCart={clearCart}
+              />
+            </Elements>
+          )}
         </div>
 
-        {/* Order Summary */}
         <div className="lg:col-span-1">
           <Card className="sticky top-4">
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Order Items Summary */}
               <div className="space-y-2">
-                {items.slice(0, 3).map((item) => (
+                {items.slice(0, 3).map((item: any) => (
                   <div key={item.id} className="flex justify-between text-sm">
                     <span className="text-muted-foreground">
                       {item.productName} x{item.quantity}
@@ -378,10 +461,9 @@ export default function CheckoutPage() {
                   </p>
                 )}
               </div>
-              
+
               <Separator />
-              
-              {/* Price Breakdown */}
+
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
@@ -396,14 +478,14 @@ export default function CheckoutPage() {
                   <span>{formatPrice(tax)}</span>
                 </div>
               </div>
-              
+
               <Separator />
-              
+
               <div className="flex justify-between font-medium text-lg">
                 <span>Total</span>
                 <span>{formatPrice(total)}</span>
               </div>
-              
+
               {shipping > 0 && (
                 <p className="text-sm text-green-600">
                   Add {formatPrice(50.01 - subtotal)} more for free shipping!

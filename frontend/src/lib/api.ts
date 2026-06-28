@@ -986,5 +986,27 @@ export const adminReviewApi = {
   },
 }
 
+// Payment API functions
+export const paymentApi = {
+  createPaymentIntent: async (orderId: string) => {
+    return apiRequest<{
+      success: boolean;
+      data: { clientSecret: string; paymentIntentId: string };
+    }>("/api/payments/create-intent", {
+      method: "POST",
+      body: { orderId },
+    });
+  },
+
+  testConfirmPayment: async (orderId: string) => {
+    return apiRequest<{
+      success: boolean;
+      message: string;
+    }>(`/api/payments/confirm/${orderId}`, {
+      method: "POST",
+    });
+  },
+};
+
 // Export API error class for error handling
 export { ApiError };

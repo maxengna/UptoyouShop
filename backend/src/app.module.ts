@@ -10,6 +10,7 @@ import { AdminModule } from "./admin/admin.module";
 import { ReviewsModule } from "./reviews/reviews.module";
 import { HealthModule } from "./health/health.module";
 import { UploadModule } from "./upload/upload.module";
+import { PaymentsModule } from "./payments/payment.module";
 import appConfig from "./config/app.config";
 
 @Module({
@@ -25,6 +26,7 @@ import appConfig from "./config/app.config";
     ProductsModule,
     CartModule,
     OrdersModule,
+    PaymentsModule,
     AdminModule,
     ReviewsModule,
     HealthModule,
