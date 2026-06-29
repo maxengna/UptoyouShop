@@ -19,7 +19,7 @@ export class PaymentsService {
     private readonly configService: ConfigService,
     private readonly ordersService: OrdersService,
   ) {
-    const secretKey = this.configService.get("stripe.secretKey");
+    const secretKey = this.configService.get("app.stripe.secretKey");
     if (secretKey) {
       this.stripe = new Stripe(secretKey, {
         apiVersion: "2026-06-24.dahlia",
@@ -90,7 +90,7 @@ export class PaymentsService {
       throw new InternalServerErrorException("Stripe is not configured");
     }
 
-    const webhookSecret = this.configService.get("stripe.webhookSecret");
+    const webhookSecret = this.configService.get("app.stripe.webhookSecret");
     if (!webhookSecret) {
       throw new InternalServerErrorException("Stripe webhook secret is not configured");
     }
@@ -128,16 +128,7 @@ export class PaymentsService {
       throw new NotFoundException("Payment not found");
     }
 
-    if (payment.status !== PaymentStatus.PENDING) {
-      return;
-    }
-
-    await this.prisma.payment.update({
-      where: { id: payment.id },
-      data: { status: PaymentStatus.COMPLETED },
-    });
-
-    await this.ordersService.confirmOrderPayment(payment.orderId);
+    await this.ordersService.confirmOrderPayment(payment.orderId, payment.id);
   }
 
   async failPayment(paymentIntentId: string) {

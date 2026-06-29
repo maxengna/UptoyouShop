@@ -59,117 +59,123 @@ function PaymentSteps({
   const elements = useElements()
   const [ready, setReady] = useState(false)
 
-  if (currentStep === 2) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Payment Information</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="text-sm text-muted-foreground mb-2">
-            Test card: <code className="bg-muted px-1 rounded">4242 4242 4242 4242</code> — any future expiry, any CVC
-          </div>
-          <PaymentElement onReady={() => setReady(true)} />
-          <div className="flex justify-between">
-            <Button variant="outline" onClick={onBackToShipping}>
-              Back to Shipping
-            </Button>
-            <Button onClick={onReviewOrder} disabled={!ready}>
-              Review Order
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
+  return (
+    <>
+      {/* Keep PaymentElement always mounted once rendered */}
+      <div className={currentStep === 2 ? '' : 'hidden'}>
+        <Card>
+          <CardHeader>
+            <CardTitle>Payment Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-sm text-muted-foreground mb-2">
+              Test card: <code className="bg-muted px-1 rounded">4242 4242 4242 4242</code> — any future expiry, any CVC
+            </div>
+            <PaymentElement onReady={() => setReady(true)} />
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={onBackToShipping}>
+                Back to Shipping
+              </Button>
+              <Button onClick={onReviewOrder} disabled={!ready}>
+                Review Order
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-  if (currentStep === 3) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Review Order</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div>
-            <h3 className="font-medium mb-4">Order Items ({getTotalItems()})</h3>
-            <div className="space-y-4">
-              {items.map((item: any) => (
-                <div key={item.id} className="flex justify-between">
-                  <div>
-                    <p className="font-medium">{item.productName}</p>
-                    <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+      <div className={currentStep === 3 ? '' : 'hidden'}>
+        <Card>
+          <CardHeader>
+            <CardTitle>Review Order</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div>
+              <h3 className="font-medium mb-4">Order Items ({getTotalItems()})</h3>
+              <div className="space-y-4">
+                {items.map((item: any) => (
+                  <div key={item.id} className="flex justify-between">
+                    <div>
+                      <p className="font-medium">{item.productName}</p>
+                      <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+                    </div>
+                    <p className="font-medium">{formatPrice(item.price * item.quantity)}</p>
                   </div>
-                  <p className="font-medium">{formatPrice(item.price * item.quantity)}</p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
 
-          <Separator />
+            <Separator />
 
-          <div>
-            <h3 className="font-medium mb-2">Shipping Address</h3>
-            <p className="text-sm text-muted-foreground">
-              {shippingAddress.firstName} {shippingAddress.lastName}<br />
-              {shippingAddress.address}<br />
-              {shippingAddress.city}, {shippingAddress.state} {shippingAddress.zipCode}<br />
-              {shippingAddress.country}
-            </p>
-          </div>
-
-          <Separator />
-
-          <div>
-            <h3 className="font-medium mb-2">Payment Method</h3>
-            <p className="text-sm text-muted-foreground">Credit Card (Stripe)</p>
-          </div>
-
-          {error && (
-            <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
-              {error}
+            <div>
+              <h3 className="font-medium mb-2">Shipping Address</h3>
+              <p className="text-sm text-muted-foreground">
+                {shippingAddress.firstName} {shippingAddress.lastName}<br />
+                {shippingAddress.address}<br />
+                {shippingAddress.city}, {shippingAddress.state} {shippingAddress.zipCode}<br />
+                {shippingAddress.country}
+              </p>
             </div>
-          )}
 
-          <div className="flex justify-between">
-            <Button variant="outline" onClick={onBackToPayment}>
-              Back to Payment
-            </Button>
-            <Button
-              onClick={async () => {
-                if (!stripe || !elements) return
-                setError(null)
-                setIsSubmitting(true)
-                try {
-                  const { error: confirmError } = await stripe.confirmPayment({
-                    elements,
-                    redirect: 'if_required',
-                    confirmParams: {
-                      return_url: `${window.location.origin}/orders/${orderId}`,
-                    },
-                  })
-                  if (confirmError) {
-                    setError(confirmError.message || 'Payment failed')
-                  } else {
-                    clearCart()
-                    window.location.href = `/orders/${orderId}?success=true`
+            <Separator />
+
+            <div>
+              <h3 className="font-medium mb-2">Payment Method</h3>
+              <p className="text-sm text-muted-foreground">Credit Card (Stripe)</p>
+            </div>
+
+            {error && (
+              <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
+                {error}
+              </div>
+            )}
+
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={onBackToPayment}>
+                Back to Payment
+              </Button>
+              <Button
+                onClick={async () => {
+                  if (!stripe) {
+                    setError('Stripe is still loading. Please wait a moment and try again.')
+                    return
                   }
-                } catch {
-                  setError('An unexpected error occurred. Please try again.')
-                } finally {
-                  setIsSubmitting(false)
-                }
-              }}
-              disabled={isSubmitting || !stripe}
-            >
-              {isSubmitting ? 'Processing Payment...' : 'Place Order'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  return null
+                  if (!elements) {
+                    setError('Payment form is not ready. Please go back to the payment step and try again.')
+                    return
+                  }
+                  setError(null)
+                  setIsSubmitting(true)
+                  try {
+                    const { error: confirmError } = await stripe.confirmPayment({
+                      elements,
+                      redirect: 'if_required',
+                      confirmParams: {
+                        return_url: `${window.location.origin}/orders/${orderId}`,
+                      },
+                    })
+                    if (confirmError) {
+                      setError(confirmError.message || 'Payment failed')
+                    } else {
+                      clearCart()
+                      window.location.href = `/orders/${orderId}?success=true`
+                    }
+                  } catch (err) {
+                    setError(err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.')
+                  } finally {
+                    setIsSubmitting(false)
+                  }
+                }}
+                disabled={isSubmitting || !stripe}
+              >
+                {isSubmitting ? 'Processing Payment...' : 'Place Order'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </>
+  )
 }
 
 export default function CheckoutPage() {

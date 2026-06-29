@@ -153,7 +153,7 @@ export class OrdersService {
     }
   }
 
-  async confirmOrderPayment(orderId: string) {
+  async confirmOrderPayment(orderId: string, paymentId?: string) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
       include: { items: true },
@@ -163,11 +163,18 @@ export class OrdersService {
       throw new NotFoundException("Order not found");
     }
 
-    if (order.paymentStatus !== PaymentStatus.PENDING) {
+    if (order.paymentStatus === PaymentStatus.COMPLETED) {
       return;
     }
 
     await this.prisma.$transaction(async (tx) => {
+      if (paymentId) {
+        await tx.payment.update({
+          where: { id: paymentId },
+          data: { status: PaymentStatus.COMPLETED },
+        });
+      }
+
       await tx.order.update({
         where: { id: orderId },
         data: {
@@ -177,10 +184,15 @@ export class OrdersService {
       });
 
       for (const item of order.items) {
-        await tx.inventory.update({
+        await tx.inventory.upsert({
           where: { productId: item.productId },
-          data: {
+          update: {
             reserved: { increment: item.quantity },
+          },
+          create: {
+            productId: item.productId,
+            quantity: 0,
+            reserved: item.quantity,
           },
         });
       }
