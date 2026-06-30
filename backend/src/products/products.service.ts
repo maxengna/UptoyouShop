@@ -31,9 +31,16 @@ export class ProductsService {
       })),
     );
 
+    // Compute available stock from Inventory (single source of truth)
+    const inv: any = product.inventory;
+    const stock = inv
+      ? (inv.quantity ?? 0) - (inv.reserved ?? 0)
+      : (product.stock ?? 0);
+
     return {
       ...product,
       images: mappedImages,
+      stock: Math.max(0, stock),
     };
   }
 

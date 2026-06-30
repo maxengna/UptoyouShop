@@ -52,4 +52,15 @@ export class PaymentsController {
   ) {
     return this.paymentsService.testConfirmPayment(orderId);
   }
+
+  @Post("confirm")
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Confirm payment and update inventory after successful Stripe payment" })
+  async confirmPayment(
+    @GetUser("id") userId: string,
+    @Body() dto: { orderId: string; paymentIntentId: string },
+  ) {
+    return this.paymentsService.confirmPaymentIntent(dto.orderId, dto.paymentIntentId);
+  }
 }

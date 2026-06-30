@@ -85,7 +85,7 @@ export class CartService {
     // Check stock
     const availableStock = variantId
       ? product.variants?.[0]?.stock || product.stock
-      : product.stock;
+      : (product.inventory?.quantity ?? product.stock) - (product.inventory?.reserved ?? 0);
 
     if (availableStock < quantity) {
       throw new BadRequestException(`Insufficient stock for ${product.name}`);
@@ -192,7 +192,7 @@ export class CartService {
 
     const cartItem = await this.prisma.cartItem.findFirst({
       where: { id: cartItemId, cartId: cart.id },
-      include: { product: true, variant: true },
+      include: { product: { include: { inventory: true } }, variant: true },
     });
 
     if (!cartItem) {
@@ -216,7 +216,7 @@ export class CartService {
     // Check stock
     const availableStock = cartItem.variantId
       ? cartItem.variant?.stock || cartItem.product.stock
-      : cartItem.product.stock;
+      : (cartItem.product.inventory?.quantity ?? cartItem.product.stock) - (cartItem.product.inventory?.reserved ?? 0);
 
     if (availableStock < quantity) {
       throw new BadRequestException(

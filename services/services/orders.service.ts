@@ -490,14 +490,12 @@ export async function getOrderTracking(orderNumber: string) {
     const order = await prisma.order.findUnique({
       where: { orderNumber },
       select: {
-        id: true,
         orderNumber: true,
         status: true,
         trackingNumber: true,
         shippedAt: true,
         deliveredAt: true,
         createdAt: true,
-        shippingAddress: true,
       },
     });
 

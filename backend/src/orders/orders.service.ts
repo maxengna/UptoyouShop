@@ -9,6 +9,7 @@ import { S3Service } from "../upload/s3.service";
 import { CreateOrderDto } from "./dto/create-order.dto";
 import { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
 import { OrderStatus, PaymentStatus, Prisma } from "@prisma/client";
+import * as crypto from "crypto";
 
 @Injectable()
 export class OrdersService {
@@ -46,7 +47,7 @@ export class OrdersService {
 
               const availableStock = item.variantId
                 ? product.variants?.[0]?.stock || product.stock
-                : product.stock;
+                : (product.inventory?.quantity ?? product.stock) - (product.inventory?.reserved ?? 0);
 
               if (availableStock < item.quantity) {
                 throw new BadRequestException(`Insufficient stock for ${product.name}`);
@@ -77,10 +78,8 @@ export class OrdersService {
             const shipping = subtotal > 50 ? 0 : 9.99;
             const total = subtotal + tax + shipping;
 
-            const orderNumber = `ORD-${Date.now()}-${Math.random()
-              .toString(36)
-              .substr(2, 9)
-              .toUpperCase()}`;
+            const randomPart = crypto.randomBytes(6).toString("hex").toUpperCase();
+            const orderNumber = `ORD-${Date.now()}-${randomPart}`;
 
             const order = await tx.order.create({
               data: {
@@ -195,6 +194,20 @@ export class OrdersService {
             reserved: item.quantity,
           },
         });
+
+        // Decrement Product.stock so the frontend shows accurate available stock
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { stock: { decrement: item.quantity } },
+        });
+
+        // If item has a variant, decrement variant stock too
+        if (item.variantId) {
+          await tx.productVariant.update({
+            where: { id: item.variantId },
+            data: { stock: { decrement: item.quantity } },
+          });
+        }
       }
     });
   }
@@ -340,6 +353,19 @@ export class OrdersService {
             reserved: { decrement: item.quantity },
           },
         });
+
+        // Restore product stock that was decremented at payment confirmation
+        await this.prisma.product.update({
+          where: { id: item.productId },
+          data: { stock: { increment: item.quantity } },
+        });
+
+        if (item.variantId) {
+          await this.prisma.productVariant.update({
+            where: { id: item.variantId },
+            data: { stock: { increment: item.quantity } },
+          });
+        }
       }
     }
 
@@ -355,14 +381,12 @@ export class OrdersService {
     const order = await this.prisma.order.findUnique({
       where: { orderNumber },
       select: {
-        id: true,
         orderNumber: true,
         status: true,
         trackingNumber: true,
         shippedAt: true,
         deliveredAt: true,
         createdAt: true,
-        shippingAddress: true,
       },
     });
 

@@ -174,4 +174,38 @@ export class PaymentsService {
 
     return { success: true, message: "Payment confirmed successfully" };
   }
+
+  async confirmPaymentIntent(orderId: string, paymentIntentId: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!order) {
+      throw new NotFoundException("Order not found");
+    }
+
+    if (order.paymentStatus !== PaymentStatus.PENDING) {
+      return { success: true, message: "Payment already confirmed" };
+    }
+
+    const paymentIntent = await this.stripe.paymentIntents.retrieve(paymentIntentId);
+
+    if (paymentIntent.status !== "succeeded") {
+      throw new BadRequestException(
+        `PaymentIntent status is "${paymentIntent.status}", expected "succeeded"`,
+      );
+    }
+
+    const existingPayment = await this.prisma.payment.findUnique({
+      where: { paymentIntent: paymentIntentId },
+    });
+
+    if (!existingPayment) {
+      throw new NotFoundException("Payment record not found");
+    }
+
+    await this.ordersService.confirmOrderPayment(order.id, existingPayment.id);
+
+    return { success: true, message: "Payment confirmed and inventory updated" };
+  }
 }

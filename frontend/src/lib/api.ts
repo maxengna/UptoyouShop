@@ -72,33 +72,41 @@ class ApiError extends Error {
   }
 }
 
-// Token management
+// Token management — stored in closure only, NOT in localStorage
 let _accessToken: string | null = null
-let _refreshPromise: Promise<boolean> | null = null
+let _refreshPromise: Promise<string | null> | null = null
 
 export function setAccessToken(token: string | null) {
   _accessToken = token
+}
+
+export async function attemptRefresh(): Promise<string | null> {
+  if (_refreshPromise) return _refreshPromise
+  _refreshPromise = _doRefresh()
+  const result = await _refreshPromise
+  _refreshPromise = null
+  return result
 }
 
 export function getAccessToken(): string | null {
   return _accessToken
 }
 
-async function attemptRefresh(): Promise<boolean> {
+async function _doRefresh(): Promise<string | null> {
   try {
     const res = await fetch(`${API_BASE}/api/auth/refresh`, {
       method: "POST",
       credentials: "include",
     })
-    if (!res.ok) return false
+    if (!res.ok) return null
     const data = await res.json()
     if (data.success && data.data?.accessToken) {
       setAccessToken(data.data.accessToken)
-      return true
+      return data.data.accessToken
     }
-    return false
+    return null
   } catch {
-    return false
+    return null
   }
 }
 
@@ -146,9 +154,9 @@ async function apiRequest<T>(
       if (!_refreshPromise) {
         _refreshPromise = attemptRefresh()
       }
-      const refreshed = await _refreshPromise
+      const newToken = await _refreshPromise
       _refreshPromise = null
-      if (refreshed && _accessToken) {
+      if (newToken && _accessToken) {
         config.headers = {
           ...config.headers,
           "Authorization": `Bearer ${_accessToken}`,
@@ -1004,6 +1012,16 @@ export const paymentApi = {
       message: string;
     }>(`/api/payments/confirm/${orderId}`, {
       method: "POST",
+    });
+  },
+
+  confirmPayment: async (orderId: string, paymentIntentId: string) => {
+    return apiRequest<{
+      success: boolean;
+      message: string;
+    }>("/api/payments/confirm", {
+      method: "POST",
+      body: { orderId, paymentIntentId },
     });
   },
 };

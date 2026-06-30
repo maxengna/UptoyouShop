@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { User, AuthState } from '@/types/user'
-import { authApi, setAccessToken } from '@/lib/api'
+import { authApi, setAccessToken, attemptRefresh } from '@/lib/api'
 
 interface UserStore extends AuthState {
   accessToken: string | null
@@ -150,11 +150,24 @@ export const useUserStore = create<UserStore>()(
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
-        accessToken: state.accessToken,
+        // accessToken intentionally NOT persisted — stored in closure only
       }),
       onRehydrateStorage: () => (state) => {
-        if (state?.accessToken) {
-          setAccessToken(state.accessToken)
+        if (state?.isAuthenticated) {
+          // Try to get a fresh accessToken from the httpOnly refresh cookie
+          attemptRefresh().then((token) => {
+            if (token) {
+              useUserStore.setState({ accessToken: token })
+            } else {
+              // Refresh failed — clear stale auth state
+              setAccessToken(null)
+              useUserStore.setState({
+                user: null,
+                isAuthenticated: false,
+                accessToken: null,
+              })
+            }
+          })
         }
       },
     }

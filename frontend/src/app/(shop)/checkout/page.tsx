@@ -147,7 +147,7 @@ function PaymentSteps({
                   setError(null)
                   setIsSubmitting(true)
                   try {
-                    const { error: confirmError } = await stripe.confirmPayment({
+                    const { error: confirmError, paymentIntent } = await stripe.confirmPayment({
                       elements,
                       redirect: 'if_required',
                       confirmParams: {
@@ -156,7 +156,12 @@ function PaymentSteps({
                     })
                     if (confirmError) {
                       setError(confirmError.message || 'Payment failed')
-                    } else {
+                    } else if (paymentIntent) {
+                      try {
+                        await paymentApi.confirmPayment(orderId!, paymentIntent.id)
+                      } catch {
+                        // Inventory update failed silently — order is still confirmed on Stripe
+                      }
                       clearCart()
                       window.location.href = `/orders/${orderId}?success=true`
                     }
