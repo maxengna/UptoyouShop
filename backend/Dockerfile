@@ -15,6 +15,7 @@ WORKDIR /usr/src/app
 COPY --chown=node:node backend/package*.json ./
 
 COPY --chown=node:node database/schema.prisma ./database/
+COPY --chown=node:node database/seed.ts ./database/
 
 # Install app dependencies using the `npm ci` command instead of `npm install`
 RUN npm ci
@@ -39,6 +40,7 @@ WORKDIR /usr/src/app
 COPY --chown=node:node backend/package*.json ./
 
 COPY --chown=node:node database/schema.prisma ./database/
+COPY --chown=node:node database/seed.ts ./database/
 
 # In order to run `npm run build` we need access to the Nest CLI which is a dev dependency. In the previous development stage we ran `npm ci` which installed all dependencies, so we can copy over the node_modules directory from the development image
 COPY --chown=node:node --from=development /usr/src/app/node_modules ./node_modules
@@ -70,6 +72,8 @@ FROM node:18-alpine As production
 
 RUN apk add --no-cache openssl openssl-dev
 
+RUN npm install -g tsx
+
 WORKDIR /usr/src/app
 
 
@@ -84,5 +88,5 @@ EXPOSE 5000
 # Start the server using the production build
 # CMD [ "node", "dist/main.js" ]
 # CMD ["sh", "-c", "npx prisma migrate deploy --schema=./database/schema.prisma && node dist/main.js"]
-CMD ["sh", "-c", "npx prisma db push --schema=./database/schema.prisma && node dist/main.js"]
+CMD ["sh", "-c", "npx prisma db push --schema=./database/schema.prisma && tsx database/seed.ts && node dist/main.js"]
 
