@@ -10,7 +10,7 @@ export class HealthController {
   check() {
     return this.health.check([
       async () => ({
-        app: { status: "up" }, // ✅ ต้องมี key (app) + status
+        app: { status: "up" }, 
       }),
     ]);
   }
