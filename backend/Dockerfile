@@ -40,7 +40,7 @@ WORKDIR /usr/src/app
 COPY --chown=node:node backend/package*.json ./
 
 COPY --chown=node:node database/schema.prisma ./database/
-COPY --chown=node:node database/seed.ts ./database/
+
 
 # In order to run `npm run build` we need access to the Nest CLI which is a dev dependency. In the previous development stage we ran `npm ci` which installed all dependencies, so we can copy over the node_modules directory from the development image
 COPY --chown=node:node --from=development /usr/src/app/node_modules ./node_modules
@@ -79,6 +79,7 @@ WORKDIR /usr/src/app
 
 # Copy the bundled code from the build stage to the production image
 COPY --chown=node:node --from=build /usr/src/app/database ./database
+COPY --chown=node:node database/seed.ts ./database/
 COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 COPY --chown=node:node --from=build /usr/src/app/package.json ./
