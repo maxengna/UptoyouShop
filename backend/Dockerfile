@@ -85,9 +85,11 @@ COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 COPY --chown=node:node --from=build /usr/src/app/package.json ./
 
 EXPOSE 5000
+COPY backend/validate_seed_data.sh ./
+RUN chmod +x validate_seed_data.sh
 
 # Start the server using the production build
 # CMD [ "node", "dist/main.js" ]
 # CMD ["sh", "-c", "npx prisma migrate deploy --schema=./database/schema.prisma && node dist/main.js"]
-CMD ["sh", "-c", "npx prisma db push --schema=./database/schema.prisma && tsx database/seed.ts && node dist/main.js"]
-
+# CMD ["sh", "-c", "npx prisma db push --schema=./database/schema.prisma && tsx database/seed.ts && node dist/main.js"]
+CMD ["sh", "validate_seed_data.sh"]
