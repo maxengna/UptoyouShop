@@ -15,12 +15,12 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   // CORS
-  // app.enableCors({
-  //   origin: configService.get("CORS_ORIGIN") || "http://localhost:3000",
-  //   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  app.enableCors({
+    origin: configService.get("CORS_ORIGIN") || "http://localhost:3000",
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     
-  //   credentials: true,
-  // });
+    credentials: true,
+  });
 
 // app.enableCors({
 //   origin: (origin, callback) => {
@@ -38,10 +38,10 @@ async function bootstrap() {
 //   },
 //   credentials: true,
 // });
-  app.enableCors({
-    origin: true,
-    credentials: true,
-  });
+  // app.enableCors({
+  //   origin: true,
+  //   credentials: true,
+  // });
 
   // Preserve raw body for Stripe webhook signature verification
   app.useBodyParser("json", {

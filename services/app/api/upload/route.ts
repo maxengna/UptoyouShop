@@ -4,9 +4,14 @@ import { join, resolve } from "path";
 import { v4 as uuidv4 } from "uuid";
 import { requireAdmin } from "@/services/admin.service";
 
+const ALLOWED_ORIGIN =
+  process.env.NODE_ENV === 'production'
+    ? 'https://uptoyoushop.techallows.com'
+    : 'http://localhost:3000';
+
 export async function OPTIONS(request: NextRequest) {
   const headers = {
-    "Access-Control-Allow-Origin": "http://localhost:3000",
+    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
     "Access-Control-Allow-Methods": "POST, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
   };
@@ -17,7 +22,7 @@ export async function OPTIONS(request: NextRequest) {
 export async function POST(request: NextRequest) {
   // Add CORS headers
   const headers = {
-    "Access-Control-Allow-Origin": "http://localhost:3000",
+    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
     "Access-Control-Allow-Methods": "POST, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
   };

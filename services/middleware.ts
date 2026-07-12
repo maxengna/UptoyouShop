@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const allowedOrigins = [
+  "https://uptoyoushop.techallows.com",
   "http://localhost:3000",
   "http://localhost:3001",
 ];
