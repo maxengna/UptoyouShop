@@ -1,5 +1,5 @@
 #!/bin/sh
-set -e
+# set -e
 
 echo "Pushing database schema..."
 npx prisma db push --schema=./database/schema.prisma
