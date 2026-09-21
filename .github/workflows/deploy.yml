@@ -6,9 +6,7 @@ name: CI/CD - UptoyouShop Application with Docker
 on:
   push:
     branches: [ main ]
-  # pull_request:
-  #   branches: [main]
-  #   types: [opened, synchronize, reopened]
+
 
 jobs:
 
@@ -51,6 +49,8 @@ jobs:
           load: true
           tags: my-backend:${{ steps.meta.outputs.SHORT_SHA }}
           platforms: linux/amd64
+          outputs:
+            registry: ${{ steps.login-ecr.outputs.registry }}  # export variable across jobs
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -128,20 +128,7 @@ jobs:
           echo "REPO_NAME=${REPO_NAME,,}" >> "$GITHUB_OUTPUT"
           echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
-      # 6. Configure AWS credentials
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      # 7. Login to ECR
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      # 8. build frontend locally
+      # 6. build frontend locally
       - name: Build Frontend Docker Image Locally
         uses: docker/build-push-action@v6
         with:
@@ -156,7 +143,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
       
-      # 9. Run Trivy vulnerability scanner
+      # 7. Run Trivy vulnerability scanner
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@v0.36.0
         with:
@@ -166,16 +153,16 @@ jobs:
           severity: CRITICAL,HIGH
           ignore-unfixed: true
 
-      # 10 push frontend image to ECR
+      # 8 push frontend image to ECR
       - name: Push frontend Image to ECR
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          docker tag my-frontend:${{ steps.meta.outputs.SHORT_SHA }} ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:latest
-          docker tag my-frontend:${{ steps.meta.outputs.SHORT_SHA }} ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${{ steps.meta.outputs.SHORT_SHA }}
-          docker push ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:latest
-          docker push ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${{ steps.meta.outputs.SHORT_SHA }}
+          docker tag my-frontend:${{ steps.meta.outputs.SHORT_SHA }} ${{ needs.build-backend.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:latest
+          docker tag my-frontend:${{ steps.meta.outputs.SHORT_SHA }} ${{ needs.build-backend.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${{ steps.meta.outputs.SHORT_SHA }}
+          docker push ${{ needs.build-backend.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:latest
+          docker push ${{ needs.build-backend.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${{ steps.meta.outputs.SHORT_SHA }}
 
-      # 11. Set ECR lifecycle policy to keep only latest image
+      # 9. Set ECR lifecycle policy to keep only latest image
       - name: Set ECR lifecycle policy
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
@@ -218,17 +205,6 @@ jobs:
           echo "REPO_NAME=${REPO_NAME,,}" >> "$GITHUB_OUTPUT"
           echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
       - name: Setup yq
         run: |
           wget https://github.com/mikefarah/yq/releases/download/v4.30.8/yq_linux_amd64
@@ -237,12 +213,12 @@ jobs:
 
       - name: Update backend image tag
         run: |+
-          yq eval '.spec.template.spec.containers[0].image = "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_BACKEND }}:${{ steps.meta.outputs.SHORT_SHA }}"' \
+          yq eval '.spec.template.spec.containers[0].image = "${{ needs.build-backend.outputs.registry }}/${{ secrets.ECR_REPOSITORY_BACKEND }}:${{ steps.meta.outputs.SHORT_SHA }}"' \
             -i app/base/backend/deployment.yaml
             
       - name: Update frontend image tag
         run: |+
-          yq eval '.spec.template.spec.containers[0].image = "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${{ steps.meta.outputs.SHORT_SHA }}"' \
+          yq eval '.spec.template.spec.containers[0].image = "${{ needs.build-backend.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${{ steps.meta.outputs.SHORT_SHA }}"' \
             -i app/base/frontend/deployment.yaml
             
       - name: Commit and push changes
