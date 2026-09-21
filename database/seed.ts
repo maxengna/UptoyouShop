@@ -12,7 +12,7 @@ async function main() {
       name: 'Electronics',
       slug: 'electronics',
       description: 'Electronic devices and accessories',
-      imageKey: '/categories/electronics.jpg',
+      imageKey: 'category/daa2c281-7de7-41af-a342-233c50ddeeaf.jpg',
     },
   })
 
@@ -21,7 +21,7 @@ async function main() {
       name: 'Clothing',
       slug: 'clothing',
       description: 'Fashion and apparel',
-      imageKey: '/categories/clothing.jpg',
+      imageKey: 'category/9f7bdfb1-59c5-44ef-9991-2b74c0da02f5.jpg',
     },
   })
 
@@ -30,7 +30,7 @@ async function main() {
       name: 'Home & Garden',
       slug: 'home',
       description: 'Home decor and garden supplies',
-      imageKey: '/categories/home.jpg',
+      imageKey: 'category/0b4c1943-ba34-4668-a21c-62804288b9d2.jpg',
     },
   })
 
@@ -39,11 +39,21 @@ async function main() {
       name: 'Sports',
       slug: 'sports',
       description: 'Sports equipment and accessories',
-      imageKey: '/categories/sports.jpg',
+      imageKey: 'category/4d41ad11-8921-440e-ac0a-130ed241ad4b.jpg',
     },
   })
 
   console.log('✅ Categories created')
+
+  const productImageMap: Record<string, string> = {
+    'wireless-headphones': 'products/1a105d73-7268-438e-b860-5b209504ede6.jpg',
+    'smart-watch': 'products/c08a0bf7-1d53-44e6-9964-7f398c17402c.jpg',
+    'organic-cotton-tshirt': 'products/ce4f61d4-f451-43f4-9d2e-bfa4a5c7baeb.jpg',
+    'laptop-stand': 'products/9214a277-4611-4511-9a44-b129ce425fbe.jpg',
+    'usb-c-hub': 'products/3bf2236a-51e8-4591-9f17-81211e01d690.jpg',
+    'wireless-mouse': 'products/63f89ed9-e8b0-4dc9-8ef9-6ac612663189.jpg',
+    'mechanical-keyboard': 'products/875aaf39-f13e-42a6-a858-f2f2fc3255c4.jpg',
+  }
 
   // Create products
   const products = [
@@ -151,20 +161,6 @@ async function main() {
       seoTitle: 'RGB Mechanical Keyboard',
       seoDescription: 'Enhance your typing experience with our RGB mechanical keyboard.',
     },
-    {
-      name: 'Yoga Mat',
-      slug: 'yoga-mat',
-      description: 'Eco-friendly non-slip yoga mat with carrying strap.',
-      price: 39.99,
-      sku: 'YM-004',
-      stock: 25,
-      categoryId: sports.id,
-      tags: ['yoga', 'mat', 'exercise', 'eco-friendly'],
-      weight: 1.5,
-      dimensions: { length: 183, width: 61, height: 0.6 },
-      seoTitle: 'Eco-Friendly Yoga Mat',
-      seoDescription: 'Practice yoga sustainably with our eco-friendly non-slip yoga mat.',
-    },
   ]
 
   const createdProducts = []
@@ -179,10 +175,8 @@ async function main() {
 
   // Create product images
   for (const product of createdProducts) {
-      const images = [
-      { imageKey: `/products/${product.slug}-1.jpg`, isMain: true },
-      { imageKey: `/products/${product.slug}-2.jpg`, isMain: false },
-      { imageKey: `/products/${product.slug}-3.jpg`, isMain: false },
+    const images = [
+      { imageKey: productImageMap[product.slug], isMain: true },
     ]
 
     for (const imageData of images) {

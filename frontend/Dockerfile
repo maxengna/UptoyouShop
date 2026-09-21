@@ -11,6 +11,9 @@ RUN npm ci
 # Copy frontend source and shared schema
 COPY frontend/ ./
 
+ARG NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+ARG NEXT_PUBLIC_API_URL
+
 RUN npm run build
 
 FROM node:20-alpine AS runner

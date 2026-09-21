@@ -21,4 +21,5 @@ else
 fi
 
 echo "Starting application..."
-exec node dist/main.js
+exec node --require ./dist/instrumentation.js dist/main.js
+#  exec node dist/main.js

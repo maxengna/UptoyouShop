@@ -67,3 +67,6 @@ backend/dist/
 
 # continue extensions
 .continue/*
+
+
+.github/workflows/deploy-backup.yml

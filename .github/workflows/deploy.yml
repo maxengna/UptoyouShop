@@ -12,38 +12,6 @@ on:
 
 jobs:
 
-  migrate:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: 1234
-          POSTGRES_DB: uptoyoushop
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres" --health-interval 10s
-          --health-timeout 5s --health-retries 5
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Install dependencies
-        run: |
-          npm ci
-          npx prisma generate 
-
-      - name: Run migrations
-        run: |
-          npx prisma migrate deploy 
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
   build-backend:
     name: Build Backend Docker Image
     runs-on: ubuntu-latest
@@ -75,22 +43,39 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # 4. Build and push to Amazon ECR
-      - name: Build and push production image
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      # 4. Build Image Locally
+      - name: Build Backend Image Locally
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./backend/Dockerfile
-          push: true
+          load: true
+          tags: my-backend:${{ steps.meta.outputs.SHORT_SHA }}
           platforms: linux/amd64
-          tags: |
-            ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_BACKEND }}:latest
-            ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_BACKEND }}:${{ steps.meta.outputs.SHORT_SHA }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # 9. Set ECR lifecycle policy to keep only latest image
+      # 5. Run Trivy vulnerability scanner
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: my-backend:${{ steps.meta.outputs.SHORT_SHA }}
+          format: table
+          exit-code: 1
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+      
+      # 6. Push backend image to ECR
+      - name: Push backend Image to ECR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          docker tag my-backend:${{ steps.meta.outputs.SHORT_SHA }} ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_BACKEND }}:latest
+          docker tag my-backend:${{ steps.meta.outputs.SHORT_SHA }} ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_BACKEND }}:${{ steps.meta.outputs.SHORT_SHA }}
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_BACKEND }}:latest
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_BACKEND }}:${{ steps.meta.outputs.SHORT_SHA }}
+          
+
+      # 7. Set ECR lifecycle policy to keep only latest image
       - name: Set ECR lifecycle policy
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
@@ -127,14 +112,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      # 3. Cache Docker layers
-      # - name: Cache Docker layers
-      #   uses: actions/cache@v5
-      #   with:
-      #     path: /tmp/.buildx-cache
-      #     key: ${{ runner.os }}-buildx-${{ github.sha }}
-      #     restore-keys: ${{ runner.os }}-buildx-
-
       # 4. Cache npm dependencies
       - name: Cache npm dependencies
         uses: actions/cache@v4
@@ -165,22 +142,41 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # 8. Build and push image to ECR
-      - name: Build and push production image
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      # 8. build frontend locally
+      - name: Build Frontend Docker Image Locally
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: frontend/Dockerfile
-          push: true
+          file: ./frontend/Dockerfile
+          load: true
+          tags: my-frontend:${{ steps.meta.outputs.SHORT_SHA }}
+          build-args: |
+            NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${{ env.STRIPE_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_API_URL=${{ env.API_URL }}
           platforms: linux/amd64
-          tags: |
-            ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:latest 
-            ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${{ steps.meta.outputs.SHORT_SHA }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      
+      # 9. Run Trivy vulnerability scanner
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: my-frontend:${{ steps.meta.outputs.SHORT_SHA }}
+          format: table
+          exit-code: 1
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
 
-      # 9. Set ECR lifecycle policy to keep only latest image
+      # 10 push frontend image to ECR
+      - name: Push frontend Image to ECR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          docker tag my-frontend:${{ steps.meta.outputs.SHORT_SHA }} ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:latest
+          docker tag my-frontend:${{ steps.meta.outputs.SHORT_SHA }} ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${{ steps.meta.outputs.SHORT_SHA }}
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:latest
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${{ steps.meta.outputs.SHORT_SHA }}
+
+      # 11. Set ECR lifecycle policy to keep only latest image
       - name: Set ECR lifecycle policy
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
@@ -257,18 +253,5 @@ jobs:
           git add .
           git commit -m "Update image tags: backend=${{ steps.meta.outputs.SHORT_SHA }}, frontend=${{ steps.meta.outputs.SHORT_SHA }}"
           git push
-      # 9. Run Vitest tests inside the container
-      # Use same package-manager detection as Dockerfile (no corepack at runtime; node user can't write to /usr/local/bin)
-      # - name: Run tests
-      #   run: |
-      #     docker run --rm \
-      #       --workdir /app \
-      #       --entrypoint "" \
-      #       -e CI=true \
-      #       ${{ steps.meta.outputs.REPO_NAME }}-dev:latest \
-      #       sh -c "if [ -f package-lock.json ]; then npm run test:run; elif [ -f yarn.lock ]; then yarn test:run; elif [ -f pnpm-lock.yaml ]; then pnpm run test:run; else npm run test:run; fi"
-      #   env:
-      #     CI: true
-      #     NODE_ENV: test
-      #   timeout-minutes: 10
+  
 

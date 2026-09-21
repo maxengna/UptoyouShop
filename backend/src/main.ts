@@ -1,3 +1,4 @@
+import "./instrumentation";
 import { NestFactory } from "@nestjs/core";
 import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -5,8 +6,9 @@ import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import cookieParser from "cookie-parser";
 import { AppModule } from "./app.module";
-import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
+import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
 import { TransformInterceptor } from "./common/interceptors/transform.interceptor";
+import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -18,7 +20,7 @@ async function bootstrap() {
   app.enableCors({
     origin: configService.get("CORS_ORIGIN") || "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    
+    exposedHeaders: ['x-correlation-id'],
     credentials: true,
   });
 
@@ -63,10 +65,13 @@ async function bootstrap() {
   );
 
   // Global filters
-  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   // Global interceptors
-  app.useGlobalInterceptors(new TransformInterceptor());
+  app.useGlobalInterceptors(
+    new LoggingInterceptor(),
+    new TransformInterceptor()
+  );
 
   // Swagger documentation
   const config = new DocumentBuilder()
