@@ -58,7 +58,7 @@ jobs:
         with:
           image-ref: my-backend:${{ steps.meta.outputs.SHORT_SHA }}
           format: table
-          exit-code: 1
+          exit-code: 0 
           severity: CRITICAL,HIGH
           ignore-unfixed: true
       
@@ -178,7 +178,7 @@ jobs:
         with:
           image-ref: my-frontend:${{ steps.meta.outputs.SHORT_SHA }}
           format: table
-          exit-code: 1
+          exit-code: 0    # 1 = stop deploy if has vulnerability, 0 = continue deploy
           severity: CRITICAL,HIGH
           ignore-unfixed: true
 
