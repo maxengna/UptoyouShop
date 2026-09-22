@@ -49,8 +49,6 @@ jobs:
           load: true
           tags: my-backend:${{ steps.meta.outputs.SHORT_SHA }}
           platforms: linux/amd64
-          outputs:
-            registry: ${{ steps.login-ecr.outputs.registry }}  # export variable across jobs
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -103,7 +101,7 @@ jobs:
     steps:
       # 1. Checkout source code
       - name: Checkout source code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -128,7 +126,38 @@ jobs:
           echo "REPO_NAME=${REPO_NAME,,}" >> "$GITHUB_OUTPUT"
           echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
-      # 6. build frontend locally
+      # 6. Configure AWS credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # 7. Login to ECR
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # 8. Fetch secrets from AWS Secrets Manager
+      - name: Fetch frontend secrets from Secrets Manager
+        id: fetch-secrets
+        run: |
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=$(aws secretsmanager get-secret-value \
+            --secret-id uptoyou-frontend-secrets \
+            --query 'SecretString' \
+            --output text | jq -r '.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY')
+          echo "::add-mask::${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}"
+          echo "STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}" >> $GITHUB_ENV
+
+          NEXT_PUBLIC_API_URL=$(aws secretsmanager get-secret-value \
+            --secret-id uptoyou-frontend-secrets \
+            --query 'SecretString' \
+            --output text | jq -r '.NEXT_PUBLIC_API_URL')
+          echo "::add-mask::${NEXT_PUBLIC_API_URL}"
+          echo "API_URL=${NEXT_PUBLIC_API_URL}" >> $GITHUB_ENV
+
+      # 9. build frontend locally
       - name: Build Frontend Docker Image Locally
         uses: docker/build-push-action@v6
         with:
@@ -157,10 +186,10 @@ jobs:
       - name: Push frontend Image to ECR
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          docker tag my-frontend:${{ steps.meta.outputs.SHORT_SHA }} ${{ needs.build-backend.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:latest
-          docker tag my-frontend:${{ steps.meta.outputs.SHORT_SHA }} ${{ needs.build-backend.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${{ steps.meta.outputs.SHORT_SHA }}
-          docker push ${{ needs.build-backend.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:latest
-          docker push ${{ needs.build-backend.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${{ steps.meta.outputs.SHORT_SHA }}
+          docker tag my-frontend:${{ steps.meta.outputs.SHORT_SHA }} ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:latest
+          docker tag my-frontend:${{ steps.meta.outputs.SHORT_SHA }} ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${{ steps.meta.outputs.SHORT_SHA }}
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:latest
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${{ steps.meta.outputs.SHORT_SHA }}
 
       # 9. Set ECR lifecycle policy to keep only latest image
       - name: Set ECR lifecycle policy
@@ -204,6 +233,17 @@ jobs:
           REPO_NAME="${GITHUB_REPOSITORY##*/}"
           echo "REPO_NAME=${REPO_NAME,,}" >> "$GITHUB_OUTPUT"
           echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Setup yq
         run: |
