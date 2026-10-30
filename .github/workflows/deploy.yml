@@ -3,39 +3,103 @@
 
 name: CI/CD - UptoyouShop Application with Docker
 
-on:
-  push:
-    # branches: [ main ]
+# on:
+#   push:
+#     branches: [ main ]
+#     tags: [ 'v*.*.*' ]   # support git tags like v1.0.0
+#   pull_request:
+#     branches: [ main ]
+
+
+# Allow Workflow to request OIDC token to access AWS
+permissions:
+  id-token: write
+  contents: read
+  
 
 
 jobs:
 
-  build-backend:
-    name: Build Backend Docker Image
+  code-quality:
+    name: Check Code Quality All Project
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      # Run gitleaks scan privacy information
+        with:
+          fetch-depth: 0
+      
+      # 1. Secret Scanning
       - name: Run Gitleaks Scan
         uses: gitleaks/gitleaks-action@v2
 
-      # Check Code Formatting (Prettier)
+       # 2. Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+       
+      # 3. Global Code Formatting
       - name: Check Code Formatting (Prettier)
         run: npx prettier --check "**/*.{js,jsx,ts,tsx,json,css,md}"
-
-      # Lint Nest.js (Backend)
-      - name: Lint Nest.js (Backend)
+      
+      # 4. Backend: Install, Prisma, Lint, Jest
+      - name: Install Backend dependencies
+        working-directory: backend
         run: |
-          cd backend
-          npm run lint
+          npm ci
+          npx prisma generate --schema=../database/schema.prisma
+      
+      - name: Lint Nest.js (Backend)
+        working-directory: backend
+        run: npm run lint
+      
+      - name: Run Jest Unit Tests (Backend)
+        working-directory: backend
+        run: npm run test -- --coverage
+      
+      # 5. Frontend: Install, Lint, Jest
+      - name: Install Frontend dependencies
+        working-directory: frontend
+        run: npm ci
+      
+      - name: Lint Next.js (Frontend)
+        working-directory: frontend
+        run: npm run lint
+      
+      - name: Run Jest Unit Tests (Frontend)
+        working-directory: frontend
+        run: npm run test -- --coverage
 
 
-      # Extract metadata
+  build-backend:
+    name: Build Backend Docker Image
+    runs-on: ubuntu-latest
+    needs : [code-quality]
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 1.Configure AWS credentials
+      - name: Configure AWS credentials
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: arn:aws:iam::575108951885:role/GitHubActions-ECR-Push
+          aws-region: ap-southeast-1
+
+
+      # 2.Login to Amazon ECR
+      - name: Login to Amazon ECR
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+
+      # 3.Extract metadata
       - name: Extract metadata
         id: meta
         run: |
@@ -43,21 +107,20 @@ jobs:
           echo "REPO_NAME=${REPO_NAME,,}" >> "$GITHUB_OUTPUT"
           echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/}"
+          else
+            VERSION="${GITHUB_SHA::7}"
+          fi
+          echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
 
-      # Configure AWS credentials
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v5
-        with:
-          role-to-assume: arn:aws:iam::575108951885:role/GitHubActions-ECR-Push
-          aws-region: ap-southeast-1
+
+      # 4.Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
 
 
-      # Login to Amazon ECR
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      # Build Image Locally
+      # 5.Build Image Locally
       - name: Build Backend Image Locally
         uses: docker/build-push-action@v6
         with:
@@ -69,7 +132,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Run Trivy vulnerability scanner
+
+      # 6.Run Trivy vulnerability scanner
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@v0.36.0
         with:
@@ -79,78 +143,51 @@ jobs:
           severity: CRITICAL,HIGH
           ignore-unfixed: true
       
-      # Push backend image to ECR
+
+      # 7.Push backend image to ECR
       - name: Push backend Image to ECR
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
         run: |
+          REGISTRY="${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_BACKEND }}"
+          
           docker tag my-backend:${{ steps.meta.outputs.SHORT_SHA }} ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_BACKEND }}:latest
           docker tag my-backend:${{ steps.meta.outputs.SHORT_SHA }} ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_BACKEND }}:${{ steps.meta.outputs.SHORT_SHA }}
+          docker tag my-backend:${{ steps.meta.outputs.SHORT_SHA }} ${REGISTRY}:${{ steps.meta.outputs.VERSION }}
+          
           docker push ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_BACKEND }}:latest
           docker push ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_BACKEND }}:${{ steps.meta.outputs.SHORT_SHA }}
-          
+          docker push ${REGISTRY}:${{ steps.meta.outputs.VERSION }}
 
-      # Set ECR lifecycle policy to keep only latest image
-      - name: Set ECR lifecycle policy
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          aws ecr put-lifecycle-policy \
-            --repository-name ${{ secrets.ECR_REPOSITORY_BACKEND }} \
-            --lifecycle-policy-text '{
-              "rules": [
-                {
-                  "rulePriority": 1,
-                  "description": "Keep only latest image",
-                  "selection": {
-                    "tagStatus": "any",
-                    "countType": "imageCountMoreThan",
-                    "countNumber": 1
-                  },
-                  "action": {
-                    "type": "expire"
-                  }
-                }
-              ]
-            }'
+
+   
   build-frontend:
     name: Build Frontend Docker Image
     runs-on: ubuntu-latest
+    needs : [code-quality]
 
     steps:
-      # Checkout source code
       - name: Checkout source code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # Set up Docker Buildx
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      # Cache npm dependencies
-      - name: Cache npm dependencies
-        uses: actions/cache@v4
+      # 1.Configure AWS credentials
+      - name: Configure AWS credentials
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+        uses: aws-actions/configure-aws-credentials@v5
         with:
-          path: ~/.npm
-          # Frontend job cache
-          key: ${{ runner.os }}-npm-frontend-${{ hashFiles('frontend/package-lock.json')}}
-          restore-keys: ${{ runner.os }}-npm-
-
-      # Run gitleaks scan privacy information
-      - name: Run Gitleaks Scan
-        uses: gitleaks/gitleaks-action@v2
-
-      # Check Code Formatting (Prettier)
-      - name: Check Code Formatting (Prettier)
-        run: npx prettier --check "**/*.{js,jsx,ts,tsx,json,css,md}"
-
-      # Lint Next.js (Frontend)
-      - name: Lint Next.js (Frontend)
-        run: |
-          cd frontend
-          npm run lint
+          role-to-assume: arn:aws:iam::575108951885:role/GitHubActions-ECR-Push
+          aws-region: ap-southeast-1
 
 
-      # Extract metadata
+      # 2.Login to Amazon ECR
+      - name: Login to Amazon ECR
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+
+      # 3.Extract metadata
       - name: Extract metadata
         id: meta
         run: |
@@ -158,20 +195,17 @@ jobs:
           echo "REPO_NAME=${REPO_NAME,,}" >> "$GITHUB_OUTPUT"
           echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
-      # Configure AWS credentials
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v5
-        with:
-          role-to-assume: arn:aws:iam::575108951885:role/GitHubActions-ECR-Push
-          aws-region: ap-southeast-1
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/}"
+          else
+            VERSION="${GITHUB_SHA::7}"
+          fi
+          echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
 
-      # Login to Amazon ECR
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
 
-      # Fetch secrets from AWS Secrets Manager
+      # 4.Fetch secrets from AWS Secrets Manager
       - name: Fetch frontend secrets from Secrets Manager
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
         id: fetch-secrets
         run: |
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=$(aws secretsmanager get-secret-value \
@@ -181,7 +215,13 @@ jobs:
           echo "::add-mask::${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}"
           echo "STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}" >> $GITHUB_ENV
 
-      # build frontend locally
+
+      # 5.Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+ 
+       # 6.build frontend locally
       - name: Build Frontend Docker Image Locally
         uses: docker/build-push-action@v6
         with:
@@ -195,7 +235,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
       
-      # Run Trivy vulnerability scanner
+
+      # 7.Run Trivy vulnerability scanner
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@v0.36.0
         with:
@@ -205,44 +246,28 @@ jobs:
           severity: CRITICAL,HIGH
           ignore-unfixed: true
 
-      # push frontend image to ECR
+
+      # 8.push frontend image to ECR
       - name: Push frontend Image to ECR
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
         run: |
+          REGISTRY="${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}"
+
           docker tag my-frontend:${{ steps.meta.outputs.SHORT_SHA }} ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:latest
           docker tag my-frontend:${{ steps.meta.outputs.SHORT_SHA }} ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${{ steps.meta.outputs.SHORT_SHA }}
+          docker tag my-frontend:${{ steps.meta.outputs.SHORT_SHA }} ${REGISTRY}:${{ steps.meta.outputs.VERSION }}
+
           docker push ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:latest
           docker push ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${{ steps.meta.outputs.SHORT_SHA }}
+          docker push ${REGISTRY}:${{ steps.meta.outputs.VERSION }}
 
-      # Set ECR lifecycle policy to keep only latest image
-      - name: Set ECR lifecycle policy
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          aws ecr put-lifecycle-policy \
-            --repository-name ${{ secrets.ECR_REPOSITORY_FRONTEND }} \
-            --lifecycle-policy-text '{
-              "rules": [
-                {
-                  "rulePriority": 1,
-                  "description": "Keep only latest image",
-                  "selection": {
-                    "tagStatus": "any",
-                    "countType": "imageCountMoreThan",
-                    "countNumber": 1
-                  },
-                  "action": {
-                    "type": "expire"
-                  }
-                }
-              ]
-            }'
 
   #update Tag in flux manifests
   update-flux-manifests:
     name: Update Flux CD Manifests
     runs-on: ubuntu-latest
     needs: [ build-backend, build-frontend ]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
     steps:
       - name: Checkout manifests repository
         uses: actions/checkout@v4
@@ -275,20 +300,68 @@ jobs:
 
       - name: Update backend image tag
         run: |+
-          yq eval '.spec.template.spec.containers[0].image = "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_BACKEND }}:${{ steps.meta.outputs.SHORT_SHA }}"' \
+          yq eval '.spec.template.spec.containers[0].image = "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_BACKEND }}:${{ steps.meta.outputs.VERSION }}"' \
             -i app/base/backend/deployment.yaml
             
       - name: Update frontend image tag
         run: |+
-          yq eval '.spec.template.spec.containers[0].image = "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${{ steps.meta.outputs.SHORT_SHA }}"' \
+          yq eval '.spec.template.spec.containers[0].image = "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${{ steps.meta.outputs.VERSION }}"' \
             -i app/base/frontend/deployment.yaml
-            
-      - name: Commit and push changes
+
+
+      - name: Configure Git
         run: |
-          git config --local user.email "phanupong.w2019@gmail.com"
-          git config --local user.name "maxengna"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit changes
+        run: |
           git add .
-          git commit -m "Update image tags: backend=${{ steps.meta.outputs.SHORT_SHA }}, frontend=${{ steps.meta.outputs.SHORT_SHA }}"
+          git commit -m "Update image tags: backend=${{ steps.meta.outputs.VERSION }}, frontend=${{ steps.meta.outputs.VERSION }}"
           git push
+  
+  # notify slack
+  notify-slack:
+    name: Notify Slack
+    runs-on: ubuntu-latest
+    needs: [ build-backend, build-frontend, update-flux-manifests ]
+    if: always() && github.event.name == 'push'
+
+    steps:
+      - name: Send Slack Notification
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          BUILD_BACKEND_RESULT: ${{ needs.build-backend.result }}
+          BUILD_FRONTEND_RESULT: ${{ needs.build-frontend.result }}
+          UPDATE_FLUX_MANIFESTS_RESULT: ${{ needs.update-flux-manifests.result }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          ACTOR: ${{ github.actor }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ "$BUILD_BACKEND_RESULT" = "success" ] && [ "$BUILD_FRONTEND_RESULT" = "success" ] && [ "$UPDATE_FLUX_MANIFESTS_RESULT" = "success" ]; then
+            STATUS="✅ BUILD SUCCESS"
+          elif [ "$BUILD_BACKEND_RESULT" = "failure" ] || [ "$BUILD_FRONTEND_RESULT" = "failure" ] || [ "$UPDATE_FLUX_MANIFESTS_RESULT" = "failure" ]; then
+            STATUS="❌ BUILD FAILED"
+          else
+            STATUS="⚠️ BUILD CANCELLED OR SKIPPED"
+          fi
+
+          jq -n \
+            --arg status "$STATUS" \
+            --arg build_backend_result "$BUILD_BACKEND_RESULT" \
+            --arg build_frontend_result "$BUILD_FRONTEND_RESULT" \
+            --arg update_flux_manifests_result "$UPDATE_FLUX_MANIFESTS_RESULT" \
+            --arg repo "$REPO" \
+            --arg branch "$BRANCH" \
+            --arg actor "$ACTOR" \
+            --arg url "$RUN_URL" \
+            '{
+              text: "\($status)\n\nBuild Backend: \($build_backend_result)\nBuild Frontend: \($build_frontend_result)\nUpdate Flux Manifests: \($update_flux_manifests_result)\n\nRepository: \($repo)\nBranch: \($branch)\nTriggered by: \($actor)\nDetails: \($url)"
+            }' |
+          curl -fsS -X POST \
+            -H "Content-Type: application/json" \
+            --data-binary @- \
+            "$SLACK_WEBHOOK_URL"
   
 

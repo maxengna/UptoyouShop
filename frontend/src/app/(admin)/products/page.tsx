@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { productApi, PaginationMeta } from "@/lib/api";
 import { useCategoryStore } from "@/store/category-store";
 
-interface Product {
+export interface Product {
   id: any;
   name: string;
   slug: string;
@@ -47,20 +47,20 @@ interface Product {
 
 const statuses = ["All", "Active", "Out of Stock", "Draft", "Archived"];
 
-const getStatusFromProduct = (product: Product): string => {
+export const getStatusFromProduct = (product: Product): string => {
   if (product.stock === 0) return "out-of-stock";
   if (!product.isActive) return "draft";
   return "active";
 };
 
-const formatPrice = (price: number) => {
+export const formatPrice = (price: number) => {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
   }).format(price);
 };
 
-const getStatusColor = (status: string) => {
+export const getStatusColor = (status: string) => {
   switch (status) {
     case "active":
       return "bg-green-100 text-green-800";
@@ -146,26 +146,26 @@ export default function ProductsPage() {
     toast.custom(
       (t) => (
         <div className="bg-background border rounded-lg shadow-lg p-4 max-w-sm">
-        <p className="font-medium mb-3">Are you sure you want to delete this product?</p>
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" size="sm" onClick={() => toast.dismiss(t)}>
-            Cancel
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={async () => {
-              toast.dismiss(t);
-              await deleteProduct(productId);
-            }}
-          >
-            Delete
-          </Button>
+          <p className="font-medium mb-3">Are you sure you want to delete this product?</p>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={() => toast.dismiss(t)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={async () => {
+                toast.dismiss(t);
+                await deleteProduct(productId);
+              }}
+            >
+              Delete
+            </Button>
+          </div>
         </div>
-      </div>
-    ),
-    { position: "top-center" }
-  );
+      ),
+      { position: "top-center" }
+    );
   };
 
   const totalPages = pagination?.pages || 0;

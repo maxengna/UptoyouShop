@@ -42,7 +42,7 @@ export default function ProductDetailPage() {
   const [selectedImage, setSelectedImage] = useState(0)
   const [selectedVariant, setSelectedVariant] = useState('')
   const [product, setProduct] = useState<Product | null>(null)
-const [categoryName, setCategoryName] = useState("")
+  const [categoryName, setCategoryName] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
