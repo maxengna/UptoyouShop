@@ -3,13 +3,13 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
-} from "@nestjs/common";
-import { PrismaService } from "../prisma/prisma.service";
-import { S3Service } from "../upload/s3.service";
-import { CreateOrderDto } from "./dto/create-order.dto";
-import { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
-import { OrderStatus, PaymentStatus, Prisma } from "@prisma/client";
-import * as crypto from "crypto";
+} from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { S3Service } from '../upload/s3.service';
+import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { OrderStatus, PaymentStatus, Prisma } from '@prisma/client';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class OrdersService {
@@ -25,8 +25,13 @@ export class OrdersService {
       try {
         return await this.prisma.$transaction(
           async (tx) => {
-            const { items, shippingAddress, billingAddress, paymentMethod, notes } =
-              createOrderDto;
+            const {
+              items,
+              shippingAddress,
+              billingAddress,
+              paymentMethod,
+              notes,
+            } = createOrderDto;
 
             let subtotal = 0;
             const orderItems: any[] = [];
@@ -36,21 +41,28 @@ export class OrdersService {
                 where: { id: item.productId },
                 include: {
                   inventory: true,
-                  variants: item.variantId ? { where: { id: item.variantId } } : false,
+                  variants: item.variantId
+                    ? { where: { id: item.variantId } }
+                    : false,
                   images: true,
                 },
               });
 
               if (!product) {
-                throw new NotFoundException(`Product ${item.productId} not found`);
+                throw new NotFoundException(
+                  `Product ${item.productId} not found`,
+                );
               }
 
               const availableStock = item.variantId
                 ? product.variants?.[0]?.stock || product.stock
-                : (product.inventory?.quantity ?? product.stock) - (product.inventory?.reserved ?? 0);
+                : (product.inventory?.quantity ?? product.stock) -
+                  (product.inventory?.reserved ?? 0);
 
               if (availableStock < item.quantity) {
-                throw new BadRequestException(`Insufficient stock for ${product.name}`);
+                throw new BadRequestException(
+                  `Insufficient stock for ${product.name}`,
+                );
               }
 
               const itemTotal = Number(product.price) * item.quantity;
@@ -78,7 +90,10 @@ export class OrdersService {
             const shipping = subtotal > 50 ? 0 : 9.99;
             const total = subtotal + tax + shipping;
 
-            const randomPart = crypto.randomBytes(6).toString("hex").toUpperCase();
+            const randomPart = crypto
+              .randomBytes(6)
+              .toString('hex')
+              .toUpperCase();
             const orderNumber = `ORD-${Date.now()}-${randomPart}`;
 
             const order = await tx.order.create({
@@ -92,9 +107,11 @@ export class OrdersService {
                 tax,
                 shipping,
                 total,
-                currency: "USD",
+                currency: 'USD',
                 shippingAddress: { ...shippingAddress },
-                billingAddress: billingAddress ? { ...billingAddress } : undefined,
+                billingAddress: billingAddress
+                  ? { ...billingAddress }
+                  : undefined,
                 notes,
                 items: {
                   create: orderItems,
@@ -129,7 +146,7 @@ export class OrdersService {
             return {
               success: true,
               data: order,
-              message: "Order created successfully",
+              message: 'Order created successfully',
               errors: [],
             };
           },
@@ -142,7 +159,7 @@ export class OrdersService {
       } catch (err) {
         if (
           err instanceof Prisma.PrismaClientKnownRequestError &&
-          err.code === "P2034" &&
+          err.code === 'P2034' &&
           attempt < MAX_RETRIES - 1
         ) {
           continue;
@@ -159,7 +176,7 @@ export class OrdersService {
     });
 
     if (!order) {
-      throw new NotFoundException("Order not found");
+      throw new NotFoundException('Order not found');
     }
 
     if (order.paymentStatus === PaymentStatus.COMPLETED) {
@@ -237,7 +254,7 @@ export class OrdersService {
           },
           payments: true,
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
       }),
@@ -255,7 +272,7 @@ export class OrdersService {
           pages: Math.ceil(total / limit),
         },
       },
-      message: "Orders retrieved successfully",
+      message: 'Orders retrieved successfully',
       errors: [],
     };
   }
@@ -284,13 +301,13 @@ export class OrdersService {
     });
 
     if (!order) {
-      throw new NotFoundException("Order not found");
+      throw new NotFoundException('Order not found');
     }
 
     return {
       success: true,
       data: order,
-      message: "Order retrieved successfully",
+      message: 'Order retrieved successfully',
       errors: [],
     };
   }
@@ -307,7 +324,7 @@ export class OrdersService {
     });
 
     if (!order) {
-      throw new NotFoundException("Order not found");
+      throw new NotFoundException('Order not found');
     }
 
     const updateData: any = { status };
@@ -372,7 +389,7 @@ export class OrdersService {
     return {
       success: true,
       data: updatedOrder,
-      message: "Order status updated successfully",
+      message: 'Order status updated successfully',
       errors: [],
     };
   }
@@ -391,13 +408,13 @@ export class OrdersService {
     });
 
     if (!order) {
-      throw new NotFoundException("Order not found");
+      throw new NotFoundException('Order not found');
     }
 
     return {
       success: true,
       data: order,
-      message: "Order tracking information retrieved",
+      message: 'Order tracking information retrieved',
       errors: [],
     };
   }

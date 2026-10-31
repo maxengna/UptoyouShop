@@ -1,17 +1,17 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import Image from 'next/image'
+import { useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 
 interface HeroSlide {
-  id: string
-  title: string
-  subtitle: string
-  image: string
-  ctaText: string
-  ctaLink: string
+  id: string;
+  title: string;
+  subtitle: string;
+  image: string;
+  ctaText: string;
+  ctaLink: string;
 }
 
 const heroSlides: HeroSlide[] = [
@@ -39,26 +39,28 @@ const heroSlides: HeroSlide[] = [
     ctaText: 'View Deals',
     ctaLink: '/category/electronics',
   },
-]
+];
 
 export function HeroBanner() {
-  const [currentSlide, setCurrentSlide] = useState(0)
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % heroSlides.length)
-  }
+    setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+  };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)
-  }
+    setCurrentSlide(
+      (prev) => (prev - 1 + heroSlides.length) % heroSlides.length,
+    );
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
-      nextSlide()
-    }, 5000)
+      nextSlide();
+    }, 5000);
 
-    return () => clearInterval(timer)
-  }, [])
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <div className="relative w-full h-[400px] md:h-[500px] overflow-hidden">
@@ -85,9 +87,7 @@ export function HeroBanner() {
                   <h1 className="text-4xl md:text-6xl font-bold mb-4">
                     {slide.title}
                   </h1>
-                  <p className="text-xl md:text-2xl mb-8">
-                    {slide.subtitle}
-                  </p>
+                  <p className="text-xl md:text-2xl mb-8">{slide.subtitle}</p>
                   <Button size="lg" asChild>
                     <a href={slide.ctaLink}>{slide.ctaText}</a>
                   </Button>
@@ -129,5 +129,5 @@ export function HeroBanner() {
         ))}
       </div>
     </div>
-  )
+  );
 }

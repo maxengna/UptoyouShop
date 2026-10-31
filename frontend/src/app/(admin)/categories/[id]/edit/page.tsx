@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
-import { ArrowLeft, Save, Upload, X } from "lucide-react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { categoryApi, uploadApi } from "@/lib/api";
-import { useCategoryStore } from "@/store/category-store";
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
+import { ArrowLeft, Save, Upload, X } from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { categoryApi, uploadApi } from '@/lib/api';
+import { useCategoryStore } from '@/store/category-store';
 
 export default function EditCategoryPage() {
   const router = useRouter();
@@ -24,18 +24,18 @@ export default function EditCategoryPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
-    name: "",
-    slug: "",
-    description: "",
+    name: '',
+    slug: '',
+    description: '',
     isActive: true,
     sortOrder: 0,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>("");
+  const [imagePreview, setImagePreview] = useState<string>('');
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [imageKey, setImageKey] = useState<string>("");
+  const [imageKey, setImageKey] = useState<string>('');
 
   useEffect(() => {
     const fetchCategory = async () => {
@@ -47,17 +47,19 @@ export default function EditCategoryPage() {
           setForm({
             name: cat.name,
             slug: cat.slug,
-            description: cat.description || "",
+            description: cat.description || '',
             isActive: cat.isActive,
             sortOrder: cat.sortOrder,
           });
-          setImageKey(cat.imageKey || "");
-          setImagePreview(cat.imageUrl || "");
+          setImageKey(cat.imageKey || '');
+          setImagePreview(cat.imageUrl || '');
         } else {
-          throw new Error("Category not found");
+          throw new Error('Category not found');
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch category");
+        setError(
+          err instanceof Error ? err.message : 'Failed to fetch category',
+        );
       } finally {
         setLoading(false);
       }
@@ -69,32 +71,32 @@ export default function EditCategoryPage() {
   const handleChange = (field: string, value: string | number | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }));
+      setErrors((prev) => ({ ...prev, [field]: '' }));
     }
   };
 
   const handleFilesUpload = (files: File[]) => {
-    const file = files.find((f) => f.type.startsWith("image/"));
+    const file = files.find((f) => f.type.startsWith('image/'));
     if (!file) return;
 
-    if (imagePreview && imagePreview.startsWith("blob:"))
+    if (imagePreview && imagePreview.startsWith('blob:'))
       URL.revokeObjectURL(imagePreview);
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
   };
 
   const removeImage = () => {
-    if (imagePreview && imagePreview.startsWith("blob:"))
+    if (imagePreview && imagePreview.startsWith('blob:'))
       URL.revokeObjectURL(imagePreview);
     setImageFile(null);
-    setImagePreview("");
-    setImageKey("");
+    setImagePreview('');
+    setImageKey('');
   };
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!form.name.trim()) newErrors.name = "Category name is required";
-    if (!form.slug.trim()) newErrors.slug = "Slug is required";
+    if (!form.name.trim()) newErrors.name = 'Category name is required';
+    if (!form.slug.trim()) newErrors.slug = 'Slug is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -109,11 +111,11 @@ export default function EditCategoryPage() {
 
       if (imageFile) {
         setUploading(true);
-        const uploadResult = await uploadApi.uploadFile(imageFile, "category");
+        const uploadResult = await uploadApi.uploadFile(imageFile, 'category');
         if (uploadResult.success) {
           currentImageKey = uploadResult.data.imageKey;
         } else {
-          throw new Error("Failed to upload image");
+          throw new Error('Failed to upload image');
         }
         setUploading(false);
       }
@@ -128,14 +130,14 @@ export default function EditCategoryPage() {
       });
 
       if (result.success) {
-        toast.success("Category updated successfully");
+        toast.success('Category updated successfully');
         refreshCategories();
-        router.push("/categories");
+        router.push('/categories');
       } else {
-        toast.error(result.message || "Failed to update category");
+        toast.error(result.message || 'Failed to update category');
       }
     } catch (err: any) {
-      toast.error(err.message || "Error updating category");
+      toast.error(err.message || 'Error updating category');
     } finally {
       setSaving(false);
     }
@@ -192,9 +194,9 @@ export default function EditCategoryPage() {
                   <Input
                     id="name"
                     value={form.name}
-                    onChange={(e) => handleChange("name", e.target.value)}
+                    onChange={(e) => handleChange('name', e.target.value)}
                     placeholder="Enter category name"
-                    className={errors.name ? "border-red-500" : ""}
+                    className={errors.name ? 'border-red-500' : ''}
                   />
                   {errors.name && (
                     <p className="text-sm text-red-500 mt-1">{errors.name}</p>
@@ -206,9 +208,9 @@ export default function EditCategoryPage() {
                   <Input
                     id="slug"
                     value={form.slug}
-                    onChange={(e) => handleChange("slug", e.target.value)}
+                    onChange={(e) => handleChange('slug', e.target.value)}
                     placeholder="category-slug"
-                    className={errors.slug ? "border-red-500" : ""}
+                    className={errors.slug ? 'border-red-500' : ''}
                   />
                   {errors.slug && (
                     <p className="text-sm text-red-500 mt-1">{errors.slug}</p>
@@ -223,7 +225,9 @@ export default function EditCategoryPage() {
                   <Textarea
                     id="description"
                     value={form.description}
-                    onChange={(e) => handleChange("description", e.target.value)}
+                    onChange={(e) =>
+                      handleChange('description', e.target.value)
+                    }
                     placeholder="Enter category description"
                     rows={3}
                   />
@@ -274,8 +278,8 @@ export default function EditCategoryPage() {
                     }}
                     className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
                       isDragging
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-300 hover:border-gray-400"
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-300 hover:border-gray-400'
                     }`}
                   >
                     <input
@@ -287,10 +291,13 @@ export default function EditCategoryPage() {
                       className="hidden"
                       id="category-image-upload"
                     />
-                    <label htmlFor="category-image-upload" className="cursor-pointer block">
+                    <label
+                      htmlFor="category-image-upload"
+                      className="cursor-pointer block"
+                    >
                       <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
                       <p className="text-sm font-medium text-gray-700 mb-1">
-                        {isDragging ? "Drop file here" : "Upload image"}
+                        {isDragging ? 'Drop file here' : 'Upload image'}
                       </p>
                       <p className="text-xs text-gray-500">
                         JPG, PNG, WebP (Max 5MB)
@@ -311,7 +318,7 @@ export default function EditCategoryPage() {
                     type="checkbox"
                     id="isActive"
                     checked={form.isActive}
-                    onChange={(e) => handleChange("isActive", e.target.checked)}
+                    onChange={(e) => handleChange('isActive', e.target.checked)}
                     className="rounded border-gray-300"
                   />
                   <Label htmlFor="isActive" className="text-sm">
@@ -327,7 +334,7 @@ export default function EditCategoryPage() {
                     min="0"
                     value={form.sortOrder}
                     onChange={(e) =>
-                      handleChange("sortOrder", parseInt(e.target.value) || 0)
+                      handleChange('sortOrder', parseInt(e.target.value) || 0)
                     }
                   />
                   <p className="text-xs text-gray-500 mt-1">
@@ -338,9 +345,13 @@ export default function EditCategoryPage() {
             </Card>
 
             <div className="flex gap-2">
-              <Button type="submit" disabled={saving || uploading} className="flex-1">
+              <Button
+                type="submit"
+                disabled={saving || uploading}
+                className="flex-1"
+              >
                 <Save className="h-4 w-4 mr-2" />
-                {saving || uploading ? "Saving..." : "Save Changes"}
+                {saving || uploading ? 'Saving...' : 'Save Changes'}
               </Button>
               <Button variant="outline" asChild className="flex-1">
                 <Link href="/categories">Cancel</Link>

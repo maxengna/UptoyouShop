@@ -1,59 +1,59 @@
-import "./instrumentation";
-import { NestFactory } from "@nestjs/core";
-import { ValidationPipe } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
-import type { NestExpressApplication } from "@nestjs/platform-express";
-import cookieParser from "cookie-parser";
-import { AppModule } from "./app.module";
-import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
-import { TransformInterceptor } from "./common/interceptors/transform.interceptor";
-import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
+import './instrumentation';
+import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import type { NestExpressApplication } from '@nestjs/platform-express';
+import cookieParser from 'cookie-parser';
+import { AppModule } from './app.module';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  app.setGlobalPrefix("api");
+  app.setGlobalPrefix('api');
   const configService = app.get(ConfigService);
 
   // CORS
   app.enableCors({
-    origin: configService.get("CORS_ORIGIN") || "http://localhost:3000",
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    origin: configService.get('CORS_ORIGIN') || 'http://localhost:3000',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     exposedHeaders: ['x-correlation-id'],
     credentials: true,
   });
 
-// app.enableCors({
-//   origin: (origin, callback) => {
-//     if (!origin) {
-//       return callback(null, true);
-//     }
+  // app.enableCors({
+  //   origin: (origin, callback) => {
+  //     if (!origin) {
+  //       return callback(null, true);
+  //     }
 
-//     const hostname = new URL(origin).hostname;
+  //     const hostname = new URL(origin).hostname;
 
-//     if (hostname.endsWith('.elb.amazonaws.com')) {
-//       return callback(null, true);
-//     }
+  //     if (hostname.endsWith('.elb.amazonaws.com')) {
+  //       return callback(null, true);
+  //     }
 
-//     callback(new Error('Not allowed by CORS'));
-//   },
-//   credentials: true,
-// });
+  //     callback(new Error('Not allowed by CORS'));
+  //   },
+  //   credentials: true,
+  // });
   // app.enableCors({
   //   origin: true,
   //   credentials: true,
   // });
 
   // Preserve raw body for Stripe webhook signature verification
-  app.useBodyParser("json", {
+  app.useBodyParser('json', {
     verify: (req: any, _res: any, buf: Buffer) => {
       req.rawBody = buf.toString();
     },
   });
 
   // Cookie parser
-  app.use(cookieParser(configService.get("COOKIE_SECRET")));
+  app.use(cookieParser(configService.get('COOKIE_SECRET')));
 
   // Global pipes
   app.useGlobalPipes(
@@ -70,20 +70,20 @@ async function bootstrap() {
   // Global interceptors
   app.useGlobalInterceptors(
     new LoggingInterceptor(),
-    new TransformInterceptor()
+    new TransformInterceptor(),
   );
 
   // Swagger documentation
   const config = new DocumentBuilder()
-    .setTitle("UpToYouShop API")
-    .setDescription("E-commerce API for UpToYouShop")
-    .setVersion("1.0")
+    .setTitle('UpToYouShop API')
+    .setDescription('E-commerce API for UpToYouShop')
+    .setVersion('1.0')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("api/docs", app, document);
+  SwaggerModule.setup('api/docs', app, document);
 
-  const port = configService.get("PORT") || 5000;
+  const port = configService.get('PORT') || 5000;
   await app.listen(port);
   console.log(`Application is running on: http://localhost:${port}`);
   console.log(`API Documentation: http://localhost:${port}/api/docs`);

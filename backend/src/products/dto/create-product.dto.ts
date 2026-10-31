@@ -58,7 +58,9 @@ export class CreateProductDto {
   @Length(1, 255)
   slug: string;
 
-  @ApiPropertyOptional({ example: 'High-quality wireless headphones with noise cancellation' })
+  @ApiPropertyOptional({
+    example: 'High-quality wireless headphones with noise cancellation',
+  })
   @IsOptional()
   @IsString()
   description?: string;
@@ -125,7 +127,9 @@ export class CreateProductDto {
   @IsString()
   seoTitle?: string;
 
-  @ApiPropertyOptional({ example: 'Premium wireless headphones with active noise cancellation' })
+  @ApiPropertyOptional({
+    example: 'Premium wireless headphones with active noise cancellation',
+  })
   @IsOptional()
   @IsString()
   seoDescription?: string;

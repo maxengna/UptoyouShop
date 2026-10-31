@@ -1,68 +1,68 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Users, Target, Award, Heart, Globe, Zap } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Users, Target, Award, Heart, Globe, Zap } from 'lucide-react';
 
 export default function AboutPage() {
   const stats = [
-    { label: "Happy Customers", value: "50K+", icon: Users },
-    { label: "Products Available", value: "10K+", icon: Target },
-    { label: "Years in Business", value: "5+", icon: Award },
-    { label: "Countries Served", value: "25+", icon: Globe },
+    { label: 'Happy Customers', value: '50K+', icon: Users },
+    { label: 'Products Available', value: '10K+', icon: Target },
+    { label: 'Years in Business', value: '5+', icon: Award },
+    { label: 'Countries Served', value: '25+', icon: Globe },
   ];
 
   const values = [
     {
-      title: "Customer First",
-      description: "We put our customers at the heart of everything we do",
+      title: 'Customer First',
+      description: 'We put our customers at the heart of everything we do',
       icon: Heart,
-      color: "text-red-500",
+      color: 'text-red-500',
     },
     {
-      title: "Quality Products",
+      title: 'Quality Products',
       description:
-        "Curated selection of high-quality products from trusted brands",
+        'Curated selection of high-quality products from trusted brands',
       icon: Award,
-      color: "text-blue-500",
+      color: 'text-blue-500',
     },
     {
-      title: "Fast Delivery",
+      title: 'Fast Delivery',
       description:
-        "Quick and reliable delivery to get your products when you need them",
+        'Quick and reliable delivery to get your products when you need them',
       icon: Zap,
-      color: "text-yellow-500",
+      color: 'text-yellow-500',
     },
     {
-      title: "Global Reach",
-      description: "Serving customers worldwide with localized experiences",
+      title: 'Global Reach',
+      description: 'Serving customers worldwide with localized experiences',
       icon: Globe,
-      color: "text-green-500",
+      color: 'text-green-500',
     },
   ];
 
   const team = [
     {
-      name: "Sarah Johnson",
-      role: "CEO & Founder",
-      description: "Visionary leader with 15+ years in e-commerce",
-      image: "/placeholder/200/200",
+      name: 'Sarah Johnson',
+      role: 'CEO & Founder',
+      description: 'Visionary leader with 15+ years in e-commerce',
+      image: '/placeholder/200/200',
     },
     {
-      name: "Mike Chen",
-      role: "CTO",
-      description: "Tech expert focused on innovative shopping experiences",
-      image: "/placeholder/200/200",
+      name: 'Mike Chen',
+      role: 'CTO',
+      description: 'Tech expert focused on innovative shopping experiences',
+      image: '/placeholder/200/200',
     },
     {
-      name: "Emily Davis",
-      role: "Head of Marketing",
-      description: "Creative mind behind our brand and campaigns",
-      image: "/placeholder/200/200",
+      name: 'Emily Davis',
+      role: 'Head of Marketing',
+      description: 'Creative mind behind our brand and campaigns',
+      image: '/placeholder/200/200',
     },
     {
-      name: "Alex Thompson",
-      role: "Customer Success Lead",
-      description: "Ensuring every customer has an amazing experience",
-      image: "/placeholder/200/200",
+      name: 'Alex Thompson',
+      role: 'Customer Success Lead',
+      description: 'Ensuring every customer has an amazing experience',
+      image: '/placeholder/200/200',
     },
   ];
 

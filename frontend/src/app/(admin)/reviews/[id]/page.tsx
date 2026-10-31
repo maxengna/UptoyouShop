@@ -1,86 +1,97 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
-import Link from "next/link"
-import { ArrowLeft, Star, Loader2, AlertCircle, Trash2, CheckCircle, XCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { adminReviewApi } from "@/lib/api"
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import {
+  ArrowLeft,
+  Star,
+  Loader2,
+  AlertCircle,
+  Trash2,
+  CheckCircle,
+  XCircle,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { adminReviewApi } from '@/lib/api';
 
 interface ReviewDetail {
-  id: string
-  productId: string
-  userId: string
-  rating: number
-  title?: string
-  content: string
-  isVerified: boolean
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
-  user?: { id: string; name: string; email: string }
-  product?: { id: string; name: string; image?: string | null }
+  id: string;
+  productId: string;
+  userId: string;
+  rating: number;
+  title?: string;
+  content: string;
+  isVerified: boolean;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  user?: { id: string; name: string; email: string };
+  product?: { id: string; name: string; image?: string | null };
 }
 
 export default function ReviewDetailPage() {
-  const params = useParams()
-  const router = useRouter()
-  const [review, setReview] = useState<ReviewDetail | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [toggling, setToggling] = useState(false)
-  const [deleting, setDeleting] = useState(false)
+  const params = useParams();
+  const router = useRouter();
+  const [review, setReview] = useState<ReviewDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [toggling, setToggling] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const fetchReview = async () => {
       try {
-        setLoading(true)
-        const res = await adminReviewApi.getById(params.id as string)
+        setLoading(true);
+        const res = await adminReviewApi.getById(params.id as string);
         if (res.success) {
-          setReview(res.data)
+          setReview(res.data);
         } else {
-          setError(res.message || "Review not found")
+          setError(res.message || 'Review not found');
         }
       } catch (err: any) {
-        setError(err.message || "Failed to fetch review")
+        setError(err.message || 'Failed to fetch review');
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchReview()
-  }, [params.id])
+    };
+    fetchReview();
+  }, [params.id]);
 
   const handleToggleActive = async () => {
-    if (!review) return
-    setToggling(true)
+    if (!review) return;
+    setToggling(true);
     try {
-      const res = await adminReviewApi.toggleActive(review.id)
+      const res = await adminReviewApi.toggleActive(review.id);
       if (res.success) {
-        setReview((prev) => prev ? { ...prev, isActive: res.data.isActive } : prev)
+        setReview((prev) =>
+          prev ? { ...prev, isActive: res.data.isActive } : prev,
+        );
       }
     } catch {
       // silent
     } finally {
-      setToggling(false)
+      setToggling(false);
     }
-  }
+  };
 
   const handleDelete = async () => {
-    if (!review) return
-    if (!confirm("Are you sure you want to permanently delete this review?")) return
-    setDeleting(true)
+    if (!review) return;
+    if (!confirm('Are you sure you want to permanently delete this review?'))
+      return;
+    setDeleting(true);
     try {
-      await adminReviewApi.delete(review.id)
-      router.push("/reviews")
+      await adminReviewApi.delete(review.id);
+      router.push('/reviews');
     } catch {
       // silent
     } finally {
-      setDeleting(false)
+      setDeleting(false);
     }
-  }
+  };
 
   const renderStars = (rating: number) => (
     <div className="flex gap-1">
@@ -91,26 +102,28 @@ export default function ReviewDetailPage() {
         />
       ))}
     </div>
-  )
+  );
 
   if (loading) {
     return (
       <div className="flex justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
-    )
+    );
   }
 
   if (error || !review) {
     return (
       <div className="text-center py-12">
         <AlertCircle className="h-8 w-8 mx-auto mb-4 text-red-500" />
-        <p className="text-lg font-medium mb-4">{error || "Review not found"}</p>
+        <p className="text-lg font-medium mb-4">
+          {error || 'Review not found'}
+        </p>
         <Button asChild>
           <Link href="/reviews">Back to Reviews</Link>
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -142,9 +155,14 @@ export default function ReviewDetailPage() {
             <CardContent className="space-y-4">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="font-medium text-lg">{review.user?.name || 'Anonymous'}</span>
+                  <span className="font-medium text-lg">
+                    {review.user?.name || 'Anonymous'}
+                  </span>
                   {review.isVerified && (
-                    <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
+                    <Badge
+                      variant="outline"
+                      className="text-green-600 border-green-200 bg-green-50"
+                    >
                       Verified Purchase
                     </Badge>
                   )}
@@ -166,7 +184,9 @@ export default function ReviewDetailPage() {
               )}
 
               <div>
-                <p className="text-muted-foreground whitespace-pre-wrap">{review.content}</p>
+                <p className="text-muted-foreground whitespace-pre-wrap">
+                  {review.content}
+                </p>
               </div>
 
               <Separator />
@@ -207,8 +227,12 @@ export default function ReviewDetailPage() {
                     </div>
                   )}
                   <div>
-                    <p className="font-medium line-clamp-2">{review.product?.name || 'Unknown'}</p>
-                    <p className="text-xs text-muted-foreground">ID: {review.productId}</p>
+                    <p className="font-medium line-clamp-2">
+                      {review.product?.name || 'Unknown'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      ID: {review.productId}
+                    </p>
                   </div>
                 </div>
                 <Button variant="outline" size="sm" className="w-full" asChild>
@@ -229,7 +253,9 @@ export default function ReviewDetailPage() {
               <div className="space-y-2 text-sm">
                 <div>
                   <span className="text-muted-foreground">Name:</span>
-                  <p className="font-medium">{review.user?.name || 'Anonymous'}</p>
+                  <p className="font-medium">
+                    {review.user?.name || 'Anonymous'}
+                  </p>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Email:</span>
@@ -283,5 +309,5 @@ export default function ReviewDetailPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

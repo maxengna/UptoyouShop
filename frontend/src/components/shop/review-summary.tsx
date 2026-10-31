@@ -1,12 +1,16 @@
-import { Star } from 'lucide-react'
+import { Star } from 'lucide-react';
 
 interface ReviewSummaryProps {
-  averageRating: number
-  totalReviews: number
-  ratingDistribution: Record<number, number>
+  averageRating: number;
+  totalReviews: number;
+  ratingDistribution: Record<number, number>;
 }
 
-export function ReviewSummary({ averageRating, totalReviews, ratingDistribution }: ReviewSummaryProps) {
+export function ReviewSummary({
+  averageRating,
+  totalReviews,
+  ratingDistribution,
+}: ReviewSummaryProps) {
   const renderStars = (rating: number) => (
     <div className="flex">
       {Array.from({ length: 5 }, (_, i) => (
@@ -16,15 +20,19 @@ export function ReviewSummary({ averageRating, totalReviews, ratingDistribution 
         />
       ))}
     </div>
-  )
+  );
 
-  const maxCount = Math.max(...Object.values(ratingDistribution), 1)
+  const maxCount = Math.max(...Object.values(ratingDistribution), 1);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
       <div className="text-center">
-        <div className="text-4xl font-bold mb-2">{averageRating.toFixed(1)}</div>
-        <div className="flex justify-center mb-2">{renderStars(averageRating)}</div>
+        <div className="text-4xl font-bold mb-2">
+          {averageRating.toFixed(1)}
+        </div>
+        <div className="flex justify-center mb-2">
+          {renderStars(averageRating)}
+        </div>
         <p className="text-sm text-muted-foreground">
           Based on {totalReviews} review{totalReviews !== 1 ? 's' : ''}
         </p>
@@ -32,8 +40,8 @@ export function ReviewSummary({ averageRating, totalReviews, ratingDistribution 
 
       <div className="space-y-2">
         {[5, 4, 3, 2, 1].map((stars) => {
-          const count = ratingDistribution[stars] || 0
-          const percentage = maxCount > 0 ? (count / maxCount) * 100 : 0
+          const count = ratingDistribution[stars] || 0;
+          const percentage = maxCount > 0 ? (count / maxCount) * 100 : 0;
           return (
             <div key={stars} className="flex items-center gap-2">
               <span className="text-sm w-8">{stars}★</span>
@@ -43,11 +51,13 @@ export function ReviewSummary({ averageRating, totalReviews, ratingDistribution 
                   style={{ width: `${percentage}%` }}
                 />
               </div>
-              <span className="text-sm text-muted-foreground w-8 text-right">{count}</span>
+              <span className="text-sm text-muted-foreground w-8 text-right">
+                {count}
+              </span>
             </div>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }

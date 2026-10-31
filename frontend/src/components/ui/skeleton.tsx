@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils';
 
 function Skeleton({
   className,
@@ -6,13 +6,13 @@ function Skeleton({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("animate-pulse rounded-md bg-muted", className)}
+      className={cn('animate-pulse rounded-md bg-muted', className)}
       {...props}
     />
-  )
+  );
 }
 
-export { Skeleton }
+export { Skeleton };
 
 // Product Card Skeleton
 export function ProductCardSkeleton() {
@@ -28,7 +28,7 @@ export function ProductCardSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Product List Skeleton
@@ -39,7 +39,7 @@ export function ProductListSkeleton() {
         <ProductCardSkeleton key={i} />
       ))}
     </div>
-  )
+  );
 }
 
 // Hero Banner Skeleton
@@ -55,7 +55,7 @@ export function HeroBannerSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Category Card Skeleton
@@ -68,7 +68,7 @@ export function CategoryCardSkeleton() {
         <div className="h-4 bg-muted rounded w-1/2 mx-auto animate-pulse" />
       </div>
     </div>
-  )
+  );
 }
 
 // Cart Item Skeleton
@@ -88,7 +88,7 @@ export function CartItemSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Order Skeleton
@@ -107,7 +107,7 @@ export function OrderSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Table Row Skeleton
@@ -120,7 +120,7 @@ export function TableRowSkeleton({ columns = 4 }: { columns?: number }) {
         </td>
       ))}
     </tr>
-  )
+  );
 }
 
 // Stats Card Skeleton
@@ -132,7 +132,7 @@ export function StatsCardSkeleton() {
         <div className="h-4 bg-muted rounded w-1/2 animate-pulse" />
       </div>
     </div>
-  )
+  );
 }
 
 // Dashboard Skeleton
@@ -145,12 +145,12 @@ export function DashboardSkeleton() {
           <StatsCardSkeleton key={i} />
         ))}
       </div>
-      
+
       {/* Chart Skeleton */}
       <div className="bg-white rounded-lg border p-6">
         <div className="h-64 bg-muted rounded animate-pulse" />
       </div>
-      
+
       {/* Table Skeleton */}
       <div className="bg-white rounded-lg border">
         <div className="p-6 border-b">
@@ -163,5 +163,5 @@ export function DashboardSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }

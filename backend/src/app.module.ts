@@ -1,25 +1,25 @@
-import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
-import { PrismaModule } from "./prisma/prisma.module";
-import { AuthModule } from "./auth/auth.module";
-import { UsersModule } from "./users/users.module";
-import { ProductsModule } from "./products/products.module";
-import { CartModule } from "./cart/cart.module";
-import { OrdersModule } from "./orders/orders.module";
-import { AdminModule } from "./admin/admin.module";
-import { ReviewsModule } from "./reviews/reviews.module";
-import { HealthModule } from "./health/health.module";
-import { UploadModule } from "./upload/upload.module";
-import { PaymentsModule } from "./payments/payment.module";
-import { CorrelationIdMiddleware } from "./common/middleware/correlation-id.middleware";
-import appConfig from "./config/app.config";
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { PrismaModule } from './prisma/prisma.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { ProductsModule } from './products/products.module';
+import { CartModule } from './cart/cart.module';
+import { OrdersModule } from './orders/orders.module';
+import { AdminModule } from './admin/admin.module';
+import { ReviewsModule } from './reviews/reviews.module';
+import { HealthModule } from './health/health.module';
+import { UploadModule } from './upload/upload.module';
+import { PaymentsModule } from './payments/payment.module';
+import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
+import appConfig from './config/app.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       load: [appConfig],
-      envFilePath: [".env", "../.env"],
+      envFilePath: ['.env', '../.env'],
     }),
     PrismaModule,
     AuthModule,
@@ -36,6 +36,6 @@ import appConfig from "./config/app.config";
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(CorrelationIdMiddleware).forRoutes("*");
+    consumer.apply(CorrelationIdMiddleware).forRoutes('*');
   }
 }

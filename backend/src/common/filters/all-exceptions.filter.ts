@@ -1,5 +1,12 @@
 // src/common/filters/all-exceptions.filter.ts
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import {
+  ExceptionFilter,
+  Catch,
+  ArgumentsHost,
+  HttpException,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import { trace, SpanStatusCode } from '@opentelemetry/api';
 
@@ -44,7 +51,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       if (status >= 500) {
         span.setStatus({
           code: SpanStatusCode.ERROR,
-          message: typeof message === 'string' ? message : JSON.stringify(message),
+          message:
+            typeof message === 'string' ? message : JSON.stringify(message),
         });
       }
     }
@@ -76,7 +84,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
     // 6. ส่ง Response กลับไปหา Client
     response.status(status).json({
       statusCode: status,
-      message: status >= 500 ? 'เกิดข้อผิดพลาดภายในระบบ กรุณาลองใหม่อีกครั้ง' : message,
+      message:
+        status >= 500
+          ? 'เกิดข้อผิดพลาดภายในระบบ กรุณาลองใหม่อีกครั้ง'
+          : message,
       timestamp: new Date().toISOString(),
       path: request.url,
     });

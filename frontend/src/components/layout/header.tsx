@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
+import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Search,
   ShoppingCart,
@@ -10,13 +10,13 @@ import {
   X,
   ChevronDown,
   Heart,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useCartStore } from "@/store/cart-store";
-import { useUserStore } from "@/store/user-store";
-import { useCategoryStore } from "@/store/category-store";
-import { useWishlistStore } from "@/store/wishlist-store";
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useCartStore } from '@/store/cart-store';
+import { useUserStore } from '@/store/user-store';
+import { useCategoryStore } from '@/store/category-store';
+import { useWishlistStore } from '@/store/wishlist-store';
 
 export function Header() {
   const { getTotalItems, toggleCart } = useCartStore();
@@ -282,7 +282,7 @@ export function Header() {
                     <span>Shop</span>
                     <ChevronDown
                       className={`h-4 w-4 transform transition-transform ${
-                        isCategoryMenuOpen ? "rotate-180" : ""
+                        isCategoryMenuOpen ? 'rotate-180' : ''
                       }`}
                     />
                   </button>

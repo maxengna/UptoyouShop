@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
-import Link from 'next/link'
+import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import {
   ArrowLeft,
   Package,
@@ -15,13 +15,13 @@ import {
   CreditCard,
   Loader2,
   ChevronDown,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { adminApi, ApiError } from '@/lib/api'
-import { formatPrice } from '@/lib/utils'
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { adminApi, ApiError } from '@/lib/api';
+import { formatPrice } from '@/lib/utils';
 
 const statusApiMap: Record<string, string> = {
   pending: 'PENDING',
@@ -30,7 +30,7 @@ const statusApiMap: Record<string, string> = {
   completed: 'DELIVERED',
   cancelled: 'CANCELLED',
   refunded: 'REFUNDED',
-}
+};
 
 const statusDisplayMap: Record<string, string> = {
   PENDING: 'pending',
@@ -39,102 +39,130 @@ const statusDisplayMap: Record<string, string> = {
   DELIVERED: 'completed',
   CANCELLED: 'cancelled',
   REFUNDED: 'refunded',
-}
+};
 
-const statusConfig: Record<string, { label: string; icon: any; color: string }> = {
-  pending: { label: 'Pending', icon: Clock, color: 'bg-yellow-100 text-yellow-800' },
-  processing: { label: 'Processing', icon: Package, color: 'bg-blue-100 text-blue-800' },
-  shipped: { label: 'Shipped', icon: Truck, color: 'bg-purple-100 text-purple-800' },
-  completed: { label: 'Completed', icon: CheckCircle, color: 'bg-green-100 text-green-800' },
-  cancelled: { label: 'Cancelled', icon: XCircle, color: 'bg-red-100 text-red-800' },
-  refunded: { label: 'Refunded', icon: XCircle, color: 'bg-red-100 text-red-800' },
-}
+const statusConfig: Record<
+  string,
+  { label: string; icon: any; color: string }
+> = {
+  pending: {
+    label: 'Pending',
+    icon: Clock,
+    color: 'bg-yellow-100 text-yellow-800',
+  },
+  processing: {
+    label: 'Processing',
+    icon: Package,
+    color: 'bg-blue-100 text-blue-800',
+  },
+  shipped: {
+    label: 'Shipped',
+    icon: Truck,
+    color: 'bg-purple-100 text-purple-800',
+  },
+  completed: {
+    label: 'Completed',
+    icon: CheckCircle,
+    color: 'bg-green-100 text-green-800',
+  },
+  cancelled: {
+    label: 'Cancelled',
+    icon: XCircle,
+    color: 'bg-red-100 text-red-800',
+  },
+  refunded: {
+    label: 'Refunded',
+    icon: XCircle,
+    color: 'bg-red-100 text-red-800',
+  },
+};
 
 function formatDate(date: string | Date | null | undefined) {
-  if (!date) return '—'
+  if (!date) return '—';
   return new Date(date).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  })
+  });
 }
 
 export default function OrderDetailPage() {
-  const params = useParams()
-  const id = params.id as string
+  const params = useParams();
+  const id = params.id as string;
 
-  const [order, setOrder] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [updating, setUpdating] = useState(false)
+  const [order, setOrder] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
-    fetchOrder()
-  }, [id])
+    fetchOrder();
+  }, [id]);
 
   const fetchOrder = async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      const response = await adminApi.getOrderById(id)
+      const response = await adminApi.getOrderById(id);
       if (response.success) {
-        setOrder(response.data)
+        setOrder(response.data);
       } else {
-        throw new Error('Failed to fetch order')
+        throw new Error('Failed to fetch order');
       }
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.message)
+        setError(err.message);
       } else {
-        setError(err instanceof Error ? err.message : 'Failed to load order')
+        setError(err instanceof Error ? err.message : 'Failed to load order');
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleStatusUpdate = async (newStatus: string) => {
-    setUpdating(true)
+    setUpdating(true);
     try {
-      const apiStatus = statusApiMap[newStatus] || newStatus.toUpperCase()
-      await adminApi.updateOrderStatus(id, apiStatus)
-      setOrder((prev: any) => ({ ...prev, status: apiStatus }))
+      const apiStatus = statusApiMap[newStatus] || newStatus.toUpperCase();
+      await adminApi.updateOrderStatus(id, apiStatus);
+      setOrder((prev: any) => ({ ...prev, status: apiStatus }));
     } catch (err) {
       if (err instanceof ApiError) {
-        alert(`Failed to update status: ${err.message}`)
+        alert(`Failed to update status: ${err.message}`);
       } else {
-        alert('Failed to update status')
+        alert('Failed to update status');
       }
     } finally {
-      setUpdating(false)
+      setUpdating(false);
     }
-  }
+  };
 
   const handleRefund = async () => {
-    if (!confirm('Are you sure you want to process a refund for this order?')) return
-    setUpdating(true)
+    if (!confirm('Are you sure you want to process a refund for this order?'))
+      return;
+    setUpdating(true);
     try {
-      await adminApi.updateOrderStatus(id, 'REFUNDED')
-      setOrder((prev: any) => ({ ...prev, status: 'REFUNDED' }))
+      await adminApi.updateOrderStatus(id, 'REFUNDED');
+      setOrder((prev: any) => ({ ...prev, status: 'REFUNDED' }));
     } catch (err) {
       if (err instanceof ApiError) {
-        alert(`Failed to process refund: ${err.message}`)
+        alert(`Failed to process refund: ${err.message}`);
       } else {
-        alert('Failed to process refund')
+        alert('Failed to process refund');
       }
     } finally {
-      setUpdating(false)
+      setUpdating(false);
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="flex justify-center items-center py-24">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
-    )
+    );
   }
 
   if (error || !order) {
@@ -150,14 +178,16 @@ export default function OrderDetailPage() {
           </Link>
         </Button>
       </div>
-    )
+    );
   }
 
-  const displayStatus = statusDisplayMap[order.status] || order.status?.toLowerCase() || 'pending'
-  const StatusIcon = statusConfig[displayStatus]?.icon || Clock
-  const statusColorClass = statusConfig[displayStatus]?.color || 'bg-gray-100 text-gray-800'
-  const address = order.shippingAddress || {}
-  const customer = order.user || {}
+  const displayStatus =
+    statusDisplayMap[order.status] || order.status?.toLowerCase() || 'pending';
+  const StatusIcon = statusConfig[displayStatus]?.icon || Clock;
+  const statusColorClass =
+    statusConfig[displayStatus]?.color || 'bg-gray-100 text-gray-800';
+  const address = order.shippingAddress || {};
+  const customer = order.user || {};
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
@@ -179,7 +209,9 @@ export default function OrderDetailPage() {
               {statusConfig[displayStatus]?.label || displayStatus}
             </Badge>
           </div>
-          <p className="text-muted-foreground">Placed on {formatDate(order.createdAt)}</p>
+          <p className="text-muted-foreground">
+            Placed on {formatDate(order.createdAt)}
+          </p>
         </div>
       </div>
 
@@ -207,33 +239,43 @@ export default function OrderDetailPage() {
               <Separator />
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Payment Status</span>
-                <span className="font-medium">{order.paymentStatus || '—'}</span>
+                <span className="font-medium">
+                  {order.paymentStatus || '—'}
+                </span>
               </div>
               <Separator />
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Payment Method</span>
-                <span className="font-medium">{order.paymentMethod || '—'}</span>
+                <span className="font-medium">
+                  {order.paymentMethod || '—'}
+                </span>
               </div>
               {order.trackingNumber && (
                 <>
                   <Separator />
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Tracking #</span>
-                    <span className="font-medium font-mono text-xs">{order.trackingNumber}</span>
+                    <span className="font-medium font-mono text-xs">
+                      {order.trackingNumber}
+                    </span>
                   </div>
                 </>
               )}
               <Separator />
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Created</span>
-                <span className="font-medium">{formatDate(order.createdAt)}</span>
+                <span className="font-medium">
+                  {formatDate(order.createdAt)}
+                </span>
               </div>
               {order.shippedAt && (
                 <>
                   <Separator />
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Shipped</span>
-                    <span className="font-medium">{formatDate(order.shippedAt)}</span>
+                    <span className="font-medium">
+                      {formatDate(order.shippedAt)}
+                    </span>
                   </div>
                 </>
               )}
@@ -242,7 +284,9 @@ export default function OrderDetailPage() {
                   <Separator />
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Delivered</span>
-                    <span className="font-medium">{formatDate(order.deliveredAt)}</span>
+                    <span className="font-medium">
+                      {formatDate(order.deliveredAt)}
+                    </span>
                   </div>
                 </>
               )}
@@ -258,11 +302,21 @@ export default function OrderDetailPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <p className="font-medium">{customer.name || `${address.firstName || ''} ${address.lastName || ''}`.trim() || 'Guest'}</p>
-              {customer.email && <p className="text-muted-foreground">{customer.email}</p>}
-              {address.email && !customer.email && <p className="text-muted-foreground">{address.email}</p>}
+              <p className="font-medium">
+                {customer.name ||
+                  `${address.firstName || ''} ${address.lastName || ''}`.trim() ||
+                  'Guest'}
+              </p>
+              {customer.email && (
+                <p className="text-muted-foreground">{customer.email}</p>
+              )}
+              {address.email && !customer.email && (
+                <p className="text-muted-foreground">{address.email}</p>
+              )}
               {(customer.phone || address.phone) && (
-                <p className="text-muted-foreground">{customer.phone || address.phone}</p>
+                <p className="text-muted-foreground">
+                  {customer.phone || address.phone}
+                </p>
               )}
             </CardContent>
           </Card>
@@ -277,13 +331,23 @@ export default function OrderDetailPage() {
             </CardHeader>
             <CardContent className="text-sm space-y-1">
               {address.firstName && address.lastName && (
-                <p className="font-medium">{address.firstName} {address.lastName}</p>
+                <p className="font-medium">
+                  {address.firstName} {address.lastName}
+                </p>
               )}
-              {address.company && <p className="text-muted-foreground">{address.company}</p>}
-              <p className="text-muted-foreground">{address.address1 || address.street || '—'}</p>
-              {address.address2 && <p className="text-muted-foreground">{address.address2}</p>}
+              {address.company && (
+                <p className="text-muted-foreground">{address.company}</p>
+              )}
               <p className="text-muted-foreground">
-                {[address.city, address.state, address.zipCode].filter(Boolean).join(', ')}
+                {address.address1 || address.street || '—'}
+              </p>
+              {address.address2 && (
+                <p className="text-muted-foreground">{address.address2}</p>
+              )}
+              <p className="text-muted-foreground">
+                {[address.city, address.state, address.zipCode]
+                  .filter(Boolean)
+                  .join(', ')}
               </p>
               <p className="text-muted-foreground">{address.country || '—'}</p>
             </CardContent>
@@ -297,32 +361,36 @@ export default function OrderDetailPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {displayStatus !== 'completed' && displayStatus !== 'cancelled' && displayStatus !== 'refunded' && (
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Update Status</label>
-                  <div className="relative">
-                    <select
-                      value={displayStatus}
-                      onChange={(e) => handleStatusUpdate(e.target.value)}
-                      disabled={updating}
-                      className="w-full appearance-none bg-background border border-input rounded-md px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="processing">Processing</option>
-                      <option value="shipped">Shipped</option>
-                      <option value="completed">Completed</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
-                    <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 pointer-events-none text-muted-foreground" />
-                  </div>
-                  {updating && (
-                    <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                      Updating...
+              {displayStatus !== 'completed' &&
+                displayStatus !== 'cancelled' &&
+                displayStatus !== 'refunded' && (
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Update Status
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={displayStatus}
+                        onChange={(e) => handleStatusUpdate(e.target.value)}
+                        disabled={updating}
+                        className="w-full appearance-none bg-background border border-input rounded-md px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                      <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 pointer-events-none text-muted-foreground" />
                     </div>
-                  )}
-                </div>
-              )}
+                    {updating && (
+                      <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Updating...
+                      </div>
+                    )}
+                  </div>
+                )}
 
               {displayStatus === 'completed' && (
                 <Button
@@ -370,13 +438,19 @@ export default function OrderDetailPage() {
                     </thead>
                     <tbody>
                       {order.items.map((item: any) => {
-                        const productName = item.product?.name || item.productSnapshot?.name || 'Product'
-                        const productImage = item.product?.images?.[0]?.url
-                        const sku = item.product?.sku || '—'
-                        const itemTotal = Number(item.price) * item.quantity
+                        const productName =
+                          item.product?.name ||
+                          item.productSnapshot?.name ||
+                          'Product';
+                        const productImage = item.product?.images?.[0]?.url;
+                        const sku = item.product?.sku || '—';
+                        const itemTotal = Number(item.price) * item.quantity;
 
                         return (
-                          <tr key={item.id} className="border-b hover:bg-muted/50">
+                          <tr
+                            key={item.id}
+                            className="border-b hover:bg-muted/50"
+                          >
                             <td className="p-3">
                               <div className="flex items-center gap-3">
                                 {productImage && (
@@ -389,27 +463,40 @@ export default function OrderDetailPage() {
                                   </div>
                                 )}
                                 <div>
-                                  <p className="font-medium text-sm">{productName}</p>
+                                  <p className="font-medium text-sm">
+                                    {productName}
+                                  </p>
                                   {item.variant && (
                                     <p className="text-xs text-muted-foreground">
-                                      Variant: {item.variant.name || item.variantId}
+                                      Variant:{' '}
+                                      {item.variant.name || item.variantId}
                                     </p>
                                   )}
                                 </div>
                               </div>
                             </td>
-                            <td className="p-3 text-sm text-muted-foreground font-mono">{sku}</td>
-                            <td className="p-3 text-center text-sm">{item.quantity}</td>
-                            <td className="p-3 text-right text-sm">{formatPrice(Number(item.price))}</td>
-                            <td className="p-3 text-right font-medium">{formatPrice(itemTotal)}</td>
+                            <td className="p-3 text-sm text-muted-foreground font-mono">
+                              {sku}
+                            </td>
+                            <td className="p-3 text-center text-sm">
+                              {item.quantity}
+                            </td>
+                            <td className="p-3 text-right text-sm">
+                              {formatPrice(Number(item.price))}
+                            </td>
+                            <td className="p-3 text-right font-medium">
+                              {formatPrice(itemTotal)}
+                            </td>
                           </tr>
-                        )
+                        );
                       })}
                     </tbody>
                   </table>
                 </div>
               ) : (
-                <p className="text-muted-foreground text-center py-8">No items in this order</p>
+                <p className="text-muted-foreground text-center py-8">
+                  No items in this order
+                </p>
               )}
             </CardContent>
           </Card>
@@ -427,7 +514,11 @@ export default function OrderDetailPage() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span>{Number(order.shipping) === 0 ? 'FREE' : formatPrice(Number(order.shipping))}</span>
+                  <span>
+                    {Number(order.shipping) === 0
+                      ? 'FREE'
+                      : formatPrice(Number(order.shipping))}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Tax</span>
@@ -439,7 +530,9 @@ export default function OrderDetailPage() {
                   <span>{formatPrice(Number(order.total))}</span>
                 </div>
                 {order.currency && (
-                  <p className="text-xs text-muted-foreground text-right">{order.currency}</p>
+                  <p className="text-xs text-muted-foreground text-right">
+                    {order.currency}
+                  </p>
                 )}
               </div>
             </CardContent>
@@ -452,12 +545,14 @@ export default function OrderDetailPage() {
                 <CardTitle>Order Notes</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{order.notes}</p>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {order.notes}
+                </p>
               </CardContent>
             </Card>
           )}
         </div>
       </div>
     </div>
-  )
+  );
 }

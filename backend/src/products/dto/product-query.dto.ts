@@ -1,4 +1,10 @@
-import { IsOptional, IsString, IsNumber, IsEnum, IsBoolean } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsNumber,
+  IsEnum,
+  IsBoolean,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -56,7 +62,9 @@ export class ProductQueryDto {
   @IsBoolean()
   inStock?: boolean;
 
-  @ApiPropertyOptional({ description: "If true, returns all products including inactive" })
+  @ApiPropertyOptional({
+    description: 'If true, returns all products including inactive',
+  })
   @IsOptional()
   @Type(() => Boolean)
   @IsBoolean()

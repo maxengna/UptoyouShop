@@ -7,13 +7,18 @@ export class MailService {
   private ses: SESv2Client;
 
   constructor(private readonly configService: ConfigService) {
-    const region = this.configService.get<string>('aws.region') || 'ap-southeast-1';
+    const region =
+      this.configService.get<string>('aws.region') || 'ap-southeast-1';
     const accessKeyId = this.configService.get<string>('aws.accessKeyId');
-    const secretAccessKey = this.configService.get<string>('aws.secretAccessKey');
+    const secretAccessKey = this.configService.get<string>(
+      'aws.secretAccessKey',
+    );
 
     this.ses = new SESv2Client({
       region,
-      ...(accessKeyId && secretAccessKey ? { credentials: { accessKeyId, secretAccessKey } } : {}),
+      ...(accessKeyId && secretAccessKey
+        ? { credentials: { accessKeyId, secretAccessKey } }
+        : {}),
     });
   }
 

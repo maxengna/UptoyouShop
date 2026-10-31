@@ -1,9 +1,9 @@
-import { Product } from "./product";
+import { Product } from './product';
 
 export interface Order {
   id: string;
   userId: string;
-  status: "pending" | "paid" | "shipped" | "delivered" | "cancelled";
+  status: 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
   total: number;
   subtotal: number;
   tax: number;

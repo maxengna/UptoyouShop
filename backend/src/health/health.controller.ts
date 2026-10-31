@@ -1,7 +1,7 @@
-import { Controller, Get } from "@nestjs/common";
-import { HealthCheck, HealthCheckService } from "@nestjs/terminus";
+import { Controller, Get } from '@nestjs/common';
+import { HealthCheck, HealthCheckService } from '@nestjs/terminus';
 
-@Controller("health")
+@Controller('health')
 export class HealthController {
   constructor(private health: HealthCheckService) {}
 
@@ -10,7 +10,7 @@ export class HealthController {
   check() {
     return this.health.check([
       async () => ({
-        app: { status: "up" }, 
+        app: { status: 'up' },
       }),
     ]);
   }

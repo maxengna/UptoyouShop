@@ -1,86 +1,86 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Lock, ArrowLeft, Eye, EyeOff, CheckCircle2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { authApi } from '@/lib/api'
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Lock, ArrowLeft, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { authApi } from '@/lib/api';
 
 export default function ResetPasswordPage() {
-  const params = useParams()
-  const router = useRouter()
-  const token = params.token as string
+  const params = useParams();
+  const router = useRouter();
+  const token = params.token as string;
 
-  const [isHydrated, setIsHydrated] = useState(false)
-  const [isVerifying, setIsVerifying] = useState(true)
-  const [isTokenValid, setIsTokenValid] = useState(false)
-  const [verifyError, setVerifyError] = useState('')
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(true);
+  const [isTokenValid, setIsTokenValid] = useState(false);
+  const [verifyError, setVerifyError] = useState('');
 
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirm, setShowConfirm] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
-  const [error, setError] = useState('')
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    setIsHydrated(true)
+    setIsHydrated(true);
 
     async function verify() {
       try {
-        const response = await authApi.verifyResetToken(token)
+        const response = await authApi.verifyResetToken(token);
         if (response.success) {
-          setIsTokenValid(true)
+          setIsTokenValid(true);
         } else {
-          setVerifyError(response.error || 'Invalid or expired reset link')
+          setVerifyError(response.error || 'Invalid or expired reset link');
         }
       } catch {
-        setVerifyError('Failed to verify reset link')
+        setVerifyError('Failed to verify reset link');
       } finally {
-        setIsVerifying(false)
+        setIsVerifying(false);
       }
     }
 
     if (token) {
-      verify()
+      verify();
     }
-  }, [token])
+  }, [token]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
+    e.preventDefault();
+    setError('');
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters')
-      return
+      setError('Password must be at least 6 characters');
+      return;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match')
-      return
+      setError('Passwords do not match');
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
-      const response = await authApi.confirmPasswordReset(token, password)
+      const response = await authApi.confirmPasswordReset(token, password);
 
       if (!response.success) {
-        setError(response.error || 'Failed to reset password')
-        return
+        setError(response.error || 'Failed to reset password');
+        return;
       }
 
-      setIsSuccess(true)
+      setIsSuccess(true);
     } catch {
-      setError('An error occurred. Please try again.')
+      setError('An error occurred. Please try again.');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -118,7 +118,8 @@ export default function ResetPasswordPage() {
                     <Lock className="h-6 w-6 text-red-600" />
                   </div>
                   <p className="text-sm text-gray-600">
-                    {verifyError || 'This reset link is invalid or has expired.'}
+                    {verifyError ||
+                      'This reset link is invalid or has expired.'}
                   </p>
                   <div className="pt-4">
                     <Link href="/forgot-password">
@@ -143,7 +144,8 @@ export default function ResetPasswordPage() {
                     <CheckCircle2 className="h-6 w-6 text-green-600" />
                   </div>
                   <p className="text-sm text-gray-600">
-                    Your password has been reset. You can now sign in with your new password.
+                    Your password has been reset. You can now sign in with your
+                    new password.
                   </p>
                   <Button
                     className="w-full"
@@ -161,7 +163,10 @@ export default function ResetPasswordPage() {
                   )}
 
                   <div>
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                      htmlFor="password"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
                       New Password
                     </label>
                     <div className="relative">
@@ -194,7 +199,10 @@ export default function ResetPasswordPage() {
                   </div>
 
                   <div>
-                    <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                      htmlFor="confirm-password"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
                       Confirm Password
                     </label>
                     <div className="relative">
@@ -250,5 +258,5 @@ export default function ResetPasswordPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

@@ -1,24 +1,24 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
-import { ArrowLeft, Save, Upload, X } from "lucide-react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { categoryApi, uploadApi } from "@/lib/api";
-import { useCategoryStore } from "@/store/category-store";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
+import { ArrowLeft, Save, Upload, X } from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { categoryApi, uploadApi } from '@/lib/api';
+import { useCategoryStore } from '@/store/category-store';
 
 function generateSlug(text: string): string {
   return text
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
 }
 
 export default function NewCategoryPage() {
@@ -26,35 +26,35 @@ export default function NewCategoryPage() {
   const refreshCategories = useCategoryStore((s) => s.refreshCategories);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    name: "",
-    slug: "",
-    description: "",
+    name: '',
+    slug: '',
+    description: '',
     isActive: true,
     sortOrder: 0,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [autoSlug, setAutoSlug] = useState(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>("");
-  const [uploadedImageKey, setUploadedImageKey] = useState<string>("");
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [uploadedImageKey, setUploadedImageKey] = useState<string>('');
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
   const handleChange = (field: string, value: string | number | boolean) => {
     setForm((prev) => {
       const updated = { ...prev, [field]: value };
-      if (field === "name" && autoSlug) {
+      if (field === 'name' && autoSlug) {
         updated.slug = generateSlug(value as string);
       }
       return updated;
     });
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }));
+      setErrors((prev) => ({ ...prev, [field]: '' }));
     }
   };
 
   const handleFilesUpload = (files: File[]) => {
-    const file = files.find((f) => f.type.startsWith("image/"));
+    const file = files.find((f) => f.type.startsWith('image/'));
     if (!file) return;
 
     if (imagePreview) URL.revokeObjectURL(imagePreview);
@@ -65,14 +65,14 @@ export default function NewCategoryPage() {
   const removeImage = () => {
     if (imagePreview) URL.revokeObjectURL(imagePreview);
     setImageFile(null);
-    setImagePreview("");
-    setUploadedImageKey("");
+    setImagePreview('');
+    setUploadedImageKey('');
   };
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!form.name.trim()) newErrors.name = "Category name is required";
-    if (!form.slug.trim()) newErrors.slug = "Slug is required";
+    if (!form.name.trim()) newErrors.name = 'Category name is required';
+    if (!form.slug.trim()) newErrors.slug = 'Slug is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -87,12 +87,12 @@ export default function NewCategoryPage() {
 
       if (imageFile) {
         setUploading(true);
-        const uploadResult = await uploadApi.uploadFile(imageFile, "category");
+        const uploadResult = await uploadApi.uploadFile(imageFile, 'category');
         if (uploadResult.success) {
           currentImageKey = uploadResult.data.imageKey;
           setUploadedImageKey(currentImageKey);
         } else {
-          throw new Error("Failed to upload image");
+          throw new Error('Failed to upload image');
         }
         setUploading(false);
       }
@@ -107,14 +107,14 @@ export default function NewCategoryPage() {
       });
 
       if (result.success) {
-        toast.success("Category created successfully");
+        toast.success('Category created successfully');
         refreshCategories();
-        router.push("/categories");
+        router.push('/categories');
       } else {
-        toast.error(result.message || "Failed to create category");
+        toast.error(result.message || 'Failed to create category');
       }
     } catch (err: any) {
-      toast.error(err.message || "Error creating category");
+      toast.error(err.message || 'Error creating category');
     } finally {
       setSaving(false);
     }
@@ -131,7 +131,9 @@ export default function NewCategoryPage() {
         </Button>
         <div>
           <h1 className="text-3xl font-bold">New Category</h1>
-          <p className="text-muted-foreground mt-1">Create a new product category</p>
+          <p className="text-muted-foreground mt-1">
+            Create a new product category
+          </p>
         </div>
       </div>
 
@@ -148,9 +150,9 @@ export default function NewCategoryPage() {
                   <Input
                     id="name"
                     value={form.name}
-                    onChange={(e) => handleChange("name", e.target.value)}
+                    onChange={(e) => handleChange('name', e.target.value)}
                     placeholder="Enter category name"
-                    className={errors.name ? "border-red-500" : ""}
+                    className={errors.name ? 'border-red-500' : ''}
                   />
                   {errors.name && (
                     <p className="text-sm text-red-500 mt-1">{errors.name}</p>
@@ -164,10 +166,10 @@ export default function NewCategoryPage() {
                     value={form.slug}
                     onChange={(e) => {
                       setAutoSlug(false);
-                      handleChange("slug", e.target.value);
+                      handleChange('slug', e.target.value);
                     }}
                     placeholder="category-slug"
-                    className={errors.slug ? "border-red-500" : ""}
+                    className={errors.slug ? 'border-red-500' : ''}
                   />
                   {errors.slug && (
                     <p className="text-sm text-red-500 mt-1">{errors.slug}</p>
@@ -182,7 +184,9 @@ export default function NewCategoryPage() {
                   <Textarea
                     id="description"
                     value={form.description}
-                    onChange={(e) => handleChange("description", e.target.value)}
+                    onChange={(e) =>
+                      handleChange('description', e.target.value)
+                    }
                     placeholder="Enter category description"
                     rows={3}
                   />
@@ -233,8 +237,8 @@ export default function NewCategoryPage() {
                     }}
                     className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
                       isDragging
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-300 hover:border-gray-400"
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-300 hover:border-gray-400'
                     }`}
                   >
                     <input
@@ -246,10 +250,13 @@ export default function NewCategoryPage() {
                       className="hidden"
                       id="category-image-upload"
                     />
-                    <label htmlFor="category-image-upload" className="cursor-pointer block">
+                    <label
+                      htmlFor="category-image-upload"
+                      className="cursor-pointer block"
+                    >
                       <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
                       <p className="text-sm font-medium text-gray-700 mb-1">
-                        {isDragging ? "Drop file here" : "Upload image"}
+                        {isDragging ? 'Drop file here' : 'Upload image'}
                       </p>
                       <p className="text-xs text-gray-500">
                         JPG, PNG, WebP (Max 5MB)
@@ -270,7 +277,7 @@ export default function NewCategoryPage() {
                     type="checkbox"
                     id="isActive"
                     checked={form.isActive}
-                    onChange={(e) => handleChange("isActive", e.target.checked)}
+                    onChange={(e) => handleChange('isActive', e.target.checked)}
                     className="rounded border-gray-300"
                   />
                   <Label htmlFor="isActive" className="text-sm">
@@ -286,7 +293,7 @@ export default function NewCategoryPage() {
                     min="0"
                     value={form.sortOrder}
                     onChange={(e) =>
-                      handleChange("sortOrder", parseInt(e.target.value) || 0)
+                      handleChange('sortOrder', parseInt(e.target.value) || 0)
                     }
                   />
                   <p className="text-xs text-gray-500 mt-1">
@@ -297,9 +304,13 @@ export default function NewCategoryPage() {
             </Card>
 
             <div className="flex gap-2">
-              <Button type="submit" disabled={saving || uploading} className="flex-1">
+              <Button
+                type="submit"
+                disabled={saving || uploading}
+                className="flex-1"
+              >
                 <Save className="h-4 w-4 mr-2" />
-                {saving || uploading ? "Saving..." : "Save Category"}
+                {saving || uploading ? 'Saving...' : 'Save Category'}
               </Button>
               <Button variant="outline" asChild className="flex-1">
                 <Link href="/categories">Cancel</Link>

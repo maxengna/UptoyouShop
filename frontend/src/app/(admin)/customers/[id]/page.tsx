@@ -1,40 +1,51 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, Mail, Phone, Calendar, ShoppingCart, DollarSign, Shield, Eye, ChevronLeft, ChevronRight } from "lucide-react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { adminApi } from "@/lib/api";
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import {
+  ArrowLeft,
+  Mail,
+  Phone,
+  Calendar,
+  ShoppingCart,
+  DollarSign,
+  Shield,
+  Eye,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { adminApi } from '@/lib/api';
 
 const roleBadgeVariant = (role: string) => {
   switch (role) {
-    case "SUPER_ADMIN":
-      return "destructive" as const;
-    case "ADMIN":
-      return "secondary" as const;
+    case 'SUPER_ADMIN':
+      return 'destructive' as const;
+    case 'ADMIN':
+      return 'secondary' as const;
     default:
-      return "default" as const;
+      return 'default' as const;
   }
 };
 
 const statusBadgeVariant = (status: string) => {
   switch (status) {
-    case "DELIVERED":
-      return "default" as const;
-    case "SHIPPED":
-      return "secondary" as const;
-    case "PAID":
-      return "outline" as const;
-    case "PENDING":
-      return "secondary" as const;
-    case "CANCELLED":
-      return "destructive" as const;
+    case 'DELIVERED':
+      return 'default' as const;
+    case 'SHIPPED':
+      return 'secondary' as const;
+    case 'PAID':
+      return 'outline' as const;
+    case 'PENDING':
+      return 'secondary' as const;
+    case 'CANCELLED':
+      return 'destructive' as const;
     default:
-      return "outline" as const;
+      return 'outline' as const;
   }
 };
 
@@ -61,10 +72,10 @@ export default function CustomerDetailPage() {
       if (response.success) {
         setUser(response.data);
       } else {
-        throw new Error(response.message || "Failed to fetch user");
+        throw new Error(response.message || 'Failed to fetch user');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -78,10 +89,10 @@ export default function CustomerDetailPage() {
         setUser((prev: any) => ({ ...prev, role: newRole }));
         toast.success(`Role updated to ${newRole}`);
       } else {
-        toast.error(response.message || "Failed to update role");
+        toast.error(response.message || 'Failed to update role');
       }
     } catch (err) {
-      toast.error("Error updating role");
+      toast.error('Error updating role');
     } finally {
       setUpdatingRole(false);
     }
@@ -99,7 +110,7 @@ export default function CustomerDetailPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-red-800">{error || "User not found"}</p>
+          <p className="text-red-800">{error || 'User not found'}</p>
         </div>
         <Button variant="outline" asChild>
           <Link href="/customers">
@@ -122,7 +133,7 @@ export default function CustomerDetailPage() {
           </Link>
         </Button>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold">{user.name || "Unnamed User"}</h1>
+          <h1 className="text-3xl font-bold">{user.name || 'Unnamed User'}</h1>
           <p className="text-muted-foreground">{user.email}</p>
         </div>
       </div>
@@ -146,7 +157,7 @@ export default function CustomerDetailPage() {
               </div>
 
               <div className="text-center">
-                <h2 className="text-xl font-bold">{user.name || "—"}</h2>
+                <h2 className="text-xl font-bold">{user.name || '—'}</h2>
                 <Badge variant={roleBadgeVariant(user.role)} className="mt-2">
                   {user.role}
                 </Badge>
@@ -165,7 +176,9 @@ export default function CustomerDetailPage() {
                 )}
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="h-4 w-4" />
-                  <span>Joined {new Date(user.createdAt).toLocaleDateString()}</span>
+                  <span>
+                    Joined {new Date(user.createdAt).toLocaleDateString()}
+                  </span>
                 </div>
               </div>
 
@@ -193,7 +206,9 @@ export default function CustomerDetailPage() {
             <Card>
               <CardContent className="p-4 text-center">
                 <ShoppingCart className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
-                <div className="text-2xl font-bold">{user._count?.orders || 0}</div>
+                <div className="text-2xl font-bold">
+                  {user._count?.orders || 0}
+                </div>
                 <p className="text-xs text-muted-foreground">Orders</p>
               </CardContent>
             </Card>
@@ -235,18 +250,28 @@ export default function CustomerDetailPage() {
                 {user.addresses.map((addr: any) => (
                   <div key={addr.id} className="text-sm border rounded-md p-3">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium">{addr.firstName} {addr.lastName}</span>
+                      <span className="font-medium">
+                        {addr.firstName} {addr.lastName}
+                      </span>
                       {addr.isDefault && (
-                        <Badge variant="secondary" className="text-xs">Default</Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          Default
+                        </Badge>
                       )}
                     </div>
                     <p className="text-muted-foreground">{addr.address1}</p>
-                    {addr.address2 && <p className="text-muted-foreground">{addr.address2}</p>}
+                    {addr.address2 && (
+                      <p className="text-muted-foreground">{addr.address2}</p>
+                    )}
                     <p className="text-muted-foreground">
                       {addr.city}, {addr.state} {addr.zipCode}
                     </p>
                     <p className="text-muted-foreground">{addr.country}</p>
-                    {addr.phone && <p className="text-muted-foreground">Phone: {addr.phone}</p>}
+                    {addr.phone && (
+                      <p className="text-muted-foreground">
+                        Phone: {addr.phone}
+                      </p>
+                    )}
                   </div>
                 ))}
               </CardContent>
@@ -271,7 +296,9 @@ export default function CustomerDetailPage() {
                     <table className="w-full">
                       <thead>
                         <tr className="border-b">
-                          <th className="text-left p-3 font-medium">Order ID</th>
+                          <th className="text-left p-3 font-medium">
+                            Order ID
+                          </th>
                           <th className="text-left p-3 font-medium">Items</th>
                           <th className="text-left p-3 font-medium">Total</th>
                           <th className="text-left p-3 font-medium">Status</th>
@@ -281,35 +308,45 @@ export default function CustomerDetailPage() {
                       </thead>
                       <tbody>
                         {user.recentOrders
-                          .slice((recentPage - 1) * recentPerPage, recentPage * recentPerPage)
+                          .slice(
+                            (recentPage - 1) * recentPerPage,
+                            recentPage * recentPerPage,
+                          )
                           .map((order: any) => (
-                          <tr key={order.id} className="border-b hover:bg-muted/50">
-                            <td className="p-3 font-mono text-sm">
-                              #{order.id.slice(0, 8)}
-                            </td>
-                            <td className="p-3 text-sm">
-                              {order.items.map((item: any) => item.product?.name).join(", ") || "—"}
-                            </td>
-                            <td className="p-3 font-medium">
-                              ${Number(order.total).toLocaleString()}
-                            </td>
-                            <td className="p-3">
-                              <Badge variant={statusBadgeVariant(order.status)}>
-                                {order.status}
-                              </Badge>
-                            </td>
-                            <td className="p-3 text-sm text-muted-foreground">
-                              {new Date(order.createdAt).toLocaleDateString()}
-                            </td>
-                            <td className="p-3">
-                              <Button variant="ghost" size="icon" asChild>
-                                <Link href={`/orders/${order.id}`}>
-                                  <Eye className="h-4 w-4" />
-                                </Link>
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
+                            <tr
+                              key={order.id}
+                              className="border-b hover:bg-muted/50"
+                            >
+                              <td className="p-3 font-mono text-sm">
+                                #{order.id.slice(0, 8)}
+                              </td>
+                              <td className="p-3 text-sm">
+                                {order.items
+                                  .map((item: any) => item.product?.name)
+                                  .join(', ') || '—'}
+                              </td>
+                              <td className="p-3 font-medium">
+                                ${Number(order.total).toLocaleString()}
+                              </td>
+                              <td className="p-3">
+                                <Badge
+                                  variant={statusBadgeVariant(order.status)}
+                                >
+                                  {order.status}
+                                </Badge>
+                              </td>
+                              <td className="p-3 text-sm text-muted-foreground">
+                                {new Date(order.createdAt).toLocaleDateString()}
+                              </td>
+                              <td className="p-3">
+                                <Button variant="ghost" size="icon" asChild>
+                                  <Link href={`/orders/${order.id}`}>
+                                    <Eye className="h-4 w-4" />
+                                  </Link>
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
                       </tbody>
                     </table>
                   </div>
@@ -325,12 +362,16 @@ export default function CustomerDetailPage() {
                         <ChevronLeft className="h-4 w-4" />
                       </Button>
                       <span className="text-sm text-muted-foreground">
-                        Page {recentPage} of {Math.ceil(user.recentOrders.length / recentPerPage)}
+                        Page {recentPage} of{' '}
+                        {Math.ceil(user.recentOrders.length / recentPerPage)}
                       </span>
                       <Button
                         variant="outline"
                         size="icon"
-                        disabled={recentPage >= Math.ceil(user.recentOrders.length / recentPerPage)}
+                        disabled={
+                          recentPage >=
+                          Math.ceil(user.recentOrders.length / recentPerPage)
+                        }
                         onClick={() => setRecentPage(recentPage + 1)}
                       >
                         <ChevronRight className="h-4 w-4" />

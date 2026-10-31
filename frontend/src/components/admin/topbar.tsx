@@ -1,30 +1,30 @@
-'use client'
+'use client';
 
-import { useRouter } from 'next/navigation'
-import { User, LogOut, ChevronDown } from 'lucide-react'
-import { useUserStore } from '@/store/user-store'
-import { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation';
+import { User, LogOut, ChevronDown } from 'lucide-react';
+import { useUserStore } from '@/store/user-store';
+import { useState, useRef, useEffect } from 'react';
 
 export function Topbar() {
-  const router = useRouter()
-  const { user, logout } = useUserStore()
-  const [isOpen, setIsOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+  const router = useRouter();
+  const { user, logout } = useUserStore();
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
-        setIsOpen(false)
+        setIsOpen(false);
       }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleLogout = () => {
-    logout()
-    router.push('/signin')
-  }
+    logout();
+    router.push('/signin');
+  };
 
   return (
     <header className="sticky top-0 z-30 h-16 border-b bg-background">
@@ -45,7 +45,9 @@ export function Topbar() {
             </div>
             <div className="text-left hidden sm:block">
               <p className="text-sm font-medium">{user?.name || 'Admin'}</p>
-              <p className="text-xs text-muted-foreground">{user?.role || ''}</p>
+              <p className="text-xs text-muted-foreground">
+                {user?.role || ''}
+              </p>
             </div>
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </button>
@@ -64,5 +66,5 @@ export function Topbar() {
         </div>
       </div>
     </header>
-  )
+  );
 }

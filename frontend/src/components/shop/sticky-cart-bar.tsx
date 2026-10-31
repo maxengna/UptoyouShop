@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { ShoppingCart, ChevronUp } from "lucide-react";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { useCartStore } from "@/store/cart-store";
-import { formatPrice } from "@/lib/utils";
+import { useState, useEffect } from 'react';
+import { ShoppingCart, ChevronUp } from 'lucide-react';
+import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { useCartStore } from '@/store/cart-store';
+import { formatPrice } from '@/lib/utils';
 
 export function StickyCartBar() {
   const { items, getTotalPrice, getTotalItems, toggleCart } = useCartStore();
@@ -23,10 +23,10 @@ export function StickyCartBar() {
       setIsVisible(shouldShow);
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener('scroll', handleScroll);
     handleScroll(); // Check initial state
 
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [totalItems]);
 
   if (!isVisible || totalItems === 0) {
@@ -49,7 +49,7 @@ export function StickyCartBar() {
               </div>
               <div>
                 <p className="text-sm font-medium">
-                  {totalItems} {totalItems === 1 ? "item" : "items"}
+                  {totalItems} {totalItems === 1 ? 'item' : 'items'}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {formatPrice(totalPrice)}
@@ -67,7 +67,7 @@ export function StickyCartBar() {
               >
                 <ChevronUp
                   className={`h-4 w-4 transition-transform ${
-                    isExpanded ? "rotate-180" : ""
+                    isExpanded ? 'rotate-180' : ''
                   }`}
                 />
               </Button>
@@ -89,7 +89,10 @@ export function StickyCartBar() {
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                       <div className="w-8 h-8 bg-muted rounded flex-shrink-0 overflow-hidden">
                         <Image
-                          src={item.productImage || '/images/product-placeholder.jpg'}
+                          src={
+                            item.productImage ||
+                            '/images/product-placeholder.jpg'
+                          }
                           alt={item.productName}
                           width={32}
                           height={32}

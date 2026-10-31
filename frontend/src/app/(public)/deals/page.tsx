@@ -1,48 +1,48 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Clock, Tag, TrendingUp } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Clock, Tag, TrendingUp } from 'lucide-react';
 
 export default function DealsPage() {
   const deals = [
     {
       id: 1,
-      title: "Summer Sale - 50% Off",
-      description: "Get amazing discounts on summer collection",
-      discount: "50%",
-      category: "Clothing",
-      validUntil: "2024-08-31",
-      image: "/placeholder/300/200",
+      title: 'Summer Sale - 50% Off',
+      description: 'Get amazing discounts on summer collection',
+      discount: '50%',
+      category: 'Clothing',
+      validUntil: '2024-08-31',
+      image: '/placeholder/300/200',
       featured: true,
     },
     {
       id: 2,
-      title: "Flash Sale - Electronics",
-      description: "Limited time offer on gadgets and accessories",
-      discount: "30%",
-      category: "Electronics",
-      validUntil: "2024-07-15",
-      image: "/placeholder/300/200",
+      title: 'Flash Sale - Electronics',
+      description: 'Limited time offer on gadgets and accessories',
+      discount: '30%',
+      category: 'Electronics',
+      validUntil: '2024-07-15',
+      image: '/placeholder/300/200',
       featured: false,
     },
     {
       id: 3,
-      title: "Buy 2 Get 1 Free",
-      description: "Selected items - buy two get one absolutely free",
-      discount: "B2G1",
-      category: "Accessories",
-      validUntil: "2024-07-30",
-      image: "/placeholder/300/200",
+      title: 'Buy 2 Get 1 Free',
+      description: 'Selected items - buy two get one absolutely free',
+      discount: 'B2G1',
+      category: 'Accessories',
+      validUntil: '2024-07-30',
+      image: '/placeholder/300/200',
       featured: true,
     },
     {
       id: 4,
-      title: "Weekend Special",
-      description: "Extra 20% off on already discounted items",
-      discount: "20%",
-      category: "All Categories",
-      validUntil: "2024-07-14",
-      image: "/placeholder/300/200",
+      title: 'Weekend Special',
+      description: 'Extra 20% off on already discounted items',
+      discount: '20%',
+      category: 'All Categories',
+      validUntil: '2024-07-14',
+      image: '/placeholder/300/200',
       featured: false,
     },
   ];
@@ -118,7 +118,7 @@ export default function DealsPage() {
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center text-sm text-gray-500">
                       <Clock className="h-4 w-4 mr-1" />
-                      Valid until{" "}
+                      Valid until{' '}
                       {new Date(deal.validUntil).toLocaleDateString()}
                     </div>
                   </div>

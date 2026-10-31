@@ -1,20 +1,23 @@
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import { User, AuthState } from '@/types/user'
-import { authApi, setAccessToken, attemptRefresh } from '@/lib/api'
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { User, AuthState } from '@/types/user';
+import { authApi, setAccessToken, attemptRefresh } from '@/lib/api';
 
 interface UserStore extends AuthState {
-  accessToken: string | null
-  setUser: (user: User | null) => void
-  setLoading: (isLoading: boolean) => void
-  login: (email: string, password: string) => Promise<boolean>
-  logout: () => void
+  accessToken: string | null;
+  setUser: (user: User | null) => void;
+  setLoading: (isLoading: boolean) => void;
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => void;
   register: (userData: {
-    name: string
-    email: string
-    password: string
-  }) => Promise<boolean>
-  socialLogin: (provider: 'google' | 'facebook', accessToken: string) => Promise<boolean>
+    name: string;
+    email: string;
+    password: string;
+  }) => Promise<boolean>;
+  socialLogin: (
+    provider: 'google' | 'facebook',
+    accessToken: string,
+  ) => Promise<boolean>;
 }
 
 export const useUserStore = create<UserStore>()(
@@ -29,119 +32,123 @@ export const useUserStore = create<UserStore>()(
         set({
           user,
           isAuthenticated: !!user,
-        })
+        });
       },
 
       setLoading: (isLoading: boolean) => {
-        set({ isLoading })
+        set({ isLoading });
       },
 
       login: async (email: string, password: string) => {
-        set({ isLoading: true })
+        set({ isLoading: true });
 
         try {
-          const response = await authApi.login({ email, password })
+          const response = await authApi.login({ email, password });
 
           if (!response.success || !response.data) {
-            set({ isLoading: false })
-            return false
+            set({ isLoading: false });
+            return false;
           }
 
-          const userData = response.data.user
+          const userData = response.data.user;
           const user: User = {
             id: userData.id,
             email: userData.email,
             name: userData.name,
             role: userData.role as User['role'],
             phone: userData.phone,
-          }
+          };
 
-          setAccessToken(response.data.accessToken)
+          setAccessToken(response.data.accessToken);
 
           set({
             user,
             isAuthenticated: true,
             accessToken: response.data.accessToken,
             isLoading: false,
-          })
+          });
 
-          return true
+          return true;
         } catch (error) {
-          set({ isLoading: false })
-          throw error
+          set({ isLoading: false });
+          throw error;
         }
       },
 
       logout: () => {
-        setAccessToken(null)
+        setAccessToken(null);
         set({
           user: null,
           isAuthenticated: false,
           accessToken: null,
-        })
+        });
       },
 
       register: async (userData: {
-        name: string
-        email: string
-        password: string
+        name: string;
+        email: string;
+        password: string;
       }) => {
-        set({ isLoading: true })
+        set({ isLoading: true });
 
         try {
-          const response = await authApi.register(userData)
+          const response = await authApi.register(userData);
 
           if (!response.success) {
-            set({ isLoading: false })
-            return false
+            set({ isLoading: false });
+            return false;
           }
 
           set({
             isLoading: false,
-          })
+          });
 
-          return true
+          return true;
         } catch (error) {
-          set({ isLoading: false })
-          throw error
+          set({ isLoading: false });
+          throw error;
         }
       },
 
-      socialLogin: async (provider: 'google' | 'facebook', accessToken: string) => {
-        set({ isLoading: true })
+      socialLogin: async (
+        provider: 'google' | 'facebook',
+        accessToken: string,
+      ) => {
+        set({ isLoading: true });
 
         try {
-          const response = provider === 'google'
-            ? await authApi.googleLogin(accessToken)
-            : await authApi.facebookLogin(accessToken)
+          const response =
+            provider === 'google'
+              ? await authApi.googleLogin(accessToken)
+              : await authApi.facebookLogin(accessToken);
 
           if (!response.success || !response.data) {
-            set({ isLoading: false })
-            return false
+            set({ isLoading: false });
+            return false;
           }
 
-          const userData = response.data.user
+          const userData = response.data.user;
           const user: User = {
             id: userData.id,
             email: userData.email,
             name: userData.name,
             role: userData.role as User['role'],
             phone: userData.phone,
-          }
+          };
 
-          setAccessToken(response.data.accessToken)
+          setAccessToken(response.data.accessToken);
 
           set({
             user,
             isAuthenticated: true,
             accessToken: response.data.accessToken,
             isLoading: false,
-          })
+          });
 
-          return true
+          return true;
         } catch (error) {
-          set({ isLoading: false })
-          throw error
+          set({ isLoading: false });
+          throw error;
         }
       },
     }),
@@ -157,19 +164,19 @@ export const useUserStore = create<UserStore>()(
           // Try to get a fresh accessToken from the httpOnly refresh cookie
           attemptRefresh().then((token) => {
             if (token) {
-              useUserStore.setState({ accessToken: token })
+              useUserStore.setState({ accessToken: token });
             } else {
               // Refresh failed — clear stale auth state
-              setAccessToken(null)
+              setAccessToken(null);
               useUserStore.setState({
                 user: null,
                 isAuthenticated: false,
                 accessToken: null,
-              })
+              });
             }
-          })
+          });
         }
       },
-    }
-  )
-)
+    },
+  ),
+);

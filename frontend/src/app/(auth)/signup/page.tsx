@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { useUserStore } from "@/store/user-store";
-import { googleAuth, facebookAuth, SocialAuthResult } from "@/lib/social-auth";
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { useUserStore } from '@/store/user-store';
+import { googleAuth, facebookAuth, SocialAuthResult } from '@/lib/social-auth';
 
 export default function SignupPage() {
   const [isHydrated, setIsHydrated] = useState(false);
@@ -18,17 +18,17 @@ export default function SignupPage() {
   }, []);
 
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isFacebookLoading, setIsFacebookLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   const router = useRouter();
   const { register, socialLogin } = useUserStore();
@@ -36,17 +36,17 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError("");
+    setError('');
 
     // Validation
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+      setError('Passwords do not match');
       setIsLoading(false);
       return;
     }
 
     if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long");
+      setError('Password must be at least 6 characters long');
       setIsLoading(false);
       return;
     }
@@ -58,10 +58,10 @@ export default function SignupPage() {
         password: formData.password,
       });
       if (success) {
-        router.push("/signin");
+        router.push('/signin');
       }
     } catch (err: any) {
-      setError(err?.message || "Registration failed. Please try again.");
+      setError(err?.message || 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -74,10 +74,10 @@ export default function SignupPage() {
     }));
   };
 
-  const handleSocialAuth = async (provider: "google" | "facebook") => {
-    setError("");
+  const handleSocialAuth = async (provider: 'google' | 'facebook') => {
+    setError('');
 
-    if (provider === "google") {
+    if (provider === 'google') {
       setIsGoogleLoading(true);
     } else {
       setIsFacebookLoading(true);
@@ -85,16 +85,19 @@ export default function SignupPage() {
 
     try {
       const result: SocialAuthResult =
-        provider === "google" ? await googleAuth() : await facebookAuth();
+        provider === 'google' ? await googleAuth() : await facebookAuth();
 
       if (result.success && result.accessToken) {
         const success = await socialLogin(provider, result.accessToken);
         if (success) {
           const currentUser = useUserStore.getState().user;
-          if (currentUser?.role === "ADMIN" || currentUser?.role === "SUPER_ADMIN") {
-            router.push("/dashboard");
+          if (
+            currentUser?.role === 'ADMIN' ||
+            currentUser?.role === 'SUPER_ADMIN'
+          ) {
+            router.push('/dashboard');
           } else {
-            router.push("/");
+            router.push('/');
           }
         } else {
           setError(`Failed to sign in with ${provider}`);
@@ -103,7 +106,9 @@ export default function SignupPage() {
         setError(result.error || `Failed to authenticate with ${provider}`);
       }
     } catch (err: any) {
-      setError(err?.message || `An error occurred with ${provider} authentication`);
+      setError(
+        err?.message || `An error occurred with ${provider} authentication`,
+      );
     } finally {
       setIsGoogleLoading(false);
       setIsFacebookLoading(false);
@@ -197,7 +202,7 @@ export default function SignupPage() {
                     <Input
                       id="password"
                       name="password"
-                      type={showPassword ? "text" : "password"}
+                      type={showPassword ? 'text' : 'password'}
                       autoComplete="new-password"
                       required
                       value={formData.password}
@@ -233,7 +238,7 @@ export default function SignupPage() {
                     <Input
                       id="confirmPassword"
                       name="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
+                      type={showConfirmPassword ? 'text' : 'password'}
                       autoComplete="new-password"
                       required
                       value={formData.confirmPassword}
@@ -269,14 +274,14 @@ export default function SignupPage() {
                     htmlFor="agree-terms"
                     className="ml-2 block text-sm text-gray-700"
                   >
-                    I agree to the{" "}
+                    I agree to the{' '}
                     <Link
                       href="/terms"
                       className="text-primary hover:text-primary/80"
                     >
                       Terms of Service
-                    </Link>{" "}
-                    and{" "}
+                    </Link>{' '}
+                    and{' '}
                     <Link
                       href="/privacy"
                       className="text-primary hover:text-primary/80"
@@ -302,7 +307,7 @@ export default function SignupPage() {
                 </div>
 
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Creating Account..." : "Create Account"}
+                  {isLoading ? 'Creating Account...' : 'Create Account'}
                 </Button>
 
                 <div className="relative">
@@ -320,7 +325,7 @@ export default function SignupPage() {
                   <Button
                     variant="outline"
                     type="button"
-                    onClick={() => handleSocialAuth("google")}
+                    onClick={() => handleSocialAuth('google')}
                     disabled={isGoogleLoading || isFacebookLoading}
                   >
                     {isGoogleLoading ? (
@@ -345,12 +350,12 @@ export default function SignupPage() {
                         />
                       </svg>
                     )}
-                    {isGoogleLoading ? "Connecting..." : "Google"}
+                    {isGoogleLoading ? 'Connecting...' : 'Google'}
                   </Button>
                   <Button
                     variant="outline"
                     type="button"
-                    onClick={() => handleSocialAuth("facebook")}
+                    onClick={() => handleSocialAuth('facebook')}
                     disabled={isGoogleLoading || isFacebookLoading}
                   >
                     {isFacebookLoading ? (
@@ -364,7 +369,7 @@ export default function SignupPage() {
                         <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                       </svg>
                     )}
-                    {isFacebookLoading ? "Connecting..." : "Facebook"}
+                    {isFacebookLoading ? 'Connecting...' : 'Facebook'}
                   </Button>
                 </div>
               </form>

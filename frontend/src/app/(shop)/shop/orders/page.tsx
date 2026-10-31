@@ -1,10 +1,10 @@
-"use client"
+'use client';
 
-import { useState, useEffect, useCallback } from "react"
-import Link from "next/link"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Package,
   ChevronRight,
@@ -17,83 +17,116 @@ import {
   ChevronLeft,
   Loader2,
   ArrowLeft,
-} from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { userApi, ApiError } from "@/lib/api"
+} from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { userApi, ApiError } from '@/lib/api';
 
-const statusConfig: Record<string, { label: string; icon: any; color: string }> = {
-  delivered: { label: "Delivered", icon: CheckCircle2, color: "bg-green-100 text-green-700" },
-  shipped: { label: "Shipped", icon: Truck, color: "bg-blue-100 text-blue-700" },
-  processing: { label: "Processing", icon: Package, color: "bg-blue-100 text-blue-700" },
-  pending: { label: "Pending", icon: Clock, color: "bg-yellow-100 text-yellow-700" },
-  cancelled: { label: "Cancelled", icon: XCircle, color: "bg-red-100 text-red-700" },
-  refunded: { label: "Refunded", icon: XCircle, color: "bg-red-100 text-red-700" },
-}
+const statusConfig: Record<
+  string,
+  { label: string; icon: any; color: string }
+> = {
+  delivered: {
+    label: 'Delivered',
+    icon: CheckCircle2,
+    color: 'bg-green-100 text-green-700',
+  },
+  shipped: {
+    label: 'Shipped',
+    icon: Truck,
+    color: 'bg-blue-100 text-blue-700',
+  },
+  processing: {
+    label: 'Processing',
+    icon: Package,
+    color: 'bg-blue-100 text-blue-700',
+  },
+  pending: {
+    label: 'Pending',
+    icon: Clock,
+    color: 'bg-yellow-100 text-yellow-700',
+  },
+  cancelled: {
+    label: 'Cancelled',
+    icon: XCircle,
+    color: 'bg-red-100 text-red-700',
+  },
+  refunded: {
+    label: 'Refunded',
+    icon: XCircle,
+    color: 'bg-red-100 text-red-700',
+  },
+};
 
 const statusDisplayMap: Record<string, string> = {
-  PENDING: "pending",
-  PROCESSING: "processing",
-  SHIPPED: "shipped",
-  DELIVERED: "delivered",
-  CANCELLED: "cancelled",
-  REFUNDED: "refunded",
-}
+  PENDING: 'pending',
+  PROCESSING: 'processing',
+  SHIPPED: 'shipped',
+  DELIVERED: 'delivered',
+  CANCELLED: 'cancelled',
+  REFUNDED: 'refunded',
+};
 
 function mapOrder(order: any) {
-  const address = order.shippingAddress || {}
+  const address = order.shippingAddress || {};
   return {
     id: order.orderNumber || order.id.slice(0, 8),
     _id: order.id,
     date: order.createdAt,
-    status: statusDisplayMap[order.status] || order.status?.toLowerCase() || "pending",
+    status:
+      statusDisplayMap[order.status] ||
+      order.status?.toLowerCase() ||
+      'pending',
     total: Number(order.total),
     items: (order.items || []).map((item: any) => ({
-      name: item.product?.name || item.productSnapshot?.name || "Product",
+      name: item.product?.name || item.productSnapshot?.name || 'Product',
       qty: item.quantity,
       price: Number(item.price),
     })),
-    address: [address.address1 || address.street, address.city, address.state].filter(Boolean).join(", ") || "—",
-  }
+    address:
+      [address.address1 || address.street, address.city, address.state]
+        .filter(Boolean)
+        .join(', ') || '—',
+  };
 }
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState<string | null>(null)
-  const [page, setPage] = useState(1)
-  const [totalOrders, setTotalOrders] = useState(0)
-  const [totalPages, setTotalPages] = useState(1)
-  const limit = 10
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 10;
 
   const fetchOrders = useCallback(async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      const response = await userApi.getOrders({ page, limit })
+      const response = await userApi.getOrders({ page, limit });
       if (response.success) {
-        setOrders((response.data?.orders || []).map(mapOrder))
-        setTotalOrders(response.data?.pagination?.total || 0)
-        setTotalPages(response.data?.pagination?.pages || 1)
+        setOrders((response.data?.orders || []).map(mapOrder));
+        setTotalOrders(response.data?.pagination?.total || 0);
+        setTotalPages(response.data?.pagination?.pages || 1);
       } else {
-        throw new Error("Failed to fetch orders")
+        throw new Error('Failed to fetch orders');
       }
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.message)
+        setError(err.message);
       } else {
-        setError(err instanceof Error ? err.message : "Failed to load orders")
+        setError(err instanceof Error ? err.message : 'Failed to load orders');
       }
-      setOrders([])
+      setOrders([]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [page])
+  }, [page]);
 
   useEffect(() => {
-    fetchOrders()
-  }, [fetchOrders])
+    fetchOrders();
+  }, [fetchOrders]);
 
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
@@ -101,18 +134,18 @@ export default function OrdersPage() {
       order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.items.some((item: any) =>
         item.name.toLowerCase().includes(searchQuery.toLowerCase()),
-      )
-    const matchesStatus = statusFilter ? order.status === statusFilter : true
-    return matchesSearch && matchesStatus
-  })
+      );
+    const matchesStatus = statusFilter ? order.status === statusFilter : true;
+    return matchesSearch && matchesStatus;
+  });
 
   const statusCounts = orders.reduce(
     (acc, o) => {
-      acc[o.status] = (acc[o.status] || 0) + 1
-      return acc
+      acc[o.status] = (acc[o.status] || 0) + 1;
+      return acc;
     },
     {} as Record<string, number>,
-  )
+  );
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -144,23 +177,25 @@ export default function OrdersPage() {
             />
           </div>
           <div className="flex gap-2 flex-wrap">
-            {["delivered", "shipped", "processing", "pending", "cancelled"].map((status) => (
-              <Button
-                key={status}
-                variant={statusFilter === status ? "default" : "outline"}
-                size="sm"
-                onClick={() => {
-                  setStatusFilter(statusFilter === status ? null : status)
-                  setPage(1)
-                }}
-                className="capitalize"
-              >
-                {status}
-                <span className="ml-1.5 text-xs opacity-70">
-                  ({statusCounts[status] || 0})
-                </span>
-              </Button>
-            ))}
+            {['delivered', 'shipped', 'processing', 'pending', 'cancelled'].map(
+              (status) => (
+                <Button
+                  key={status}
+                  variant={statusFilter === status ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    setStatusFilter(statusFilter === status ? null : status);
+                    setPage(1);
+                  }}
+                  className="capitalize"
+                >
+                  {status}
+                  <span className="ml-1.5 text-xs opacity-70">
+                    ({statusCounts[status] || 0})
+                  </span>
+                </Button>
+              ),
+            )}
           </div>
         </div>
 
@@ -181,7 +216,7 @@ export default function OrdersPage() {
             <h3 className="text-lg font-semibold mb-2">No orders found</h3>
             <p className="text-muted-foreground mb-6">
               {searchQuery || statusFilter
-                ? "Try adjusting your search or filters"
+                ? 'Try adjusting your search or filters'
                 : "You haven't placed any orders yet"}
             </p>
             {!searchQuery && !statusFilter && (
@@ -194,11 +229,15 @@ export default function OrdersPage() {
           <>
             <div className="space-y-4">
               {filteredOrders.map((order) => {
-                const config = statusConfig[order.status] || statusConfig.pending
-                const StatusIcon = config.icon
-                const statusClass = config.color
+                const config =
+                  statusConfig[order.status] || statusConfig.pending;
+                const StatusIcon = config.icon;
+                const statusClass = config.color;
                 return (
-                  <Card key={order._id} className="hover:shadow-md transition-shadow">
+                  <Card
+                    key={order._id}
+                    className="hover:shadow-md transition-shadow"
+                  >
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-4">
                         <div>
@@ -207,10 +246,10 @@ export default function OrdersPage() {
                             <span className="font-semibold">{order.id}</span>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            {new Date(order.date).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
+                            {new Date(order.date).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
                             })}
                           </p>
                         </div>
@@ -222,10 +261,7 @@ export default function OrdersPage() {
 
                       <div className="space-y-2 mb-4">
                         {order.items.map((item: any, i: number) => (
-                          <div
-                            key={i}
-                            className="flex justify-between text-sm"
-                          >
+                          <div key={i} className="flex justify-between text-sm">
                             <span className="text-muted-foreground">
                               {item.name}
                               <span className="text-xs ml-1">x{item.qty}</span>
@@ -243,7 +279,12 @@ export default function OrdersPage() {
                         <p className="text-xs text-muted-foreground">
                           Shipping to: {order.address}
                         </p>
-                        <Button variant="ghost" size="sm" className="gap-1" asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="gap-1"
+                          asChild
+                        >
                           <Link href={`/shop/orders/${order._id}`}>
                             Details
                             <ChevronRight className="h-4 w-4" />
@@ -252,7 +293,7 @@ export default function OrdersPage() {
                       </div>
                     </CardContent>
                   </Card>
-                )
+                );
               })}
             </div>
 
@@ -284,5 +325,5 @@ export default function OrdersPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

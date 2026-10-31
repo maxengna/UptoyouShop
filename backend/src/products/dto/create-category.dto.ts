@@ -5,26 +5,26 @@ import {
   IsNumber,
   Min,
   Length,
-} from "class-validator";
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+} from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateCategoryDto {
-  @ApiProperty({ example: "Electronics" })
+  @ApiProperty({ example: 'Electronics' })
   @IsString()
   @Length(1, 255)
   name: string;
 
-  @ApiProperty({ example: "electronics" })
+  @ApiProperty({ example: 'electronics' })
   @IsString()
   @Length(1, 255)
   slug: string;
 
-  @ApiPropertyOptional({ example: "Electronic devices and accessories" })
+  @ApiPropertyOptional({ example: 'Electronic devices and accessories' })
   @IsOptional()
   @IsString()
   description?: string;
 
-  @ApiPropertyOptional({ example: "category/uuid.jpg" })
+  @ApiPropertyOptional({ example: 'category/uuid.jpg' })
   @IsOptional()
   @IsString()
   imageKey?: string;

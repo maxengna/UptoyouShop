@@ -1,21 +1,25 @@
-import Image from 'next/image'
-import Link from 'next/link'
-import { Heart, ShoppingCart, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardFooter } from '@/components/ui/card'
-import { formatPrice, formatDiscountPercentage } from '@/lib/utils'
-import { useCartStore } from '@/store/cart-store'
-import { useWishlistStore } from '@/store/wishlist-store'
-import { Product } from '@/types/product'
+import Image from 'next/image';
+import Link from 'next/link';
+import { Heart, ShoppingCart, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { formatPrice, formatDiscountPercentage } from '@/lib/utils';
+import { useCartStore } from '@/store/cart-store';
+import { useWishlistStore } from '@/store/wishlist-store';
+import { Product } from '@/types/product';
 
 interface ProductCardProps {
-  product: Product
+  product: Product;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const { addItem } = useCartStore()
-  const { isInWishlist, addItem: addToWishlist, removeItem: removeFromWishlist } = useWishlistStore()
-  const inWishlist = isInWishlist(product.id)
+  const { addItem } = useCartStore();
+  const {
+    isInWishlist,
+    addItem: addToWishlist,
+    removeItem: removeFromWishlist,
+  } = useWishlistStore();
+  const inWishlist = isInWishlist(product.id);
 
   const handleAddToCart = () => {
     addItem({
@@ -26,27 +30,29 @@ export function ProductCard({ product }: ProductCardProps) {
       quantity: 1,
       price: product.price,
       product,
-    })
-  }
+    });
+  };
 
   const handleToggleWishlist = async (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
+    e.preventDefault();
+    e.stopPropagation();
     try {
       if (inWishlist) {
-        const item = useWishlistStore.getState().items.find(i => i.productId === product.id)
-        if (item) await removeFromWishlist(item.id)
+        const item = useWishlistStore
+          .getState()
+          .items.find((i) => i.productId === product.id);
+        if (item) await removeFromWishlist(item.id);
       } else {
-        await addToWishlist(product.id)
+        await addToWishlist(product.id);
       }
     } catch {
       // Silently fail - toast is handled by store
     }
-  }
+  };
 
   const discountPercentage = product.originalPrice
     ? formatDiscountPercentage(product.originalPrice, product.price)
-    : 0
+    : 0;
 
   return (
     <Card className="group overflow-hidden transition-shadow hover:shadow-lg">
@@ -60,7 +66,7 @@ export function ProductCard({ product }: ProductCardProps) {
               className="object-cover transition-transform group-hover:scale-105"
             />
           </Link>
-          
+
           {/* Badges */}
           <div className="absolute top-2 left-2 flex gap-2">
             {product.isNew && (
@@ -155,5 +161,5 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
       </CardFooter>
     </Card>
-  )
+  );
 }

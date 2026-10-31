@@ -1,27 +1,21 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import {
-  ArrowLeft,
-  Plus,
-  Search,
-  Edit,
-  Trash2,
-} from "lucide-react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { categoryApi, Category } from "@/lib/api";
-import { useCategoryStore } from "@/store/category-store";
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { ArrowLeft, Plus, Search, Edit, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { categoryApi, Category } from '@/lib/api';
+import { useCategoryStore } from '@/store/category-store';
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchInput, setSearchInput] = useState("");
+  const [searchInput, setSearchInput] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const refreshCategories = useCategoryStore((s) => s.refreshCategories);
 
@@ -33,7 +27,9 @@ export default function CategoriesPage() {
       const response = await categoryApi.getAll();
       setCategories(response.categories || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch categories");
+      setError(
+        err instanceof Error ? err.message : 'Failed to fetch categories',
+      );
     } finally {
       setLoading(false);
     }
@@ -53,14 +49,14 @@ export default function CategoriesPage() {
     try {
       const result = await categoryApi.delete(id);
       if (result.success) {
-        toast.success("Category deleted successfully");
+        toast.success('Category deleted successfully');
         refreshCategories();
         fetchCategories();
       } else {
-        toast.error(result.message || "Failed to delete category");
+        toast.error(result.message || 'Failed to delete category');
       }
     } catch (err: any) {
-      toast.error(err.message || "Error deleting category");
+      toast.error(err.message || 'Error deleting category');
     }
   };
 
@@ -69,7 +65,10 @@ export default function CategoriesPage() {
   );
 
   const totalPages = Math.ceil(filtered.length / LIMIT);
-  const paginated = filtered.slice((currentPage - 1) * LIMIT, currentPage * LIMIT);
+  const paginated = filtered.slice(
+    (currentPage - 1) * LIMIT,
+    currentPage * LIMIT,
+  );
 
   if (loading) {
     return (
@@ -139,7 +138,7 @@ export default function CategoriesPage() {
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-              <table className="w-full">
+            <table className="w-full">
               <thead>
                 <tr className="border-b">
                   <th className="text-left p-4 font-medium">Image</th>
@@ -164,7 +163,9 @@ export default function CategoriesPage() {
                         </div>
                       ) : (
                         <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center">
-                          <span className="text-xs text-muted-foreground">-</span>
+                          <span className="text-xs text-muted-foreground">
+                            -
+                          </span>
                         </div>
                       )}
                     </td>
@@ -182,11 +183,11 @@ export default function CategoriesPage() {
                       <span
                         className={`inline-block px-2 py-1 text-xs rounded-full ${
                           cat.isActive
-                            ? "bg-green-100 text-green-800"
-                            : "bg-yellow-100 text-yellow-800"
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-yellow-100 text-yellow-800'
                         }`}
                       >
-                        {cat.isActive ? "Active" : "Inactive"}
+                        {cat.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </td>
                     <td className="p-4">
@@ -216,8 +217,8 @@ export default function CategoriesPage() {
             <div className="text-center py-12">
               <p className="text-muted-foreground">
                 {searchInput
-                  ? "No categories match your search."
-                  : "No categories yet."}
+                  ? 'No categories match your search.'
+                  : 'No categories yet.'}
               </p>
             </div>
           )}
@@ -237,7 +238,7 @@ export default function CategoriesPage() {
                   (page) => (
                     <Button
                       key={page}
-                      variant={currentPage === page ? "default" : "outline"}
+                      variant={currentPage === page ? 'default' : 'outline'}
                       size="icon"
                       onClick={() => setCurrentPage(page)}
                     >

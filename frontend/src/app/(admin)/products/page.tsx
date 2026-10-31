@@ -1,15 +1,22 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { ArrowLeft, Plus, Search, Edit, Trash2, ChevronDown } from "lucide-react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { productApi, PaginationMeta } from "@/lib/api";
-import { useCategoryStore } from "@/store/category-store";
+import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import {
+  ArrowLeft,
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  ChevronDown,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { productApi, PaginationMeta } from '@/lib/api';
+import { useCategoryStore } from '@/store/category-store';
 
 export interface Product {
   id: any;
@@ -45,33 +52,33 @@ export interface Product {
   reviewCount: string;
 }
 
-const statuses = ["All", "Active", "Out of Stock", "Draft", "Archived"];
+const statuses = ['All', 'Active', 'Out of Stock', 'Draft', 'Archived'];
 
 export const getStatusFromProduct = (product: Product): string => {
-  if (product.stock === 0) return "out-of-stock";
-  if (!product.isActive) return "draft";
-  return "active";
+  if (product.stock === 0) return 'out-of-stock';
+  if (!product.isActive) return 'draft';
+  return 'active';
 };
 
 export const formatPrice = (price: number) => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
   }).format(price);
 };
 
 export const getStatusColor = (status: string) => {
   switch (status) {
-    case "active":
-      return "bg-green-100 text-green-800";
-    case "out-of-stock":
-      return "bg-red-100 text-red-800";
-    case "draft":
-      return "bg-yellow-100 text-yellow-800";
-    case "archived":
-      return "bg-gray-100 text-gray-800";
+    case 'active':
+      return 'bg-green-100 text-green-800';
+    case 'out-of-stock':
+      return 'bg-red-100 text-red-800';
+    case 'draft':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'archived':
+      return 'bg-gray-100 text-gray-800';
     default:
-      return "bg-gray-100 text-gray-800";
+      return 'bg-gray-100 text-gray-800';
   }
 };
 
@@ -79,14 +86,17 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedStatus, setSelectedStatus] = useState("All");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedStatus, setSelectedStatus] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState<PaginationMeta | null>(null);
-  const [searchInput, setSearchInput] = useState("");
+  const [searchInput, setSearchInput] = useState('');
   const { categories: storeCategories, fetchCategories } = useCategoryStore();
-  const categoryOptions = storeCategories.map((c) => ({ name: c.name, slug: c.slug }));
+  const categoryOptions = storeCategories.map((c) => ({
+    name: c.name,
+    slug: c.slug,
+  }));
 
   const LIMIT = 10;
 
@@ -98,8 +108,8 @@ export default function ProductsPage() {
     try {
       setLoading(true);
       const category =
-        selectedCategory === "All" ? undefined : selectedCategory.toLowerCase();
-      const showAll = selectedStatus === "All" ? true : undefined;
+        selectedCategory === 'All' ? undefined : selectedCategory.toLowerCase();
+      const showAll = selectedStatus === 'All' ? true : undefined;
       const response = await productApi.getAll({
         page: currentPage,
         limit: LIMIT,
@@ -111,10 +121,10 @@ export default function ProductsPage() {
         setProducts((response.data.products || []) as any);
         setPagination(response.data.pagination || null);
       } else {
-        throw new Error(response.message || "Failed to fetch products");
+        throw new Error(response.message || 'Failed to fetch products');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -132,13 +142,13 @@ export default function ProductsPage() {
     try {
       const result = await productApi.delete(productId);
       if (result.success) {
-        toast.success("Product deleted successfully");
+        toast.success('Product deleted successfully');
         fetchProducts();
       } else {
-        toast.error("Failed to delete product");
+        toast.error('Failed to delete product');
       }
     } catch (err) {
-      toast.error("Error deleting product");
+      toast.error('Error deleting product');
     }
   };
 
@@ -146,9 +156,15 @@ export default function ProductsPage() {
     toast.custom(
       (t) => (
         <div className="bg-background border rounded-lg shadow-lg p-4 max-w-sm">
-          <p className="font-medium mb-3">Are you sure you want to delete this product?</p>
+          <p className="font-medium mb-3">
+            Are you sure you want to delete this product?
+          </p>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => toast.dismiss(t)}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => toast.dismiss(t)}
+            >
               Cancel
             </Button>
             <Button
@@ -164,7 +180,7 @@ export default function ProductsPage() {
           </div>
         </div>
       ),
-      { position: "top-center" }
+      { position: 'top-center' },
     );
   };
 
@@ -255,7 +271,7 @@ export default function ProductsPage() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+                  if (e.key === 'Enter') {
                     setSearchQuery(searchInput);
                   }
                 }}
@@ -339,7 +355,7 @@ export default function ProductsPage() {
                             <Image
                               src={
                                 product.images[0]?.url ||
-                                "/images/product-placeholder.jpg"
+                                '/images/product-placeholder.jpg'
                               }
                               alt={product.name}
                               width={48}
@@ -350,7 +366,7 @@ export default function ProductsPage() {
                           <div>
                             <p className="font-medium">{product.name}</p>
                             <p className="text-sm text-muted-foreground">
-                              Created{" "}
+                              Created{' '}
                               {new Date(product.createdAt).toLocaleDateString()}
                             </p>
                           </div>
@@ -358,7 +374,7 @@ export default function ProductsPage() {
                       </td>
                       <td className="p-4 font-mono text-sm">{product.sku}</td>
                       <td className="p-4">
-                        {product.category?.name || "Uncategorized"}
+                        {product.category?.name || 'Uncategorized'}
                       </td>
                       <td className="p-4 font-medium">
                         {formatPrice(product.price)}
@@ -367,8 +383,8 @@ export default function ProductsPage() {
                         <span
                           className={
                             product.stock === 0
-                              ? "text-red-600 font-medium"
-                              : ""
+                              ? 'text-red-600 font-medium'
+                              : ''
                           }
                         >
                           {product.stock}
@@ -378,7 +394,7 @@ export default function ProductsPage() {
                         <span
                           className={`inline-block px-2 py-1 text-xs rounded-full ${getStatusColor(productStatus)}`}
                         >
-                          {productStatus.replace("-", " ")}
+                          {productStatus.replace('-', ' ')}
                         </span>
                       </td>
                       <td className="p-4">-</td>
@@ -415,10 +431,10 @@ export default function ProductsPage() {
               <Button
                 variant="outline"
                 onClick={() => {
-                  setSearchQuery("");
-                  setSearchInput("");
-                  setSelectedCategory("All");
-                  setSelectedStatus("All");
+                  setSearchQuery('');
+                  setSearchInput('');
+                  setSelectedCategory('All');
+                  setSelectedStatus('All');
                 }}
               >
                 Clear Filters
@@ -442,7 +458,7 @@ export default function ProductsPage() {
                   (page) => (
                     <Button
                       key={page}
-                      variant={currentPage === page ? "default" : "outline"}
+                      variant={currentPage === page ? 'default' : 'outline'}
                       size="icon"
                       onClick={() => setCurrentPage(page)}
                     >

@@ -285,7 +285,9 @@ export class AuthService {
       this.mailService.sendForgotPasswordEmail(email, token).catch((err) => {
         console.error('Failed to send password reset email:', err);
         if (nodeEnv === 'development') {
-          console.log(`\n⚠️  SES failed. Use this link directly: ${resetLink}\n`);
+          console.log(
+            `\n⚠️  SES failed. Use this link directly: ${resetLink}\n`,
+          );
         }
       });
     }

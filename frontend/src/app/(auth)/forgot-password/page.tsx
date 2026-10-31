@@ -1,50 +1,50 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { Mail, ArrowLeft } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { authApi } from '@/lib/api'
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { Mail, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { authApi } from '@/lib/api';
 
 export default function ForgotPasswordPage() {
-  const [isHydrated, setIsHydrated] = useState(false)
-  const [email, setEmail] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [isSubmitted, setIsSubmitted] = useState(false)
-  const [error, setError] = useState('')
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    setIsHydrated(true)
-  }, [])
+    setIsHydrated(true);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError('')
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
 
     if (!email || !email.includes('@')) {
-      setError('Please enter a valid email address')
-      setIsLoading(false)
-      return
+      setError('Please enter a valid email address');
+      setIsLoading(false);
+      return;
     }
 
     try {
-      const response = await authApi.requestPasswordReset(email)
+      const response = await authApi.requestPasswordReset(email);
 
       if (!response.success) {
-        setError(response.message || 'An error occurred. Please try again.')
-        return
+        setError(response.message || 'An error occurred. Please try again.');
+        return;
       }
 
-      setIsSubmitted(true)
+      setIsSubmitted(true);
     } catch {
-      setError('An error occurred. Please try again.')
+      setError('An error occurred. Please try again.');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -71,7 +71,10 @@ export default function ForgotPasswordPage() {
                   )}
 
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
                       Email Address
                     </label>
                     <div className="relative">
@@ -92,17 +95,13 @@ export default function ForgotPasswordPage() {
                     </div>
                   </div>
 
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={isLoading}
-                  >
+                  <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? 'Sending...' : 'Send Reset Link'}
                   </Button>
 
                   <div className="text-center">
-                    <Link 
-                      href="/signin" 
+                    <Link
+                      href="/signin"
                       className="inline-flex items-center text-sm text-gray-600 hover:text-primary transition-colors"
                     >
                       <ArrowLeft className="h-4 w-4 mr-1" />
@@ -115,21 +114,25 @@ export default function ForgotPasswordPage() {
                   <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
                     <Mail className="h-6 w-6 text-green-600" />
                   </div>
-                  
+
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">Check your email</h3>
+                    <h3 className="text-lg font-medium text-gray-900">
+                      Check your email
+                    </h3>
                     <p className="mt-2 text-sm text-gray-600">
                       We've sent a password reset link to:
                     </p>
-                    <p className="mt-1 text-sm font-medium text-gray-900">{email}</p>
+                    <p className="mt-1 text-sm font-medium text-gray-900">
+                      {email}
+                    </p>
                   </div>
 
                   <div className="space-y-2">
                     <p className="text-xs text-gray-500">
                       Didn't receive the email? Check your spam folder or
                     </p>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="w-full"
                       onClick={() => setIsSubmitted(false)}
                     >
@@ -138,8 +141,8 @@ export default function ForgotPasswordPage() {
                   </div>
 
                   <div className="pt-4 border-t">
-                    <Link 
-                      href="/signin" 
+                    <Link
+                      href="/signin"
                       className="inline-flex items-center text-sm text-gray-600 hover:text-primary transition-colors"
                     >
                       <ArrowLeft className="h-4 w-4 mr-1" />
@@ -153,5 +156,5 @@ export default function ForgotPasswordPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

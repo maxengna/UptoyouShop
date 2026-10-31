@@ -69,7 +69,10 @@ export class AuthController {
     @Body() socialLoginDto: SocialLoginDto,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const result = await this.authService.socialLogin('google', socialLoginDto.accessToken);
+    const result = await this.authService.socialLogin(
+      'google',
+      socialLoginDto.accessToken,
+    );
 
     if (result.data?.refreshToken) {
       response.cookie('refreshToken', result.data.refreshToken, {
@@ -95,7 +98,10 @@ export class AuthController {
     @Body() socialLoginDto: SocialLoginDto,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const result = await this.authService.socialLogin('facebook', socialLoginDto.accessToken);
+    const result = await this.authService.socialLogin(
+      'facebook',
+      socialLoginDto.accessToken,
+    );
 
     if (result.data?.refreshToken) {
       response.cookie('refreshToken', result.data.refreshToken, {
@@ -122,7 +128,7 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     const result = await this.authService.login(loginDto);
-    
+
     // Set refresh token in HTTP-only cookie
     if (result.data?.refreshToken) {
       response.cookie('refreshToken', result.data.refreshToken, {
@@ -151,7 +157,8 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     // Get refresh token from body or cookie
-    const refreshToken = refreshTokenDto.refreshToken || request.cookies?.refreshToken;
+    const refreshToken =
+      refreshTokenDto.refreshToken || request.cookies?.refreshToken;
     const result = await this.authService.refreshToken(refreshToken);
 
     // Update refresh token cookie
@@ -178,11 +185,11 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     await this.authService.logout(userId);
-    
+
     // Clear refresh token and auth cookies
     response.clearCookie('refreshToken');
     response.clearCookie('auth');
-    
+
     return {
       success: true,
       data: null,
@@ -194,7 +201,10 @@ export class AuthController {
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Send password reset email' })
-  @ApiResponse({ status: 200, description: 'Reset email sent if account exists' })
+  @ApiResponse({
+    status: 200,
+    description: 'Reset email sent if account exists',
+  })
   async requestPasswordReset(@Body() forgotPasswordDto: ForgotPasswordDto) {
     return this.authService.forgotPassword(forgotPasswordDto);
   }
@@ -212,7 +222,9 @@ export class AuthController {
   @ApiOperation({ summary: 'Confirm password reset' })
   @ApiResponse({ status: 200, description: 'Password reset successfully' })
   @ApiResponse({ status: 400, description: 'Invalid or expired token' })
-  async confirmResetPassword(@Body() confirmResetPasswordDto: ConfirmResetPasswordDto) {
+  async confirmResetPassword(
+    @Body() confirmResetPasswordDto: ConfirmResetPasswordDto,
+  ) {
     return this.authService.confirmResetPassword(confirmResetPasswordDto);
   }
 

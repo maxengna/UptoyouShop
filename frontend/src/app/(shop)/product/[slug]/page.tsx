@@ -1,82 +1,97 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
-import Image from 'next/image'
-import Link from 'next/link'
-import { Heart, Minus, Plus, Star, Truck, Shield, RotateCcw, ArrowLeft, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { useCartStore } from '@/store/cart-store'
-import { formatPrice } from '@/lib/utils'
-import { Product } from '@/types/product'
-import { productApi, reviewApi, getAccessToken } from '@/lib/api'
-import { ReviewSummary } from '@/components/shop/review-summary'
-import { ReviewCard } from '@/components/shop/review-card'
-import { ReviewForm } from '@/components/shop/review-form'
+import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
+import Image from 'next/image';
+import Link from 'next/link';
+import {
+  Heart,
+  Minus,
+  Plus,
+  Star,
+  Truck,
+  Shield,
+  RotateCcw,
+  ArrowLeft,
+  Loader2,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { useCartStore } from '@/store/cart-store';
+import { formatPrice } from '@/lib/utils';
+import { Product } from '@/types/product';
+import { productApi, reviewApi, getAccessToken } from '@/lib/api';
+import { ReviewSummary } from '@/components/shop/review-summary';
+import { ReviewCard } from '@/components/shop/review-card';
+import { ReviewForm } from '@/components/shop/review-form';
 
 interface ReviewData {
-  id: string
-  userId: string
-  rating: number
-  title?: string
-  content: string
-  isVerified: boolean
-  createdAt: string
-  user?: { id: string; name: string }
+  id: string;
+  userId: string;
+  rating: number;
+  title?: string;
+  content: string;
+  isVerified: boolean;
+  createdAt: string;
+  user?: { id: string; name: string };
 }
 
 interface ReviewStatsData {
-  averageRating: number
-  totalReviews: number
-  ratingDistribution: Record<number, number>
+  averageRating: number;
+  totalReviews: number;
+  ratingDistribution: Record<number, number>;
 }
 
 export default function ProductDetailPage() {
-  const params = useParams()
-  const slug = params.slug as string
+  const params = useParams();
+  const slug = params.slug as string;
 
-  const { addItem } = useCartStore()
-  const [quantity, setQuantity] = useState(1)
-  const [selectedImage, setSelectedImage] = useState(0)
-  const [selectedVariant, setSelectedVariant] = useState('')
-  const [product, setProduct] = useState<Product | null>(null)
-  const [categoryName, setCategoryName] = useState("")
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { addItem } = useCartStore();
+  const [quantity, setQuantity] = useState(1);
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedVariant, setSelectedVariant] = useState('');
+  const [product, setProduct] = useState<Product | null>(null);
+  const [categoryName, setCategoryName] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [reviews, setReviews] = useState<ReviewData[]>([])
-  const [reviewStats, setReviewStats] = useState<ReviewStatsData | null>(null)
-  const [reviewPage, setReviewPage] = useState(1)
-  const [reviewTotalPages, setReviewTotalPages] = useState(1)
-  const [reviewsLoading, setReviewsLoading] = useState(false)
-  const [showReviewForm, setShowReviewForm] = useState(false)
-  const [currentUserId, setCurrentUserId] = useState<string | undefined>()
+  const [reviews, setReviews] = useState<ReviewData[]>([]);
+  const [reviewStats, setReviewStats] = useState<ReviewStatsData | null>(null);
+  const [reviewPage, setReviewPage] = useState(1);
+  const [reviewTotalPages, setReviewTotalPages] = useState(1);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>();
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        setLoading(true)
-        const response = await productApi.getAll()
+        setLoading(true);
+        const response = await productApi.getAll();
         if (response.success && response.data) {
           const found = response.data.products.find((p: any) => {
-            const productSlug = p.slug || p.name?.toLowerCase().replace(/\s+/g, '-')
-            return productSlug === slug
-          })
+            const productSlug =
+              p.slug || p.name?.toLowerCase().replace(/\s+/g, '-');
+            return productSlug === slug;
+          });
           if (found) {
-            const rawCat = found.category
-            const cat = rawCat && typeof rawCat === "object" ? rawCat : {}
-            setCategoryName((cat as any).name || "")
+            const rawCat = found.category;
+            const cat = rawCat && typeof rawCat === 'object' ? rawCat : {};
+            setCategoryName((cat as any).name || '');
             setProduct({
               id: String(found.id ?? ''),
               name: found.name,
               description: found.description || '',
               price: parseFloat(String(found.price)) || 0,
-              originalPrice: found.comparePrice ? parseFloat(String(found.comparePrice)) : undefined,
-              images: found.images?.map(img => img.url) || [],
-              category: (cat as any).slug || "",
-              slug: (found as any).slug || found.name.toLowerCase().replace(/\s+/g, '-'),
+              originalPrice: found.comparePrice
+                ? parseFloat(String(found.comparePrice))
+                : undefined,
+              images: found.images?.map((img) => img.url) || [],
+              category: (cat as any).slug || '',
+              slug:
+                (found as any).slug ||
+                found.name.toLowerCase().replace(/\s+/g, '-'),
               stock: parseInt(String(found.stock || '0'), 10),
               sku: found.sku,
               rating: (found as any).rating || undefined,
@@ -84,74 +99,76 @@ export default function ProductDetailPage() {
               isNew: (found as any).isNew || undefined,
               isOnSale: (found as any).isOnSale || undefined,
               variants: (found as any).variants || undefined,
-            })
-            setError(null)
+            });
+            setError(null);
           } else {
-            setProduct(null)
-            setError('Product not found')
+            setProduct(null);
+            setError('Product not found');
           }
         } else {
-          setProduct(null)
-          setError('Failed to fetch products')
+          setProduct(null);
+          setError('Failed to fetch products');
         }
       } catch (err) {
-        setProduct(null)
-        setError(err instanceof Error ? err.message : 'Failed to fetch product')
+        setProduct(null);
+        setError(
+          err instanceof Error ? err.message : 'Failed to fetch product',
+        );
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchProduct()
+    };
+    fetchProduct();
 
     // Get current user ID from token
-    const token = getAccessToken()
+    const token = getAccessToken();
     if (token) {
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]))
-        setCurrentUserId(payload.sub || payload.id)
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setCurrentUserId(payload.sub || payload.id);
       } catch {
         // ignore
       }
     }
-  }, [slug])
+  }, [slug]);
 
   useEffect(() => {
     if (product?.id) {
-      fetchReviews(product.id, reviewPage)
+      fetchReviews(product.id, reviewPage);
     }
-  }, [product?.id, reviewPage])
+  }, [product?.id, reviewPage]);
 
   const fetchReviews = async (productId: string, page: number) => {
-    setReviewsLoading(true)
+    setReviewsLoading(true);
     try {
-      const res = await reviewApi.getProductReviews(productId, page)
+      const res = await reviewApi.getProductReviews(productId, page);
       if (res.success && res.data) {
         if (page === 1) {
-          setReviews(res.data.reviews)
+          setReviews(res.data.reviews);
         } else {
-          setReviews((prev) => [...prev, ...res.data.reviews])
+          setReviews((prev) => [...prev, ...res.data.reviews]);
         }
-        setReviewStats(res.data.stats)
-        setReviewTotalPages(res.data.pagination.pages)
+        setReviewStats(res.data.stats);
+        setReviewTotalPages(res.data.pagination.pages);
       }
     } catch {
       // silent
     } finally {
-      setReviewsLoading(false)
+      setReviewsLoading(false);
     }
-  }
+  };
 
   const handleReviewSuccess = () => {
-    setShowReviewForm(false)
+    setShowReviewForm(false);
     if (product) {
-      setReviewPage(1)
-      fetchReviews(product.id, 1)
+      setReviewPage(1);
+      fetchReviews(product.id, 1);
     }
-  }
+  };
 
   const handleReviewDeleted = (reviewId: string) => {
-    setReviews((prev) => prev.filter((r) => r.id !== reviewId))
-  }
+    setReviews((prev) => prev.filter((r) => r.id !== reviewId));
+  };
 
   if (loading) {
     return (
@@ -161,7 +178,7 @@ export default function ProductDetailPage() {
           <p className="text-muted-foreground">Loading product...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error || !product) {
@@ -177,7 +194,7 @@ export default function ProductDetailPage() {
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   const handleAddToCart = () => {
@@ -189,18 +206,21 @@ export default function ProductDetailPage() {
       quantity,
       price: product.price,
       product,
-    })
-  }
+    });
+  };
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`h-4 w-4 ${i < Math.floor(rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'
-          }`}
+        className={`h-4 w-4 ${
+          i < Math.floor(rating)
+            ? 'text-yellow-400 fill-current'
+            : 'text-gray-300'
+        }`}
       />
-    ))
-  }
+    ));
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -217,7 +237,10 @@ export default function ProductDetailPage() {
             Home
           </Link>
           <span className="text-muted-foreground">/</span>
-          <Link href={`/category/${product.category}`} className="text-muted-foreground hover:text-primary capitalize">
+          <Link
+            href={`/category/${product.category}`}
+            className="text-muted-foreground hover:text-primary capitalize"
+          >
             {categoryName || product.category}
           </Link>
           <span className="text-muted-foreground">/</span>
@@ -231,7 +254,10 @@ export default function ProductDetailPage() {
           {/* Main Image */}
           <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
             <Image
-              src={product.images[selectedImage] || '/images/product-placeholder.jpg'}
+              src={
+                product.images[selectedImage] ||
+                '/images/product-placeholder.jpg'
+              }
               alt={product.name}
               fill
               className="object-cover"
@@ -255,8 +281,11 @@ export default function ProductDetailPage() {
               <button
                 key={index}
                 onClick={() => setSelectedImage(index)}
-                className={`relative aspect-square w-20 bg-muted rounded-md overflow-hidden border-2 ${selectedImage === index ? 'border-primary' : 'border-transparent'
-                  }`}
+                className={`relative aspect-square w-20 bg-muted rounded-md overflow-hidden border-2 ${
+                  selectedImage === index
+                    ? 'border-primary'
+                    : 'border-transparent'
+                }`}
               >
                 <Image
                   src={image || '/images/product-placeholder.jpg'}
@@ -277,9 +306,7 @@ export default function ProductDetailPage() {
 
             {/* Rating */}
             <div className="flex items-center gap-2 mb-4">
-              <div className="flex">
-                {renderStars(product.rating || 0)}
-              </div>
+              <div className="flex">{renderStars(product.rating || 0)}</div>
               <span className="text-sm text-muted-foreground">
                 {product.rating || 0} ({product.reviews || 0} reviews)
               </span>
@@ -287,7 +314,9 @@ export default function ProductDetailPage() {
 
             {/* Price */}
             <div className="flex items-center gap-3 mb-4">
-              <span className="text-3xl font-bold">{formatPrice(product.price)}</span>
+              <span className="text-3xl font-bold">
+                {formatPrice(product.price)}
+              </span>
               {product.originalPrice && (
                 <>
                   <span className="text-xl text-muted-foreground line-through">
@@ -307,8 +336,14 @@ export default function ProductDetailPage() {
             <div className="flex items-center gap-4 text-sm text-muted-foreground mb-6">
               <span>SKU: {product.sku}</span>
               <span>•</span>
-              <span className={product.stock > 0 ? 'text-green-600' : 'text-red-600'}>
-                {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+              <span
+                className={
+                  product.stock > 0 ? 'text-green-600' : 'text-red-600'
+                }
+              >
+                {product.stock > 0
+                  ? `${product.stock} in stock`
+                  : 'Out of stock'}
               </span>
             </div>
 
@@ -321,10 +356,11 @@ export default function ProductDetailPage() {
                     <button
                       key={variant.id}
                       onClick={() => setSelectedVariant(variant.value)}
-                      className={`px-4 py-2 border rounded-md ${selectedVariant === variant.value
-                        ? 'border-primary bg-primary text-primary-foreground'
-                        : 'border-border hover:border-primary'
-                        }`}
+                      className={`px-4 py-2 border rounded-md ${
+                        selectedVariant === variant.value
+                          ? 'border-primary bg-primary text-primary-foreground'
+                          : 'border-border hover:border-primary'
+                      }`}
                     >
                       {variant.value}
                     </button>
@@ -342,7 +378,9 @@ export default function ProductDetailPage() {
                 >
                   <Minus className="h-4 w-4" />
                 </button>
-                <span className="px-4 py-2 min-w-[60px] text-center">{quantity}</span>
+                <span className="px-4 py-2 min-w-[60px] text-center">
+                  {quantity}
+                </span>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
                   className="p-2 hover:bg-muted"
@@ -454,5 +492,5 @@ export default function ProductDetailPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

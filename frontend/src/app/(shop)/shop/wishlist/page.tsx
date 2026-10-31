@@ -1,50 +1,50 @@
-"use client"
+'use client';
 
-import { useEffect, useState } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Heart, ShoppingCart, Trash2, HeartOff, Loader2 } from "lucide-react"
-import { toast } from "sonner"
-import { useWishlistStore } from "@/store/wishlist-store"
-import { useCartStore } from "@/store/cart-store"
-import { formatPrice } from "@/lib/utils"
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Heart, ShoppingCart, Trash2, HeartOff, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { useWishlistStore } from '@/store/wishlist-store';
+import { useCartStore } from '@/store/cart-store';
+import { formatPrice } from '@/lib/utils';
 
 export default function WishlistPage() {
-  const { items, loading, fetchWishlist, removeItem } = useWishlistStore()
-  const { addItem: addToCart } = useCartStore()
-  const [removing, setRemoving] = useState<string | null>(null)
+  const { items, loading, fetchWishlist, removeItem } = useWishlistStore();
+  const { addItem: addToCart } = useCartStore();
+  const [removing, setRemoving] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchWishlist()
-  }, [fetchWishlist])
+    fetchWishlist();
+  }, [fetchWishlist]);
 
   const handleRemove = async (itemId: string) => {
-    setRemoving(itemId)
+    setRemoving(itemId);
     try {
-      await removeItem(itemId)
-      toast.success("Removed from wishlist")
+      await removeItem(itemId);
+      toast.success('Removed from wishlist');
     } catch {
-      toast.error("Failed to remove item")
+      toast.error('Failed to remove item');
     } finally {
-      setRemoving(null)
+      setRemoving(null);
     }
-  }
+  };
 
-  const handleAddToCart = (item: typeof items[0]) => {
+  const handleAddToCart = (item: (typeof items)[0]) => {
     addToCart({
       id: item.product.id,
       productId: item.product.id,
       productName: item.product.name,
-      productImage: item.product.image || "/images/product-placeholder.jpg",
+      productImage: item.product.image || '/images/product-placeholder.jpg',
       quantity: 1,
       price: item.product.price,
       product: item.product as any,
-    })
-    toast.success(`${item.product.name} added to cart`)
-  }
+    });
+    toast.success(`${item.product.name} added to cart`);
+  };
 
   if (loading) {
     return (
@@ -53,7 +53,7 @@ export default function WishlistPage() {
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -63,7 +63,7 @@ export default function WishlistPage() {
           <div>
             <h1 className="text-3xl font-bold">My Wishlist</h1>
             <p className="text-muted-foreground mt-1">
-              {items.length} {items.length === 1 ? "item" : "items"} saved
+              {items.length} {items.length === 1 ? 'item' : 'items'} saved
             </p>
           </div>
         </div>
@@ -71,7 +71,9 @@ export default function WishlistPage() {
         {items.length === 0 ? (
           <div className="text-center py-16">
             <HeartOff className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Your wishlist is empty</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              Your wishlist is empty
+            </h3>
             <p className="text-muted-foreground mb-6">
               Save items you love to your wishlist and come back anytime
             </p>
@@ -82,18 +84,29 @@ export default function WishlistPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {items.map((item) => (
-              <Card key={item.id} className="group overflow-hidden hover:shadow-lg transition-shadow">
+              <Card
+                key={item.id}
+                className="group overflow-hidden hover:shadow-lg transition-shadow"
+              >
                 <CardContent className="p-0">
                   <div className="relative aspect-square bg-muted">
                     <Image
-                      src={item.product.image || "/images/product-placeholder.jpg"}
+                      src={
+                        item.product.image || '/images/product-placeholder.jpg'
+                      }
                       alt={item.product.name}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     {item.product.originalPrice && (
                       <Badge className="absolute top-3 left-3 bg-red-500 text-white border-0">
-                        -{Math.round((1 - item.product.price / item.product.originalPrice) * 100)}%
+                        -
+                        {Math.round(
+                          (1 -
+                            item.product.price / item.product.originalPrice) *
+                            100,
+                        )}
+                        %
                       </Badge>
                     )}
                     <Button
@@ -141,7 +154,7 @@ export default function WishlistPage() {
                       onClick={() => handleAddToCart(item)}
                     >
                       <ShoppingCart className="h-4 w-4" />
-                      {item.product.stock > 0 ? "Add to Cart" : "Out of Stock"}
+                      {item.product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
                     </Button>
                   </div>
                 </CardContent>
@@ -151,5 +164,5 @@ export default function WishlistPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

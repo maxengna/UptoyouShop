@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   Package,
@@ -11,8 +11,8 @@ import {
   TrendingUp,
   MessageSquare,
   ChevronLeft,
-} from 'lucide-react'
-import { cn } from '@/lib/utils'
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -22,10 +22,10 @@ const navItems = [
   { label: 'Customers', href: '/customers', icon: Users },
   { label: 'Reviews', href: '/reviews', icon: MessageSquare },
   { label: 'Analytics', href: '/analytics', icon: TrendingUp },
-]
+];
 
 export function Sidebar() {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
     <aside className="hidden lg:flex lg:flex-col w-64 border-r bg-background h-screen sticky top-0">
@@ -40,8 +40,9 @@ export function Sidebar() {
 
       <nav className="flex-1 p-4 space-y-1">
         {navItems.map((item) => {
-          const Icon = item.icon
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+          const Icon = item.icon;
+          const isActive =
+            pathname === item.href || pathname.startsWith(item.href + '/');
 
           return (
             <Link
@@ -57,7 +58,7 @@ export function Sidebar() {
               <Icon className="h-5 w-5" />
               <span>{item.label}</span>
             </Link>
-          )
+          );
         })}
       </nav>
 
@@ -71,5 +72,5 @@ export function Sidebar() {
         </Link>
       </div>
     </aside>
-  )
+  );
 }

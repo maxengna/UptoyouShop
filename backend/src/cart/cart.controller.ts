@@ -74,10 +74,7 @@ export class CartController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Apply coupon code' })
-  async applyCoupon(
-    @GetUser('id') userId: string,
-    @Body('code') code: string,
-  ) {
+  async applyCoupon(@GetUser('id') userId: string, @Body('code') code: string) {
     return this.cartService.applyCoupon(userId, code);
   }
 }

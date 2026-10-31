@@ -1,22 +1,27 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { loadStripe } from '@stripe/stripe-js'
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
-import { Truck, CreditCard, Check } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { Input } from '@/components/ui/input'
-import { useCartStore } from '@/store/cart-store'
-import { useUserStore } from '@/store/user-store'
-import { formatPrice } from '@/lib/utils'
-import { orderApi, paymentApi, ApiError } from '@/lib/api'
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { loadStripe } from '@stripe/stripe-js';
+import {
+  Elements,
+  PaymentElement,
+  useStripe,
+  useElements,
+} from '@stripe/react-stripe-js';
+import { Truck, CreditCard, Check } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { useCartStore } from '@/store/cart-store';
+import { useUserStore } from '@/store/user-store';
+import { formatPrice } from '@/lib/utils';
+import { orderApi, paymentApi, ApiError } from '@/lib/api';
 
 const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
-)
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
+);
 
 function PaymentSteps({
   currentStep,
@@ -37,27 +42,27 @@ function PaymentSteps({
   onBackToPayment,
   clearCart,
 }: {
-  currentStep: number
-  orderId: string | null
-  items: any[]
-  shippingAddress: any
-  subtotal: number
-  shipping: number
-  tax: number
-  total: number
-  getTotalItems: () => number
-  error: string | null
-  isSubmitting: boolean
-  setError: (e: string | null) => void
-  setIsSubmitting: (v: boolean) => void
-  onBackToShipping: () => void
-  onReviewOrder: () => void
-  onBackToPayment: () => void
-  clearCart: () => void
+  currentStep: number;
+  orderId: string | null;
+  items: any[];
+  shippingAddress: any;
+  subtotal: number;
+  shipping: number;
+  tax: number;
+  total: number;
+  getTotalItems: () => number;
+  error: string | null;
+  isSubmitting: boolean;
+  setError: (e: string | null) => void;
+  setIsSubmitting: (v: boolean) => void;
+  onBackToShipping: () => void;
+  onReviewOrder: () => void;
+  onBackToPayment: () => void;
+  clearCart: () => void;
 }) {
-  const stripe = useStripe()
-  const elements = useElements()
-  const [ready, setReady] = useState(false)
+  const stripe = useStripe();
+  const elements = useElements();
+  const [ready, setReady] = useState(false);
 
   return (
     <>
@@ -69,7 +74,9 @@ function PaymentSteps({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="text-sm text-muted-foreground mb-2">
-              Test card: <code className="bg-muted px-1 rounded">4242 4242 4242 4242</code> — any future expiry, any CVC
+              Test card:{' '}
+              <code className="bg-muted px-1 rounded">4242 4242 4242 4242</code>{' '}
+              — any future expiry, any CVC
             </div>
             <PaymentElement onReady={() => setReady(true)} />
             <div className="flex justify-between">
@@ -91,15 +98,21 @@ function PaymentSteps({
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
-              <h3 className="font-medium mb-4">Order Items ({getTotalItems()})</h3>
+              <h3 className="font-medium mb-4">
+                Order Items ({getTotalItems()})
+              </h3>
               <div className="space-y-4">
                 {items.map((item: any) => (
                   <div key={item.id} className="flex justify-between">
                     <div>
                       <p className="font-medium">{item.productName}</p>
-                      <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Qty: {item.quantity}
+                      </p>
                     </div>
-                    <p className="font-medium">{formatPrice(item.price * item.quantity)}</p>
+                    <p className="font-medium">
+                      {formatPrice(item.price * item.quantity)}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -110,9 +123,13 @@ function PaymentSteps({
             <div>
               <h3 className="font-medium mb-2">Shipping Address</h3>
               <p className="text-sm text-muted-foreground">
-                {shippingAddress.firstName} {shippingAddress.lastName}<br />
-                {shippingAddress.address}<br />
-                {shippingAddress.city}, {shippingAddress.state} {shippingAddress.zipCode}<br />
+                {shippingAddress.firstName} {shippingAddress.lastName}
+                <br />
+                {shippingAddress.address}
+                <br />
+                {shippingAddress.city}, {shippingAddress.state}{' '}
+                {shippingAddress.zipCode}
+                <br />
                 {shippingAddress.country}
               </p>
             </div>
@@ -121,7 +138,9 @@ function PaymentSteps({
 
             <div>
               <h3 className="font-medium mb-2">Payment Method</h3>
-              <p className="text-sm text-muted-foreground">Credit Card (Stripe)</p>
+              <p className="text-sm text-muted-foreground">
+                Credit Card (Stripe)
+              </p>
             </div>
 
             {error && (
@@ -137,38 +156,50 @@ function PaymentSteps({
               <Button
                 onClick={async () => {
                   if (!stripe) {
-                    setError('Stripe is still loading. Please wait a moment and try again.')
-                    return
+                    setError(
+                      'Stripe is still loading. Please wait a moment and try again.',
+                    );
+                    return;
                   }
                   if (!elements) {
-                    setError('Payment form is not ready. Please go back to the payment step and try again.')
-                    return
+                    setError(
+                      'Payment form is not ready. Please go back to the payment step and try again.',
+                    );
+                    return;
                   }
-                  setError(null)
-                  setIsSubmitting(true)
+                  setError(null);
+                  setIsSubmitting(true);
                   try {
-                    const { error: confirmError, paymentIntent } = await stripe.confirmPayment({
-                      elements,
-                      redirect: 'if_required',
-                      confirmParams: {
-                        return_url: `${window.location.origin}/orders/${orderId}`,
-                      },
-                    })
+                    const { error: confirmError, paymentIntent } =
+                      await stripe.confirmPayment({
+                        elements,
+                        redirect: 'if_required',
+                        confirmParams: {
+                          return_url: `${window.location.origin}/orders/${orderId}`,
+                        },
+                      });
                     if (confirmError) {
-                      setError(confirmError.message || 'Payment failed')
+                      setError(confirmError.message || 'Payment failed');
                     } else if (paymentIntent) {
                       try {
-                        await paymentApi.confirmPayment(orderId!, paymentIntent.id)
+                        await paymentApi.confirmPayment(
+                          orderId!,
+                          paymentIntent.id,
+                        );
                       } catch {
                         // Inventory update failed silently — order is still confirmed on Stripe
                       }
-                      clearCart()
-                      window.location.href = `/orders/${orderId}?success=true`
+                      clearCart();
+                      window.location.href = `/orders/${orderId}?success=true`;
                     }
                   } catch (err) {
-                    setError(err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.')
+                    setError(
+                      err instanceof Error
+                        ? err.message
+                        : 'An unexpected error occurred. Please try again.',
+                    );
                   } finally {
-                    setIsSubmitting(false)
+                    setIsSubmitting(false);
                   }
                 }}
                 disabled={isSubmitting || !stripe}
@@ -180,23 +211,23 @@ function PaymentSteps({
         </Card>
       </div>
     </>
-  )
+  );
 }
 
 export default function CheckoutPage() {
-  const [hydrated, setHydrated] = useState(false)
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    setHydrated(true)
-  }, [])
+    setHydrated(true);
+  }, []);
 
-  const { items, getTotalPrice, getTotalItems, clearCart } = useCartStore()
-  const { user } = useUserStore()
-  const [currentStep, setCurrentStep] = useState(1)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [orderId, setOrderId] = useState<string | null>(null)
-  const [clientSecret, setClientSecret] = useState<string | null>(null)
+  const { items, getTotalPrice, getTotalItems, clearCart } = useCartStore();
+  const { user } = useUserStore();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [shippingAddress, setShippingAddress] = useState({
     firstName: user?.name?.split(' ')[0] || '',
     lastName: user?.name?.split(' ')[1] || '',
@@ -207,22 +238,22 @@ export default function CheckoutPage() {
     state: '',
     zipCode: '',
     country: 'United States',
-  })
+  });
 
-  const subtotal = getTotalPrice()
-  const shipping = subtotal > 50 ? 0 : 9.99
-  const tax = subtotal * 0.08
-  const total = subtotal + shipping + tax
+  const subtotal = getTotalPrice();
+  const shipping = subtotal > 50 ? 0 : 9.99;
+  const tax = subtotal * 0.08;
+  const total = subtotal + shipping + tax;
 
   const steps = [
     { id: 1, name: 'Shipping', icon: Truck },
     { id: 2, name: 'Payment', icon: CreditCard },
     { id: 3, name: 'Review', icon: Check },
-  ]
+  ];
 
   const handleContinueToPayment = async () => {
-    setError(null)
-    setIsSubmitting(true)
+    setError(null);
+    setIsSubmitting(true);
     try {
       const orderRes = await orderApi.create({
         items: items.map((item: any) => ({
@@ -241,26 +272,26 @@ export default function CheckoutPage() {
           phone: shippingAddress.phone || undefined,
         },
         paymentMethod: 'credit_card',
-      })
+      });
 
-      const orderId = orderRes.data.id
-      setOrderId(orderId)
+      const orderId = orderRes.data.id;
+      setOrderId(orderId);
 
-      const payRes = await paymentApi.createPaymentIntent(orderId)
-      setClientSecret(payRes.data.clientSecret)
-      setCurrentStep(2)
+      const payRes = await paymentApi.createPaymentIntent(orderId);
+      setClientSecret(payRes.data.clientSecret);
+      setCurrentStep(2);
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.message)
+        setError(err.message);
       } else {
-        setError('Failed to create order. Please try again.')
+        setError('Failed to create order. Please try again.');
       }
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  if (!hydrated) return null
+  if (!hydrated) return null;
 
   if (items.length === 0) {
     return (
@@ -275,7 +306,7 @@ export default function CheckoutPage() {
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -294,33 +325,43 @@ export default function CheckoutPage() {
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-8">
             {steps.map((step, index) => {
-              const Icon = step.icon
-              const isActive = step.id === currentStep
-              const isCompleted = step.id < currentStep
+              const Icon = step.icon;
+              const isActive = step.id === currentStep;
+              const isCompleted = step.id < currentStep;
 
               return (
                 <div key={step.id} className="flex items-center">
-                  <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
-                    isActive
-                      ? 'border-primary bg-primary text-primary-foreground'
-                      : isCompleted
-                        ? 'border-green-500 bg-green-500 text-white'
-                        : 'border-muted-foreground text-muted-foreground'
-                  }`}>
+                  <div
+                    className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+                      isActive
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : isCompleted
+                          ? 'border-green-500 bg-green-500 text-white'
+                          : 'border-muted-foreground text-muted-foreground'
+                    }`}
+                  >
                     <Icon className="h-5 w-5" />
                   </div>
-                  <span className={`ml-2 text-sm font-medium ${
-                    isActive ? 'text-primary' : isCompleted ? 'text-green-500' : 'text-muted-foreground'
-                  }`}>
+                  <span
+                    className={`ml-2 text-sm font-medium ${
+                      isActive
+                        ? 'text-primary'
+                        : isCompleted
+                          ? 'text-green-500'
+                          : 'text-muted-foreground'
+                    }`}
+                  >
                     {step.name}
                   </span>
                   {index < steps.length - 1 && (
-                    <div className={`flex-1 h-0.5 mx-4 ${
-                      isCompleted ? 'bg-green-500' : 'bg-muted'
-                    }`} />
+                    <div
+                      className={`flex-1 h-0.5 mx-4 ${
+                        isCompleted ? 'bg-green-500' : 'bg-muted'
+                      }`}
+                    />
                   )}
                 </div>
-              )
+              );
             })}
           </div>
 
@@ -332,74 +373,130 @@ export default function CheckoutPage() {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">First Name</label>
+                    <label className="block text-sm font-medium mb-2">
+                      First Name
+                    </label>
                     <Input
                       value={shippingAddress.firstName}
-                      onChange={(e) => setShippingAddress(prev => ({ ...prev, firstName: e.target.value }))}
+                      onChange={(e) =>
+                        setShippingAddress((prev) => ({
+                          ...prev,
+                          firstName: e.target.value,
+                        }))
+                      }
                       placeholder="John"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Last Name</label>
+                    <label className="block text-sm font-medium mb-2">
+                      Last Name
+                    </label>
                     <Input
                       value={shippingAddress.lastName}
-                      onChange={(e) => setShippingAddress(prev => ({ ...prev, lastName: e.target.value }))}
+                      onChange={(e) =>
+                        setShippingAddress((prev) => ({
+                          ...prev,
+                          lastName: e.target.value,
+                        }))
+                      }
                       placeholder="Doe"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Email</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Email
+                  </label>
                   <Input
                     type="email"
                     value={shippingAddress.email}
-                    onChange={(e) => setShippingAddress(prev => ({ ...prev, email: e.target.value }))}
+                    onChange={(e) =>
+                      setShippingAddress((prev) => ({
+                        ...prev,
+                        email: e.target.value,
+                      }))
+                    }
                     placeholder="john@example.com"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Phone</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Phone
+                  </label>
                   <Input
                     type="tel"
                     value={shippingAddress.phone}
-                    onChange={(e) => setShippingAddress(prev => ({ ...prev, phone: e.target.value }))}
+                    onChange={(e) =>
+                      setShippingAddress((prev) => ({
+                        ...prev,
+                        phone: e.target.value,
+                      }))
+                    }
                     placeholder="+1 (555) 123-4567"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Address</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Address
+                  </label>
                   <Input
                     value={shippingAddress.address}
-                    onChange={(e) => setShippingAddress(prev => ({ ...prev, address: e.target.value }))}
+                    onChange={(e) =>
+                      setShippingAddress((prev) => ({
+                        ...prev,
+                        address: e.target.value,
+                      }))
+                    }
                     placeholder="123 Main St"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">City</label>
+                    <label className="block text-sm font-medium mb-2">
+                      City
+                    </label>
                     <Input
                       value={shippingAddress.city}
-                      onChange={(e) => setShippingAddress(prev => ({ ...prev, city: e.target.value }))}
+                      onChange={(e) =>
+                        setShippingAddress((prev) => ({
+                          ...prev,
+                          city: e.target.value,
+                        }))
+                      }
                       placeholder="New York"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">State</label>
+                    <label className="block text-sm font-medium mb-2">
+                      State
+                    </label>
                     <Input
                       value={shippingAddress.state}
-                      onChange={(e) => setShippingAddress(prev => ({ ...prev, state: e.target.value }))}
+                      onChange={(e) =>
+                        setShippingAddress((prev) => ({
+                          ...prev,
+                          state: e.target.value,
+                        }))
+                      }
                       placeholder="NY"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">ZIP Code</label>
+                    <label className="block text-sm font-medium mb-2">
+                      ZIP Code
+                    </label>
                     <Input
                       value={shippingAddress.zipCode}
-                      onChange={(e) => setShippingAddress(prev => ({ ...prev, zipCode: e.target.value }))}
+                      onChange={(e) =>
+                        setShippingAddress((prev) => ({
+                          ...prev,
+                          zipCode: e.target.value,
+                        }))
+                      }
                       placeholder="10001"
                     />
                   </div>
@@ -412,7 +509,10 @@ export default function CheckoutPage() {
                 )}
 
                 <div className="flex justify-end">
-                  <Button onClick={handleContinueToPayment} disabled={isSubmitting}>
+                  <Button
+                    onClick={handleContinueToPayment}
+                    disabled={isSubmitting}
+                  >
                     {isSubmitting ? 'Creating Order...' : 'Continue to Payment'}
                   </Button>
                 </div>
@@ -421,10 +521,7 @@ export default function CheckoutPage() {
           )}
 
           {currentStep >= 2 && clientSecret && (
-            <Elements
-              stripe={stripePromise}
-              options={{ clientSecret } as any}
-            >
+            <Elements stripe={stripePromise} options={{ clientSecret } as any}>
               <PaymentSteps
                 currentStep={currentStep}
                 orderId={orderId}
@@ -440,8 +537,8 @@ export default function CheckoutPage() {
                 setError={setError}
                 setIsSubmitting={setIsSubmitting}
                 onBackToShipping={() => {
-                  setCurrentStep(1)
-                  setError(null)
+                  setCurrentStep(1);
+                  setError(null);
                 }}
                 onReviewOrder={() => setCurrentStep(3)}
                 onBackToPayment={() => setCurrentStep(2)}
@@ -507,5 +604,5 @@ export default function CheckoutPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

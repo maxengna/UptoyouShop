@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
-import Image from "next/image";
+import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 import {
   ShoppingCart,
   Users,
@@ -15,10 +15,10 @@ import {
   AlertCircle,
   ArrowUpRight,
   ArrowDownRight,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { adminApi, DashboardStats } from "@/lib/api";
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { adminApi, DashboardStats } from '@/lib/api';
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -29,36 +29,36 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-} from "recharts";
+} from 'recharts';
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case "delivered":
-      return "bg-green-100 text-green-800";
-    case "processing":
-      return "bg-blue-100 text-blue-800";
-    case "shipped":
-      return "bg-yellow-100 text-yellow-800";
-    case "pending":
-      return "bg-gray-100 text-gray-800";
-    case "cancelled":
-      return "bg-red-100 text-red-800";
-    case "refunded":
-      return "bg-purple-100 text-purple-800";
+    case 'delivered':
+      return 'bg-green-100 text-green-800';
+    case 'processing':
+      return 'bg-blue-100 text-blue-800';
+    case 'shipped':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'pending':
+      return 'bg-gray-100 text-gray-800';
+    case 'cancelled':
+      return 'bg-red-100 text-red-800';
+    case 'refunded':
+      return 'bg-purple-100 text-purple-800';
     default:
-      return "bg-gray-100 text-gray-800";
+      return 'bg-gray-100 text-gray-800';
   }
 };
 
 const formatPrice = (price: number) => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
   }).format(price);
 };
 
 export default function AdminDashboard() {
-  const [selectedPeriod, setSelectedPeriod] = useState("7d");
+  const [selectedPeriod, setSelectedPeriod] = useState('7d');
   const [stats, setStats] = useState({
     totalRevenue: 0,
     totalOrders: 0,
@@ -69,8 +69,12 @@ export default function AdminDashboard() {
     customersChange: 0,
     productsChange: 0,
   });
-  const [recentOrders, setRecentOrders] = useState<DashboardStats['recentOrders']>([]);
-  const [topProducts, setTopProducts] = useState<DashboardStats['topProducts']>([]);
+  const [recentOrders, setRecentOrders] = useState<
+    DashboardStats['recentOrders']
+  >([]);
+  const [topProducts, setTopProducts] = useState<DashboardStats['topProducts']>(
+    [],
+  );
   const [salesData, setSalesData] = useState<DashboardStats['salesData']>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -96,7 +100,7 @@ export default function AdminDashboard() {
         setSalesData(response.data.salesData);
       }
     } catch (err: any) {
-      setError(err.message || "Failed to fetch dashboard data");
+      setError(err.message || 'Failed to fetch dashboard data');
     } finally {
       setLoading(false);
     }
@@ -158,7 +162,9 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Total Revenue
+                </CardTitle>
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -167,7 +173,7 @@ export default function AdminDashboard() {
                 </div>
                 <p className="text-xs text-muted-foreground flex items-center">
                   {changeIcon(stats.revenueChange)}
-                  {stats.revenueChange >= 0 ? "+" : ""}
+                  {stats.revenueChange >= 0 ? '+' : ''}
                   {stats.revenueChange}% from last month
                 </p>
               </CardContent>
@@ -175,7 +181,9 @@ export default function AdminDashboard() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Total Orders
+                </CardTitle>
                 <ShoppingCart className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -184,7 +192,7 @@ export default function AdminDashboard() {
                 </div>
                 <p className="text-xs text-muted-foreground flex items-center">
                   {changeIcon(stats.ordersChange)}
-                  {stats.ordersChange >= 0 ? "+" : ""}
+                  {stats.ordersChange >= 0 ? '+' : ''}
                   {stats.ordersChange}% from last month
                 </p>
               </CardContent>
@@ -203,7 +211,7 @@ export default function AdminDashboard() {
                 </div>
                 <p className="text-xs text-muted-foreground flex items-center">
                   {changeIcon(stats.customersChange)}
-                  {stats.customersChange >= 0 ? "+" : ""}
+                  {stats.customersChange >= 0 ? '+' : ''}
                   {stats.customersChange}% from last month
                 </p>
               </CardContent>
@@ -220,7 +228,7 @@ export default function AdminDashboard() {
                 <div className="text-2xl font-bold">{stats.totalProducts}</div>
                 <p className="text-xs text-muted-foreground flex items-center">
                   {changeIcon(stats.productsChange)}
-                  {stats.productsChange >= 0 ? "+" : ""}
+                  {stats.productsChange >= 0 ? '+' : ''}
                   {stats.productsChange}% from last month
                 </p>
               </CardContent>
@@ -242,13 +250,22 @@ export default function AdminDashboard() {
                   <div className="h-72">
                     {salesData.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={salesData.map(d => ({
-                          ...d,
-                          label: new Date(d.date).toLocaleDateString("en-US", {
-                            month: "short", day: "numeric"
-                          }),
-                        }))}>
-                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <ComposedChart
+                          data={salesData.map((d) => ({
+                            ...d,
+                            label: new Date(d.date).toLocaleDateString(
+                              'en-US',
+                              {
+                                month: 'short',
+                                day: 'numeric',
+                              },
+                            ),
+                          }))}
+                        >
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            className="stroke-muted"
+                          />
                           <XAxis
                             dataKey="label"
                             tick={{ fontSize: 12 }}
@@ -258,7 +275,9 @@ export default function AdminDashboard() {
                             yAxisId="revenue"
                             tick={{ fontSize: 12 }}
                             className="text-muted-foreground"
-                            tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
+                            tickFormatter={(v: number) =>
+                              `$${(v / 1000).toFixed(0)}k`
+                            }
                           />
                           <YAxis
                             yAxisId="orders"
@@ -269,7 +288,9 @@ export default function AdminDashboard() {
                           <Tooltip
                             contentStyle={{ borderRadius: 8, fontSize: 13 }}
                             formatter={(value, name) => [
-                              name === "Revenue" ? `$${Number(value).toLocaleString()}` : value,
+                              name === 'Revenue'
+                                ? `$${Number(value).toLocaleString()}`
+                                : value,
                               name,
                             ]}
                           />
@@ -298,7 +319,9 @@ export default function AdminDashboard() {
                       <div className="h-full flex items-center justify-center bg-muted rounded-md">
                         <div className="text-center">
                           <TrendingUp className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
-                          <p className="text-muted-foreground">No sales data available</p>
+                          <p className="text-muted-foreground">
+                            No sales data available
+                          </p>
                         </div>
                       </div>
                     )}
@@ -333,7 +356,9 @@ export default function AdminDashboard() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-medium">{formatPrice(order.amount)}</p>
+                          <p className="font-medium">
+                            {formatPrice(order.amount)}
+                          </p>
                           <p className="text-sm text-muted-foreground">
                             {order.items} items
                           </p>
@@ -365,7 +390,9 @@ export default function AdminDashboard() {
                         </div>
                         <div className="relative w-12 h-12 bg-muted rounded-md overflow-hidden">
                           <Image
-                            src={product.image || "/images/product-placeholder.jpg"}
+                            src={
+                              product.image || '/images/product-placeholder.jpg'
+                            }
                             alt={product.name}
                             width={48}
                             height={48}
@@ -375,7 +402,8 @@ export default function AdminDashboard() {
                         <div className="flex-1 min-w-0">
                           <p className="font-medium truncate">{product.name}</p>
                           <p className="text-sm text-muted-foreground">
-                            {product.sales} sold • {formatPrice(product.revenue)}
+                            {product.sales} sold •{' '}
+                            {formatPrice(product.revenue)}
                           </p>
                         </div>
                         <div className="text-right">

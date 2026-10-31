@@ -37,9 +37,7 @@ describe('ProductsController', () => {
       // Arrange (เตรียมข้อมูลจำลอง)
       const query: ProductQueryDto = { page: 1, limit: 12, search: 'shoes' };
       const expectedResult = {
-        products: [
-          { id: 'prod-1', name: 'Running Shoes', price: 1200 },
-        ],
+        products: [{ id: 'prod-1', name: 'Running Shoes', price: 1200 }],
         total: 1,
         page: 1,
         totalPages: 1,
@@ -64,7 +62,9 @@ describe('ProductsController', () => {
       mockProductsService.getProducts.mockRejectedValue(error);
 
       // Act & Assert
-      await expect(controller.getProducts(query)).rejects.toThrow('Database connection failed');
+      await expect(controller.getProducts(query)).rejects.toThrow(
+        'Database connection failed',
+      );
       expect(service.getProducts).toHaveBeenCalledWith(query);
     });
   });

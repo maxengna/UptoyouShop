@@ -1,18 +1,28 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
-import Link from 'next/link'
-import { Search, Filter, Grid, List, ChevronDown, Package, Loader2, ArrowLeft, PackageX } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { ProductCard } from '@/components/shop/product-card'
-import { useProductStore } from '@/store/product-store'
-import { debounce } from '@/lib/utils'
-import { useCategoryStore } from '@/store/category-store'
-import { productApi } from '@/lib/api'
-import { Product } from '@/types/product'
+import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
+import {
+  Search,
+  Filter,
+  Grid,
+  List,
+  ChevronDown,
+  Package,
+  Loader2,
+  ArrowLeft,
+  PackageX,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { ProductCard } from '@/components/shop/product-card';
+import { useProductStore } from '@/store/product-store';
+import { debounce } from '@/lib/utils';
+import { useCategoryStore } from '@/store/category-store';
+import { productApi } from '@/lib/api';
+import { Product } from '@/types/product';
 
 interface CategoryNav {
   id: string;
@@ -27,101 +37,118 @@ const mapApiProduct = (p: any): Product => ({
   price: parseFloat(p.price) || 0,
   originalPrice: p.comparePrice ? parseFloat(p.comparePrice) : undefined,
   images: p.images?.map((img: any) => img.url).filter(Boolean) || [],
-  category: typeof p.category === 'string' ? p.category : (p.category?.slug || ''),
+  category:
+    typeof p.category === 'string' ? p.category : p.category?.slug || '',
   slug: p.slug || '',
   stock: parseInt(p.stock ?? '0', 10),
   sku: p.sku || '',
   rating: p.averageRating ?? p.rating ?? undefined,
   reviews: p.reviewCount ?? p.reviews ?? undefined,
   isNew: p.isNew ?? undefined,
-  isOnSale: p.comparePrice ? parseFloat(p.comparePrice) > parseFloat(p.price) : undefined,
-  variants: p.variants?.map((v: any) => ({ id: v.id, name: v.name, value: v.value, price: v.price ? parseFloat(v.price) : undefined })) || undefined,
-})
+  isOnSale: p.comparePrice
+    ? parseFloat(p.comparePrice) > parseFloat(p.price)
+    : undefined,
+  variants:
+    p.variants?.map((v: any) => ({
+      id: v.id,
+      name: v.name,
+      value: v.value,
+      price: v.price ? parseFloat(v.price) : undefined,
+    })) || undefined,
+});
 
 export default function CategoryPage() {
-  const params = useParams()
-  const categorySlug = params.slug as string
-  
-  const { 
-    setProducts, 
-    searchQuery, 
-    setSearchQuery, 
-    selectedCategory, 
-    setSelectedCategory, 
-    sortBy, 
-    setSortBy, 
-    priceRange, 
-    setPriceRange, 
-    getFilteredProducts 
-  } = useProductStore()
-  
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [showFilters, setShowFilters] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const { categories: storeCategories, fetchCategories } = useCategoryStore()
+  const params = useParams();
+  const categorySlug = params.slug as string;
+
+  const {
+    setProducts,
+    searchQuery,
+    setSearchQuery,
+    selectedCategory,
+    setSelectedCategory,
+    sortBy,
+    setSortBy,
+    priceRange,
+    setPriceRange,
+    getFilteredProducts,
+  } = useProductStore();
+
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { categories: storeCategories, fetchCategories } = useCategoryStore();
   const fetchedCategories: CategoryNav[] = [
     { id: 'all', name: 'All Products', slug: 'all' },
     ...storeCategories.map((c) => ({ id: c.id, name: c.name, slug: c.slug })),
-  ]
-  const productsPerPage = 12
+  ];
+  const productsPerPage = 12;
 
   useEffect(() => {
-    fetchCategories()
-  }, [fetchCategories])
+    fetchCategories();
+  }, [fetchCategories]);
 
   useEffect(() => {
-    setSelectedCategory(categorySlug === 'all' ? '' : categorySlug)
-    fetchProducts()
-  }, [categorySlug, setSelectedCategory])
+    setSelectedCategory(categorySlug === 'all' ? '' : categorySlug);
+    fetchProducts();
+  }, [categorySlug, setSelectedCategory]);
 
   const fetchProducts = async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      const params: any = { category: categorySlug === 'all' ? undefined : categorySlug, limit: 200 }
-      const response = await productApi.getAll(params)
+      const params: any = {
+        category: categorySlug === 'all' ? undefined : categorySlug,
+        limit: 200,
+      };
+      const response = await productApi.getAll(params);
       if (response.success) {
-        const mapped = (response.data?.products || []).map(mapApiProduct)
-        setProducts(mapped)
+        const mapped = (response.data?.products || []).map(mapApiProduct);
+        setProducts(mapped);
       } else {
-        setProducts([])
-        setError('Failed to fetch products')
+        setProducts([]);
+        setError('Failed to fetch products');
       }
     } catch {
-      setProducts([])
-      setError('Failed to load products')
+      setProducts([]);
+      setError('Failed to load products');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // Debounced search
   const debouncedSearch = debounce((query: string) => {
-    setSearchQuery(query)
-    setCurrentPage(1)
-  }, 300)
+    setSearchQuery(query);
+    setCurrentPage(1);
+  }, 300);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    debouncedSearch(e.target.value)
-  }
+    debouncedSearch(e.target.value);
+  };
 
   const handleSortChange = (value: string) => {
-    setSortBy(value as any)
-    setCurrentPage(1)
-  }
+    setSortBy(value as any);
+    setCurrentPage(1);
+  };
 
   const handlePriceRangeChange = (min: number, max: number) => {
-    setPriceRange([min, max])
-    setCurrentPage(1)
-  }
+    setPriceRange([min, max]);
+    setCurrentPage(1);
+  };
 
-  const currentCategory = fetchedCategories.find(cat => cat.slug === categorySlug)
-  const filteredProducts = getFilteredProducts()
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage)
-  const startIndex = (currentPage - 1) * productsPerPage
-  const paginatedProducts = filteredProducts.slice(startIndex, startIndex + productsPerPage)
+  const currentCategory = fetchedCategories.find(
+    (cat) => cat.slug === categorySlug,
+  );
+  const filteredProducts = getFilteredProducts();
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+  const startIndex = (currentPage - 1) * productsPerPage;
+  const paginatedProducts = filteredProducts.slice(
+    startIndex,
+    startIndex + productsPerPage,
+  );
 
   if (loading) {
     return (
@@ -130,7 +157,7 @@ export default function CategoryPage() {
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -149,7 +176,7 @@ export default function CategoryPage() {
           <Button onClick={fetchProducts}>Retry</Button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -188,7 +215,9 @@ export default function CategoryPage() {
           </div>
 
           {/* Filters */}
-          <div className={`${showFilters ? 'block' : 'hidden'} lg:block space-y-6`}>
+          <div
+            className={`${showFilters ? 'block' : 'hidden'} lg:block space-y-6`}
+          >
             {/* Search */}
             <div>
               <h3 className="font-medium mb-3">Search</h3>
@@ -210,11 +239,12 @@ export default function CategoryPage() {
                   <button
                     key={cat.id}
                     onClick={() => {
-                      setSelectedCategory(cat.slug === 'all' ? '' : cat.slug)
-                      setCurrentPage(1)
+                      setSelectedCategory(cat.slug === 'all' ? '' : cat.slug);
+                      setCurrentPage(1);
                     }}
                     className={`w-full text-left px-3 py-2 rounded-md text-sm ${
-                      (cat.slug === 'all' && !selectedCategory) || selectedCategory === cat.slug
+                      (cat.slug === 'all' && !selectedCategory) ||
+                      selectedCategory === cat.slug
                         ? 'bg-primary text-primary-foreground'
                         : 'hover:bg-muted'
                     }`}
@@ -234,14 +264,24 @@ export default function CategoryPage() {
                     type="number"
                     placeholder="Min"
                     value={priceRange[0]}
-                    onChange={(e) => handlePriceRangeChange(Number(e.target.value), priceRange[1])}
+                    onChange={(e) =>
+                      handlePriceRangeChange(
+                        Number(e.target.value),
+                        priceRange[1],
+                      )
+                    }
                   />
                   <span>-</span>
                   <Input
                     type="number"
                     placeholder="Max"
                     value={priceRange[1]}
-                    onChange={(e) => handlePriceRangeChange(priceRange[0], Number(e.target.value))}
+                    onChange={(e) =>
+                      handlePriceRangeChange(
+                        priceRange[0],
+                        Number(e.target.value),
+                      )
+                    }
                   />
                 </div>
                 <div className="flex gap-2">
@@ -305,10 +345,15 @@ export default function CategoryPage() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">
-                Showing {startIndex + 1}-{Math.min(startIndex + productsPerPage, filteredProducts.length)} of {filteredProducts.length} products
+                Showing {startIndex + 1}-
+                {Math.min(
+                  startIndex + productsPerPage,
+                  filteredProducts.length,
+                )}{' '}
+                of {filteredProducts.length} products
               </span>
             </div>
-            
+
             <div className="flex items-center gap-2">
               {/* Sort Dropdown */}
               <div className="relative">
@@ -350,12 +395,14 @@ export default function CategoryPage() {
 
           {/* Products Grid/List */}
           {paginatedProducts.length > 0 ? (
-            <div className={`grid gap-6 ${
-              viewMode === 'grid' 
-                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
-                : 'grid-cols-1'
-            }`}>
-              {paginatedProducts.map((product) => (
+            <div
+              className={`grid gap-6 ${
+                viewMode === 'grid'
+                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+                  : 'grid-cols-1'
+              }`}
+            >
+              {paginatedProducts.map((product) =>
                 viewMode === 'grid' ? (
                   <ProductCard key={product.id} product={product} />
                 ) : (
@@ -367,28 +414,37 @@ export default function CategoryPage() {
                         </div>
                         <div className="flex-1">
                           <h3 className="font-semibold mb-2">{product.name}</h3>
-                          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{product.description}</p>
+                          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                            {product.description}
+                          </p>
                           <div className="flex items-center justify-between">
-                            <span className="font-bold">${product.price.toFixed(2)}</span>
+                            <span className="font-bold">
+                              ${product.price.toFixed(2)}
+                            </span>
                             <Button size="sm">Add to Cart</Button>
                           </div>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
-                )
-              ))}
+                ),
+              )}
             </div>
           ) : (
             <div className="text-center py-12">
               <PackageX className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground mb-4">No products found matching your criteria.</p>
-              <Button variant="outline" onClick={() => {
-                setSearchQuery('')
-                setSelectedCategory('')
-                setPriceRange([0, 10000])
-                setCurrentPage(1)
-              }}>
+              <p className="text-muted-foreground mb-4">
+                No products found matching your criteria.
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCategory('');
+                  setPriceRange([0, 10000]);
+                  setCurrentPage(1);
+                }}
+              >
                 Clear Filters
               </Button>
             </div>
@@ -404,20 +460,22 @@ export default function CategoryPage() {
               >
                 Previous
               </Button>
-              
+
               <div className="flex gap-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <Button
-                    key={page}
-                    variant={currentPage === page ? 'default' : 'outline'}
-                    size="icon"
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </Button>
-                ))}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? 'default' : 'outline'}
+                      size="icon"
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </Button>
+                  ),
+                )}
               </div>
-              
+
               <Button
                 variant="outline"
                 disabled={currentPage === totalPages}
@@ -430,5 +488,5 @@ export default function CategoryPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

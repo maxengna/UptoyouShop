@@ -3,23 +3,23 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
-} from "@nestjs/common";
-import { PrismaService } from "../prisma/prisma.service";
-import { S3Service } from "../upload/s3.service";
-import { CreateCategoryDto } from "./dto/create-category.dto";
-import { UpdateCategoryDto } from "./dto/update-category.dto";
+} from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { S3Service } from '../upload/s3.service';
+import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 
 const DEFAULT_CATEGORIES = [
-  "Electronics",
-  "Clothing",
-  "Home & Garden",
-  "Sports",
-  "Books",
-  "Toys",
-  "Beauty",
-  "Health",
-  "Food",
-  "Other",
+  'Electronics',
+  'Clothing',
+  'Home & Garden',
+  'Sports',
+  'Books',
+  'Toys',
+  'Beauty',
+  'Health',
+  'Food',
+  'Other',
 ];
 
 @Injectable()
@@ -29,18 +29,23 @@ export class CategoriesService {
     private readonly s3Service: S3Service,
   ) {}
 
-  private async mapCategoryImages<T extends { imageKey?: string | null }>(category: T): Promise<T & { imageUrl?: string }> {
+  private async mapCategoryImages<T extends { imageKey?: string | null }>(
+    category: T,
+  ): Promise<T & { imageUrl?: string }> {
     if (!category.imageKey) return category;
     return {
       ...category,
-      imageUrl: await this.s3Service.getSignedUrl(category.imageKey, "categories"),
+      imageUrl: await this.s3Service.getSignedUrl(
+        category.imageKey,
+        'categories',
+      ),
     };
   }
 
   async getAll(page?: number, limit?: number) {
     let dbCategories = await this.prisma.category.findMany({
       where: { isActive: true },
-      orderBy: { sortOrder: "asc" },
+      orderBy: { sortOrder: 'asc' },
     });
 
     if (dbCategories.length === 0) {
@@ -48,8 +53,8 @@ export class CategoriesService {
         name,
         slug: name
           .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/(^-|-$)/g, ""),
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, ''),
       }));
 
       await this.prisma.category.createMany({
@@ -59,7 +64,7 @@ export class CategoriesService {
 
       dbCategories = await this.prisma.category.findMany({
         where: { isActive: true },
-        orderBy: { sortOrder: "asc" },
+        orderBy: { sortOrder: 'asc' },
       });
     }
 
@@ -79,7 +84,7 @@ export class CategoriesService {
       success: true,
       data: { categories: mapped },
       categories: mapped,
-      message: "Categories retrieved successfully",
+      message: 'Categories retrieved successfully',
       errors: [],
     };
 
@@ -106,13 +111,13 @@ export class CategoriesService {
     });
 
     if (!category) {
-      throw new NotFoundException("Category not found");
+      throw new NotFoundException('Category not found');
     }
 
     return {
       success: true,
       data: await this.mapCategoryImages(category),
-      message: "Category retrieved successfully",
+      message: 'Category retrieved successfully',
       errors: [],
     };
   }
@@ -124,14 +129,14 @@ export class CategoriesService {
       where: { name },
     });
     if (existingName) {
-      throw new ConflictException("Category with this name already exists");
+      throw new ConflictException('Category with this name already exists');
     }
 
     const existingSlug = await this.prisma.category.findUnique({
       where: { slug },
     });
     if (existingSlug) {
-      throw new ConflictException("Category with this slug already exists");
+      throw new ConflictException('Category with this slug already exists');
     }
 
     const category = await this.prisma.category.create({
@@ -141,7 +146,7 @@ export class CategoriesService {
     return {
       success: true,
       data: await this.mapCategoryImages(category),
-      message: "Category created successfully",
+      message: 'Category created successfully',
       errors: [],
     };
   }
@@ -152,7 +157,7 @@ export class CategoriesService {
     });
 
     if (!existing) {
-      throw new NotFoundException("Category not found");
+      throw new NotFoundException('Category not found');
     }
 
     if (updateCategoryDto.name && updateCategoryDto.name !== existing.name) {
@@ -160,7 +165,7 @@ export class CategoriesService {
         where: { name: updateCategoryDto.name },
       });
       if (nameExists) {
-        throw new ConflictException("Category with this name already exists");
+        throw new ConflictException('Category with this name already exists');
       }
     }
 
@@ -169,7 +174,7 @@ export class CategoriesService {
         where: { slug: updateCategoryDto.slug },
       });
       if (slugExists) {
-        throw new ConflictException("Category with this slug already exists");
+        throw new ConflictException('Category with this slug already exists');
       }
     }
 
@@ -181,7 +186,7 @@ export class CategoriesService {
     return {
       success: true,
       data: await this.mapCategoryImages(category),
-      message: "Category updated successfully",
+      message: 'Category updated successfully',
       errors: [],
     };
   }
@@ -195,7 +200,7 @@ export class CategoriesService {
     });
 
     if (!existing) {
-      throw new NotFoundException("Category not found");
+      throw new NotFoundException('Category not found');
     }
 
     if (existing._count.products > 0) {
@@ -205,7 +210,9 @@ export class CategoriesService {
     }
 
     if (existing.imageKey) {
-      await this.s3Service.deleteFile(existing.imageKey, "categories").catch(() => {});
+      await this.s3Service
+        .deleteFile(existing.imageKey, 'categories')
+        .catch(() => {});
     }
 
     await this.prisma.category.delete({
@@ -215,7 +222,7 @@ export class CategoriesService {
     return {
       success: true,
       data: null,
-      message: "Category deleted successfully",
+      message: 'Category deleted successfully',
       errors: [],
     };
   }

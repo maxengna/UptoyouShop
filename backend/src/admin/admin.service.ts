@@ -11,7 +11,9 @@ export class AdminService {
   ) {}
 
   async getSalesAnalytics(startDate?: string, endDate?: string) {
-    const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const start = startDate
+      ? new Date(startDate)
+      : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const end = endDate ? new Date(endDate) : new Date();
 
     const [
@@ -109,9 +111,11 @@ export class AdminService {
     // Calculate ratings
     const productsWithRatings = topRatedProducts.map((product) => ({
       ...product,
-      averageRating: product.reviews.length > 0
-        ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
-        : 0,
+      averageRating:
+        product.reviews.length > 0
+          ? product.reviews.reduce((sum, r) => sum + r.rating, 0) /
+            product.reviews.length
+          : 0,
       reviews: undefined,
     }));
 
@@ -121,7 +125,9 @@ export class AdminService {
         totalProducts,
         lowStockProducts,
         outOfStockProducts,
-        topRatedProducts: productsWithRatings.sort((a, b) => b.averageRating - a.averageRating),
+        topRatedProducts: productsWithRatings.sort(
+          (a, b) => b.averageRating - a.averageRating,
+        ),
         recentProducts,
       },
       message: 'Product analytics retrieved successfully',
@@ -130,43 +136,44 @@ export class AdminService {
   }
 
   async getCustomerAnalytics() {
-    const [
-      totalCustomers,
-      newCustomers,
-      activeCustomers,
-      topCustomers,
-    ] = await Promise.all([
-      this.prisma.user.count({ where: { role: UserRole.CUSTOMER } }),
-      this.prisma.user.count({
-        where: {
-          role: UserRole.CUSTOMER,
-          createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
-        },
-      }),
-      this.prisma.order.groupBy({
-        by: ['userId'],
-        where: {
-          createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
-        },
-        _count: { userId: true },
-      }),
-      this.prisma.user.findMany({
-        where: { role: UserRole.CUSTOMER },
-        include: {
-          orders: {
-            where: { status: { not: 'CANCELLED' } },
-            select: { total: true },
+    const [totalCustomers, newCustomers, activeCustomers, topCustomers] =
+      await Promise.all([
+        this.prisma.user.count({ where: { role: UserRole.CUSTOMER } }),
+        this.prisma.user.count({
+          where: {
+            role: UserRole.CUSTOMER,
+            createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
           },
-        },
-        take: 10,
-      }),
-    ]);
+        }),
+        this.prisma.order.groupBy({
+          by: ['userId'],
+          where: {
+            createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+          },
+          _count: { userId: true },
+        }),
+        this.prisma.user.findMany({
+          where: { role: UserRole.CUSTOMER },
+          include: {
+            orders: {
+              where: { status: { not: 'CANCELLED' } },
+              select: { total: true },
+            },
+          },
+          take: 10,
+        }),
+      ]);
 
-    const customersWithTotals = topCustomers.map((customer) => ({
-      ...customer,
-      totalSpent: customer.orders.reduce((sum, o) => sum + Number(o.total), 0),
-      orders: undefined,
-    })).sort((a, b) => b.totalSpent - a.totalSpent);
+    const customersWithTotals = topCustomers
+      .map((customer) => ({
+        ...customer,
+        totalSpent: customer.orders.reduce(
+          (sum, o) => sum + Number(o.total),
+          0,
+        ),
+        orders: undefined,
+      }))
+      .sort((a, b) => b.totalSpent - a.totalSpent);
 
     return {
       success: true,
@@ -310,16 +317,23 @@ export class AdminService {
     ]);
 
     // Get product details for top products
-    const topProductIds = topProductGroups.map(p => p.productId);
-    const products = topProductIds.length > 0 ? await this.prisma.product.findMany({
-      where: { id: { in: topProductIds } },
-      select: {
-        id: true,
-        name: true,
-        stock: true,
-        images: { take: 1, orderBy: { sortOrder: 'asc' }, select: { imageKey: true } },
-      },
-    }) : [];
+    const topProductIds = topProductGroups.map((p) => p.productId);
+    const products =
+      topProductIds.length > 0
+        ? await this.prisma.product.findMany({
+            where: { id: { in: topProductIds } },
+            select: {
+              id: true,
+              name: true,
+              stock: true,
+              images: {
+                take: 1,
+                orderBy: { sortOrder: 'asc' },
+                select: { imageKey: true },
+              },
+            },
+          })
+        : [];
 
     const calcChange = (current: number, previous: number) => {
       if (previous === 0) return current > 0 ? 100 : 0;
@@ -338,9 +352,12 @@ export class AdminService {
           Number(previousRevenueAgg._sum.total || 0),
         ),
         ordersChange: calcChange(currentOrdersCount, previousOrdersCount),
-        customersChange: calcChange(currentCustomersCount, previousCustomersCount),
+        customersChange: calcChange(
+          currentCustomersCount,
+          previousCustomersCount,
+        ),
         productsChange: calcChange(currentProductsCount, previousProductsCount),
-        recentOrders: recentOrders.map(order => ({
+        recentOrders: recentOrders.map((order) => ({
           id: order.orderNumber,
           customer: order.user?.name || order.user?.email || 'Unknown',
           amount: Number(order.total),
@@ -348,19 +365,23 @@ export class AdminService {
           date: order.createdAt,
           items: order.items.reduce((sum, item) => sum + item.quantity, 0),
         })),
-        topProducts: await Promise.all(topProductGroups.map(async g => {
-          const product = products.find(p => p.id === g.productId);
-          const imageKey = product?.images?.[0]?.imageKey;
-          return {
-            id: g.productId,
-            name: product?.name || 'Unknown',
-            sales: g._sum.quantity || 0,
-            revenue: Number(g._sum.price || 0),
-            stock: product?.stock || 0,
-            image: imageKey ? await this.s3Service.getSignedUrl(imageKey) : null,
-          };
-        })),
-        salesData: salesByDay.map(s => ({
+        topProducts: await Promise.all(
+          topProductGroups.map(async (g) => {
+            const product = products.find((p) => p.id === g.productId);
+            const imageKey = product?.images?.[0]?.imageKey;
+            return {
+              id: g.productId,
+              name: product?.name || 'Unknown',
+              sales: g._sum.quantity || 0,
+              revenue: Number(g._sum.price || 0),
+              stock: product?.stock || 0,
+              image: imageKey
+                ? await this.s3Service.getSignedUrl(imageKey)
+                : null,
+            };
+          }),
+        ),
+        salesData: salesByDay.map((s) => ({
           date: s.createdAt,
           revenue: Number(s._sum.total || 0),
           orders: s._count.id,
@@ -527,14 +548,18 @@ export class AdminService {
       this.prisma.user.count({
         where: {
           role: 'CUSTOMER',
-          createdAt: { gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) },
+          createdAt: {
+            gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+          },
         },
       }),
       // Active customers (last 30d)
       this.prisma.order.groupBy({
         by: ['userId'],
         where: {
-          createdAt: { gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) },
+          createdAt: {
+            gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+          },
         },
         _count: { userId: true },
       }),
@@ -552,34 +577,50 @@ export class AdminService {
     ]);
 
     // Map top products with images
-    const topProductIds = topProductGroups.map(p => p.productId);
-    const products = topProductIds.length > 0 ? await this.prisma.product.findMany({
-      where: { id: { in: topProductIds } },
-      select: {
-        id: true,
-        name: true,
-        stock: true,
-        images: { take: 1, orderBy: { sortOrder: 'asc' }, select: { imageKey: true } },
-      },
-    }) : [];
+    const topProductIds = topProductGroups.map((p) => p.productId);
+    const products =
+      topProductIds.length > 0
+        ? await this.prisma.product.findMany({
+            where: { id: { in: topProductIds } },
+            select: {
+              id: true,
+              name: true,
+              stock: true,
+              images: {
+                take: 1,
+                orderBy: { sortOrder: 'asc' },
+                select: { imageKey: true },
+              },
+            },
+          })
+        : [];
 
     // Map top rated products
-    const productsWithRatings = topRated.map((product) => ({
-      id: product.id,
-      name: product.name,
-      averageRating: product.reviews.length > 0
-        ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
-        : 0,
-      reviewsCount: product.reviews.length,
-    })).sort((a, b) => b.averageRating - a.averageRating);
+    const productsWithRatings = topRated
+      .map((product) => ({
+        id: product.id,
+        name: product.name,
+        averageRating:
+          product.reviews.length > 0
+            ? product.reviews.reduce((sum, r) => sum + r.rating, 0) /
+              product.reviews.length
+            : 0,
+        reviewsCount: product.reviews.length,
+      }))
+      .sort((a, b) => b.averageRating - a.averageRating);
 
     // Map top customers
-    const customersWithTotals = topCustomerData.map((customer) => ({
-      id: customer.id,
-      name: customer.name,
-      email: customer.email,
-      totalSpent: customer.orders.reduce((sum, o) => sum + Number(o.total), 0),
-    })).sort((a, b) => b.totalSpent - a.totalSpent);
+    const customersWithTotals = topCustomerData
+      .map((customer) => ({
+        id: customer.id,
+        name: customer.name,
+        email: customer.email,
+        totalSpent: customer.orders.reduce(
+          (sum, o) => sum + Number(o.total),
+          0,
+        ),
+      }))
+      .sort((a, b) => b.totalSpent - a.totalSpent);
 
     const calcChange = (current: number, previous: number) => {
       if (previous === 0) return current > 0 ? 100 : 0;
@@ -601,27 +642,34 @@ export class AdminService {
           Number(previousRevenueAgg._sum.total || 0),
         ),
         ordersChange: calcChange(currentOrdersCount, previousOrdersCount),
-        customersChange: calcChange(currentCustomersCount, previousCustomersCount),
+        customersChange: calcChange(
+          currentCustomersCount,
+          previousCustomersCount,
+        ),
         productsChange: calcChange(currentProductsCount, previousProductsCount),
         // Sales
-        salesByDay: salesByDay.map(s => ({
+        salesByDay: salesByDay.map((s) => ({
           date: s.createdAt,
           revenue: Number(s._sum.total || 0),
           orders: s._count.id,
         })),
-        topProducts: await Promise.all(topProductGroups.map(async g => {
-          const product = products.find(p => p.id === g.productId);
-          const imageKey = product?.images?.[0]?.imageKey;
-          return {
-            id: g.productId,
-            name: product?.name || 'Unknown',
-            sales: g._sum.quantity || 0,
-            revenue: Number(g._sum.price || 0),
-            stock: product?.stock || 0,
-            image: imageKey ? await this.s3Service.getSignedUrl(imageKey) : null,
-          };
-        })),
-        recentOrders: recentOrders.map(order => ({
+        topProducts: await Promise.all(
+          topProductGroups.map(async (g) => {
+            const product = products.find((p) => p.id === g.productId);
+            const imageKey = product?.images?.[0]?.imageKey;
+            return {
+              id: g.productId,
+              name: product?.name || 'Unknown',
+              sales: g._sum.quantity || 0,
+              revenue: Number(g._sum.price || 0),
+              stock: product?.stock || 0,
+              image: imageKey
+                ? await this.s3Service.getSignedUrl(imageKey)
+                : null,
+            };
+          }),
+        ),
+        recentOrders: recentOrders.map((order) => ({
           id: order.orderNumber,
           customer: order.user?.name || order.user?.email || 'Unknown',
           amount: Number(order.total),
@@ -886,7 +934,11 @@ export class AdminService {
             select: {
               id: true,
               name: true,
-              images: { take: 1, orderBy: { sortOrder: 'asc' }, select: { imageKey: true } },
+              images: {
+                take: 1,
+                orderBy: { sortOrder: 'asc' },
+                select: { imageKey: true },
+              },
             },
           },
         },
@@ -939,7 +991,11 @@ export class AdminService {
           select: {
             id: true,
             name: true,
-            images: { take: 1, orderBy: { sortOrder: 'asc' }, select: { imageKey: true } },
+            images: {
+              take: 1,
+              orderBy: { sortOrder: 'asc' },
+              select: { imageKey: true },
+            },
           },
         },
       },

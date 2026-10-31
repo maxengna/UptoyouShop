@@ -233,7 +233,18 @@ export class UsersService {
     if (!wishlist) {
       wishlist = await this.prisma.wishlist.create({
         data: { userId },
-        include: { wishlistItems: { include: { product: { include: { images: { take: 1 }, category: { select: { name: true, slug: true } } } } } } },
+        include: {
+          wishlistItems: {
+            include: {
+              product: {
+                include: {
+                  images: { take: 1 },
+                  category: { select: { name: true, slug: true } },
+                },
+              },
+            },
+          },
+        },
       });
     }
 

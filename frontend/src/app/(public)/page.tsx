@@ -1,15 +1,15 @@
-'use client'
+'use client';
 
-import { HeroBanner } from '@/components/shop/hero-banner'
-import { ProductCard } from '@/components/shop/product-card'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useProductStore } from '@/store/product-store'
-import { useEffect } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { productApi, categoryApi } from '@/lib/api'
-import { Product } from '@/types/product'
+import { HeroBanner } from '@/components/shop/hero-banner';
+import { ProductCard } from '@/components/shop/product-card';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useProductStore } from '@/store/product-store';
+import { useEffect } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { productApi, categoryApi } from '@/lib/api';
+import { Product } from '@/types/product';
 
 const mapApiProduct = (p: any): Product => ({
   id: String(p.id ?? ''),
@@ -19,7 +19,13 @@ const mapApiProduct = (p: any): Product => ({
   originalPrice: p.comparePrice ? parseFloat(p.comparePrice) : undefined,
   images: p.images?.map((img: any) => img.url) || [],
   category: p.category,
-  slug: p.slug || p.name?.toLowerCase().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, ''),
+  slug:
+    p.slug ||
+    p.name
+      ?.toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, ''),
   stock: parseInt(p.stock || '0', 10),
   sku: p.sku,
   rating: p.rating || undefined,
@@ -27,23 +33,29 @@ const mapApiProduct = (p: any): Product => ({
   isNew: p.isNew || undefined,
   isOnSale: p.isOnSale || undefined,
   variants: p.variants || undefined,
-})
+});
 
 export default function HomePage() {
-  const { products, setProducts, setFeaturedProducts, setCategories, categories } = useProductStore()
+  const {
+    products,
+    setProducts,
+    setFeaturedProducts,
+    setCategories,
+    categories,
+  } = useProductStore();
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await productApi.getAll()
+        const response = await productApi.getAll();
         if (response.success && response.data) {
-          const mapped = response.data.products.map(mapApiProduct)
-          setProducts(mapped)
-          setFeaturedProducts(mapped.slice(0, 4))
+          const mapped = response.data.products.map(mapApiProduct);
+          setProducts(mapped);
+          setFeaturedProducts(mapped.slice(0, 4));
 
           // Fetch real categories with images from API
           try {
-            const catRes = await categoryApi.getAll()
+            const catRes = await categoryApi.getAll();
             if (catRes.success && catRes.data?.categories) {
               const realCats = catRes.data.categories.map((c) => ({
                 id: c.id,
@@ -52,29 +64,33 @@ export default function HomePage() {
                 image: c.imageUrl || undefined,
                 description: c.description,
                 productCount: c._count?.products || 0,
-              }))
-              setCategories(realCats)
+              }));
+              setCategories(realCats);
             }
           } catch {
             // fallback: extract from products if category API fails
             const fallbackCats = mapped
-              .filter((p, i, arr) => arr.findIndex((x) => x.category === p.category) === i)
+              .filter(
+                (p, i, arr) =>
+                  arr.findIndex((x) => x.category === p.category) === i,
+              )
               .map((p, idx) => ({
                 id: String(idx + 1),
                 name: p.category.charAt(0).toUpperCase() + p.category.slice(1),
                 slug: p.category,
                 image: undefined,
-                productCount: mapped.filter((x) => x.category === p.category).length,
-              }))
-            setCategories(fallbackCats)
+                productCount: mapped.filter((x) => x.category === p.category)
+                  .length,
+              }));
+            setCategories(fallbackCats);
           }
         }
       } catch (err) {
-        console.error('Failed to fetch products:', err)
+        console.error('Failed to fetch products:', err);
       }
-    }
-    fetchProducts()
-  }, [setProducts, setFeaturedProducts, setCategories])
+    };
+    fetchProducts();
+  }, [setProducts, setFeaturedProducts, setCategories]);
 
   return (
     <div className="space-y-12">
@@ -85,7 +101,9 @@ export default function HomePage() {
       <section className="container mx-auto px-4">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold mb-4">Featured Products</h2>
-          <p className="text-muted-foreground">Check out our hand-picked selection of amazing products</p>
+          <p className="text-muted-foreground">
+            Check out our hand-picked selection of amazing products
+          </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -105,7 +123,9 @@ export default function HomePage() {
       <section className="container mx-auto px-4">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold mb-4">Shop by Category</h2>
-          <p className="text-muted-foreground">Browse our wide range of product categories</p>
+          <p className="text-muted-foreground">
+            Browse our wide range of product categories
+          </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -123,7 +143,9 @@ export default function HomePage() {
                   </div>
                 </CardHeader>
                 <CardContent className="p-4 text-center">
-                  <CardTitle className="text-lg mb-2">{category.name}</CardTitle>
+                  <CardTitle className="text-lg mb-2">
+                    {category.name}
+                  </CardTitle>
                   <p className="text-sm text-muted-foreground">
                     {category.productCount} products
                   </p>
@@ -139,7 +161,9 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="text-center">
             <h2 className="text-3xl font-bold mb-4">Special Offers</h2>
-            <p className="text-muted-foreground mb-8">Limited time deals you don't want to miss</p>
+            <p className="text-muted-foreground mb-8">
+              Limited time deals you don't want to miss
+            </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card className="text-center p-6">
@@ -159,5 +183,5 @@ export default function HomePage() {
         </div>
       </section>
     </div>
-  )
+  );
 }

@@ -3,12 +3,12 @@ import {
   NotFoundException,
   BadRequestException,
   InternalServerErrorException,
-} from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { PrismaService } from "../prisma/prisma.service";
-import { OrdersService } from "../orders/orders.service";
-import { PaymentStatus } from "@prisma/client";
-import Stripe from "stripe";
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { PrismaService } from '../prisma/prisma.service';
+import { OrdersService } from '../orders/orders.service';
+import { PaymentStatus } from '@prisma/client';
+import Stripe from 'stripe';
 
 @Injectable()
 export class PaymentsService {
@@ -19,17 +19,17 @@ export class PaymentsService {
     private readonly configService: ConfigService,
     private readonly ordersService: OrdersService,
   ) {
-    const secretKey = this.configService.get("app.stripe.secretKey");
+    const secretKey = this.configService.get('app.stripe.secretKey');
     if (secretKey) {
       this.stripe = new Stripe(secretKey, {
-        apiVersion: "2026-06-24.dahlia",
+        apiVersion: '2026-06-24.dahlia',
       });
     }
   }
 
   async createPaymentIntent(orderId: string) {
     if (!this.stripe) {
-      throw new InternalServerErrorException("Stripe is not configured");
+      throw new InternalServerErrorException('Stripe is not configured');
     }
 
     const order = await this.prisma.order.findUnique({
@@ -38,11 +38,11 @@ export class PaymentsService {
     });
 
     if (!order) {
-      throw new NotFoundException("Order not found");
+      throw new NotFoundException('Order not found');
     }
 
     if (order.paymentStatus !== PaymentStatus.PENDING) {
-      throw new BadRequestException("Payment already processed for this order");
+      throw new BadRequestException('Payment already processed for this order');
     }
 
     const existingPayment = await this.prisma.payment.findUnique({
@@ -74,7 +74,7 @@ export class PaymentsService {
         amount: order.total,
         currency: order.currency,
         status: PaymentStatus.PENDING,
-        provider: "stripe",
+        provider: 'stripe',
         metadata: { clientSecret: paymentIntent.client_secret },
       },
     });
@@ -87,12 +87,14 @@ export class PaymentsService {
 
   async handleWebhook(rawBody: string, sig: string) {
     if (!this.stripe) {
-      throw new InternalServerErrorException("Stripe is not configured");
+      throw new InternalServerErrorException('Stripe is not configured');
     }
 
-    const webhookSecret = this.configService.get("app.stripe.webhookSecret");
+    const webhookSecret = this.configService.get('app.stripe.webhookSecret');
     if (!webhookSecret) {
-      throw new InternalServerErrorException("Stripe webhook secret is not configured");
+      throw new InternalServerErrorException(
+        'Stripe webhook secret is not configured',
+      );
     }
 
     let event: Stripe.Event;
@@ -100,16 +102,16 @@ export class PaymentsService {
     try {
       event = this.stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
     } catch {
-      throw new BadRequestException("Invalid webhook signature");
+      throw new BadRequestException('Invalid webhook signature');
     }
 
     switch (event.type) {
-      case "payment_intent.succeeded": {
+      case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         await this.confirmPayment(paymentIntent.id);
         break;
       }
-      case "payment_intent.payment_failed": {
+      case 'payment_intent.payment_failed': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         await this.failPayment(paymentIntent.id);
         break;
@@ -125,7 +127,7 @@ export class PaymentsService {
     });
 
     if (!payment) {
-      throw new NotFoundException("Payment not found");
+      throw new NotFoundException('Payment not found');
     }
 
     await this.ordersService.confirmOrderPayment(payment.orderId, payment.id);
@@ -150,11 +152,11 @@ export class PaymentsService {
     });
 
     if (!order) {
-      throw new NotFoundException("Order not found");
+      throw new NotFoundException('Order not found');
     }
 
     if (order.paymentStatus !== PaymentStatus.PENDING) {
-      throw new BadRequestException("Payment already processed for this order");
+      throw new BadRequestException('Payment already processed for this order');
     }
 
     const paymentIntentId = `pi_test_${Date.now()}`;
@@ -166,13 +168,13 @@ export class PaymentsService {
         amount: order.total,
         currency: order.currency,
         status: PaymentStatus.COMPLETED,
-        provider: "test",
+        provider: 'test',
       },
     });
 
     await this.ordersService.confirmOrderPayment(order.id);
 
-    return { success: true, message: "Payment confirmed successfully" };
+    return { success: true, message: 'Payment confirmed successfully' };
   }
 
   async confirmPaymentIntent(orderId: string, paymentIntentId: string) {
@@ -181,16 +183,17 @@ export class PaymentsService {
     });
 
     if (!order) {
-      throw new NotFoundException("Order not found");
+      throw new NotFoundException('Order not found');
     }
 
     if (order.paymentStatus !== PaymentStatus.PENDING) {
-      return { success: true, message: "Payment already confirmed" };
+      return { success: true, message: 'Payment already confirmed' };
     }
 
-    const paymentIntent = await this.stripe.paymentIntents.retrieve(paymentIntentId);
+    const paymentIntent =
+      await this.stripe.paymentIntents.retrieve(paymentIntentId);
 
-    if (paymentIntent.status !== "succeeded") {
+    if (paymentIntent.status !== 'succeeded') {
       throw new BadRequestException(
         `PaymentIntent status is "${paymentIntent.status}", expected "succeeded"`,
       );
@@ -201,11 +204,14 @@ export class PaymentsService {
     });
 
     if (!existingPayment) {
-      throw new NotFoundException("Payment record not found");
+      throw new NotFoundException('Payment record not found');
     }
 
     await this.ordersService.confirmOrderPayment(order.id, existingPayment.id);
 
-    return { success: true, message: "Payment confirmed and inventory updated" };
+    return {
+      success: true,
+      message: 'Payment confirmed and inventory updated',
+    };
   }
 }

@@ -41,7 +41,13 @@ export class ReviewsService {
     ]);
 
     // Calculate rating distribution
-    const ratingDistribution: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    const ratingDistribution: Record<number, number> = {
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0,
+      5: 0,
+    };
     let totalRating = 0;
     stats.forEach((stat) => {
       ratingDistribution[stat.rating] = stat._count.rating;

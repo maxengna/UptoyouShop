@@ -1,7 +1,7 @@
-import { Module } from "@nestjs/common";
-import { PaymentsService } from "./payment.service";
-import { PaymentsController } from "./payment.controller";
-import { OrdersModule } from "../orders/orders.module";
+import { Module } from '@nestjs/common';
+import { PaymentsService } from './payment.service';
+import { PaymentsController } from './payment.controller';
+import { OrdersModule } from '../orders/orders.module';
 
 @Module({
   imports: [OrdersModule],

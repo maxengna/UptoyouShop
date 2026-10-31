@@ -1,73 +1,91 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Star, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { Input } from '@/components/ui/input'
-import { reviewApi } from '@/lib/api'
-import { getAccessToken } from '@/lib/api'
+import { useState } from 'react';
+import { Star, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { reviewApi } from '@/lib/api';
+import { getAccessToken } from '@/lib/api';
 
 interface ReviewFormProps {
-  productId: string
-  onSuccess?: () => void
-  onCancel?: () => void
+  productId: string;
+  onSuccess?: () => void;
+  onCancel?: () => void;
   initialData?: {
-    id: string
-    rating: number
-    title?: string
-    content: string
-  }
-  isEditing?: boolean
+    id: string;
+    rating: number;
+    title?: string;
+    content: string;
+  };
+  isEditing?: boolean;
 }
 
-export function ReviewForm({ productId, onSuccess, onCancel, initialData, isEditing }: ReviewFormProps) {
-  const [rating, setRating] = useState(initialData?.rating || 0)
-  const [hoveredRating, setHoveredRating] = useState(0)
-  const [title, setTitle] = useState(initialData?.title || '')
-  const [content, setContent] = useState(initialData?.content || '')
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+export function ReviewForm({
+  productId,
+  onSuccess,
+  onCancel,
+  initialData,
+  isEditing,
+}: ReviewFormProps) {
+  const [rating, setRating] = useState(initialData?.rating || 0);
+  const [hoveredRating, setHoveredRating] = useState(0);
+  const [title, setTitle] = useState(initialData?.title || '');
+  const [content, setContent] = useState(initialData?.content || '');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (rating === 0) {
-      setError('Please select a rating')
-      return
+      setError('Please select a rating');
+      return;
     }
     if (!content.trim()) {
-      setError('Please write a review')
-      return
+      setError('Please write a review');
+      return;
     }
 
-    const token = getAccessToken()
+    const token = getAccessToken();
     if (!token) {
-      setError('Please login to submit a review')
-      return
+      setError('Please login to submit a review');
+      return;
     }
 
-    setSubmitting(true)
-    setError(null)
+    setSubmitting(true);
+    setError(null);
 
     try {
       if (isEditing && initialData) {
-        await reviewApi.update(initialData.id, { rating, title: title || undefined, content })
+        await reviewApi.update(initialData.id, {
+          rating,
+          title: title || undefined,
+          content,
+        });
       } else {
-        await reviewApi.create({ productId, rating, title: title || undefined, content })
+        await reviewApi.create({
+          productId,
+          rating,
+          title: title || undefined,
+          content,
+        });
       }
-      setRating(0)
-      setTitle('')
-      setContent('')
-      onSuccess?.()
+      setRating(0);
+      setTitle('');
+      setContent('');
+      onSuccess?.();
     } catch (err: any) {
-      setError(err.message || 'Failed to submit review')
+      setError(err.message || 'Failed to submit review');
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 border rounded-lg p-6 bg-card">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 border rounded-lg p-6 bg-card"
+    >
       <h3 className="font-semibold text-lg">
         {isEditing ? 'Edit Your Review' : 'Write a Review'}
       </h3>
@@ -97,7 +115,10 @@ export function ReviewForm({ productId, onSuccess, onCancel, initialData, isEdit
       </div>
 
       <div>
-        <label htmlFor="review-title" className="block text-sm font-medium mb-2">
+        <label
+          htmlFor="review-title"
+          className="block text-sm font-medium mb-2"
+        >
           Title (optional)
         </label>
         <Input
@@ -110,7 +131,10 @@ export function ReviewForm({ productId, onSuccess, onCancel, initialData, isEdit
       </div>
 
       <div>
-        <label htmlFor="review-content" className="block text-sm font-medium mb-2">
+        <label
+          htmlFor="review-content"
+          className="block text-sm font-medium mb-2"
+        >
           Review
         </label>
         <Textarea
@@ -123,9 +147,7 @@ export function ReviewForm({ productId, onSuccess, onCancel, initialData, isEdit
         />
       </div>
 
-      {error && (
-        <p className="text-sm text-red-500">{error}</p>
-      )}
+      {error && <p className="text-sm text-red-500">{error}</p>}
 
       <div className="flex gap-3">
         <Button type="submit" disabled={submitting}>
@@ -139,5 +161,5 @@ export function ReviewForm({ productId, onSuccess, onCancel, initialData, isEdit
         )}
       </div>
     </form>
-  )
+  );
 }

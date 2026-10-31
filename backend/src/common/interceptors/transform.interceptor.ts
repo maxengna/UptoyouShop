@@ -3,9 +3,9 @@ import {
   NestInterceptor,
   ExecutionContext,
   CallHandler,
-} from "@nestjs/common";
-import { Observable } from "rxjs";
-import { map } from "rxjs/operators";
+} from '@nestjs/common';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 export interface Response<T> {
   success: boolean;
@@ -28,11 +28,11 @@ export class TransformInterceptor<T> implements NestInterceptor<
         // If response is already formatted, return as is
         if (
           data &&
-          typeof data === "object" &&
-          "success" in data &&
-          "data" in data &&
-          "message" in data &&
-          "errors" in data
+          typeof data === 'object' &&
+          'success' in data &&
+          'data' in data &&
+          'message' in data &&
+          'errors' in data
         ) {
           return data as Response<T>;
         }
@@ -41,7 +41,7 @@ export class TransformInterceptor<T> implements NestInterceptor<
         return {
           success: true,
           data: data || null,
-          message: "Operation completed successfully",
+          message: 'Operation completed successfully',
           errors: [],
         } as Response<T>;
       }),

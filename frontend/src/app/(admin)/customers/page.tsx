@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
-import { ArrowLeft, Search, Eye, ChevronDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { adminApi, PaginationMeta } from "@/lib/api";
+import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import { ArrowLeft, Search, Eye, ChevronDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { adminApi, PaginationMeta } from '@/lib/api';
 
 interface User {
   id: string;
@@ -20,16 +20,16 @@ interface User {
   _count: { orders: number };
 }
 
-const roleOptions = ["All", "CUSTOMER", "ADMIN", "SUPER_ADMIN"];
+const roleOptions = ['All', 'CUSTOMER', 'ADMIN', 'SUPER_ADMIN'];
 
 const roleBadgeVariant = (role: string) => {
   switch (role) {
-    case "SUPER_ADMIN":
-      return "destructive" as const;
-    case "ADMIN":
-      return "secondary" as const;
+    case 'SUPER_ADMIN':
+      return 'destructive' as const;
+    case 'ADMIN':
+      return 'secondary' as const;
     default:
-      return "default" as const;
+      return 'default' as const;
   }
 };
 
@@ -37,9 +37,9 @@ export default function CustomersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchInput, setSearchInput] = useState("");
-  const [selectedRole, setSelectedRole] = useState("All");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [selectedRole, setSelectedRole] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState<PaginationMeta | null>(null);
 
@@ -51,17 +51,17 @@ export default function CustomersPage() {
       const response = await adminApi.getUsers({
         page: currentPage,
         limit: LIMIT,
-        role: selectedRole === "All" ? undefined : selectedRole,
+        role: selectedRole === 'All' ? undefined : selectedRole,
         search: searchQuery || undefined,
       });
       if (response.success) {
         setUsers(response.data.users || []);
         setPagination(response.data.pagination || null);
       } else {
-        throw new Error(response.message || "Failed to fetch users");
+        throw new Error(response.message || 'Failed to fetch users');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -121,7 +121,7 @@ export default function CustomersPage() {
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold">
-              {users.filter((u) => u.role === "CUSTOMER").length}
+              {users.filter((u) => u.role === 'CUSTOMER').length}
             </div>
             <p className="text-sm text-muted-foreground">Customers</p>
           </CardContent>
@@ -129,7 +129,7 @@ export default function CustomersPage() {
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold">
-              {users.filter((u) => u.role !== "CUSTOMER").length}
+              {users.filter((u) => u.role !== 'CUSTOMER').length}
             </div>
             <p className="text-sm text-muted-foreground">Staff / Admins</p>
           </CardContent>
@@ -148,7 +148,7 @@ export default function CustomersPage() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+                  if (e.key === 'Enter') {
                     setSearchQuery(searchInput);
                   }
                 }}
@@ -165,7 +165,7 @@ export default function CustomersPage() {
               >
                 {roleOptions.map((role) => (
                   <option key={role} value={role}>
-                    {role === "All" ? "All Roles" : role}
+                    {role === 'All' ? 'All Roles' : role}
                   </option>
                 ))}
               </select>
@@ -201,9 +201,7 @@ export default function CustomersPage() {
                     <td className="p-4 text-muted-foreground">
                       {(currentPage - 1) * LIMIT + index + 1}
                     </td>
-                    <td className="p-4 font-medium">
-                      {user.name || "—"}
-                    </td>
+                    <td className="p-4 font-medium">{user.name || '—'}</td>
                     <td className="p-4">{user.email}</td>
                     <td className="p-4">
                       <Badge variant={roleBadgeVariant(user.role)}>
@@ -242,9 +240,9 @@ export default function CustomersPage() {
               <Button
                 variant="outline"
                 onClick={() => {
-                  setSearchQuery("");
-                  setSearchInput("");
-                  setSelectedRole("All");
+                  setSearchQuery('');
+                  setSearchInput('');
+                  setSelectedRole('All');
                 }}
               >
                 Clear Filters
@@ -268,7 +266,7 @@ export default function CustomersPage() {
                   (page) => (
                     <Button
                       key={page}
-                      variant={currentPage === page ? "default" : "outline"}
+                      variant={currentPage === page ? 'default' : 'outline'}
                       size="icon"
                       onClick={() => setCurrentPage(page)}
                     >

@@ -1,43 +1,51 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { useUserStore } from "@/store/user-store"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, User, Mail, Phone, Calendar, Save, Loader2 } from "lucide-react"
-import Link from "next/link"
-import { toast } from "sonner"
+import { useState, useEffect } from 'react';
+import { useUserStore } from '@/store/user-store';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  ArrowLeft,
+  User,
+  Mail,
+  Phone,
+  Calendar,
+  Save,
+  Loader2,
+} from 'lucide-react';
+import Link from 'next/link';
+import { toast } from 'sonner';
 
 export default function ProfilePage() {
-  const { user } = useUserStore()
-  const [isEditing, setIsEditing] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [name, setName] = useState("")
-  const [phone, setPhone] = useState("")
+  const { user } = useUserStore();
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
 
   useEffect(() => {
     if (user) {
-      setName(user.name || "")
-      setPhone(user.phone || "")
+      setName(user.name || '');
+      setPhone(user.phone || '');
     }
-  }, [user])
+  }, [user]);
 
   const handleSave = async () => {
-    setIsSaving(true)
+    setIsSaving(true);
     // Simulate API call
-    await new Promise((r) => setTimeout(r, 1000))
-    toast.success("Profile updated successfully")
-    setIsEditing(false)
-    setIsSaving(false)
-  }
+    await new Promise((r) => setTimeout(r, 1000));
+    toast.success('Profile updated successfully');
+    setIsEditing(false);
+    setIsSaving(false);
+  };
 
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
-    )
+    );
   }
 
   return (
@@ -62,17 +70,17 @@ export default function ProfilePage() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Personal Information</CardTitle>
             <Button
-              variant={isEditing ? "default" : "outline"}
+              variant={isEditing ? 'default' : 'outline'}
               size="sm"
               onClick={() => {
                 if (isEditing) {
-                  setName(user.name || "")
-                  setPhone(user.phone || "")
+                  setName(user.name || '');
+                  setPhone(user.phone || '');
                 }
-                setIsEditing(!isEditing)
+                setIsEditing(!isEditing);
               }}
             >
-              {isEditing ? "Cancel" : "Edit"}
+              {isEditing ? 'Cancel' : 'Edit'}
             </Button>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -106,7 +114,9 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1.5">Email</label>
+                <label className="block text-sm font-medium mb-1.5">
+                  Email
+                </label>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Mail className="h-4 w-4" />
                   <span>{user.email}</span>
@@ -119,7 +129,9 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1.5">Phone</label>
+                <label className="block text-sm font-medium mb-1.5">
+                  Phone
+                </label>
                 {isEditing ? (
                   <Input
                     value={phone}
@@ -129,13 +141,15 @@ export default function ProfilePage() {
                 ) : (
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Phone className="h-4 w-4" />
-                    <span>{user.phone || "Not provided"}</span>
+                    <span>{user.phone || 'Not provided'}</span>
                   </div>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1.5">Member Since</label>
+                <label className="block text-sm font-medium mb-1.5">
+                  Member Since
+                </label>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="h-4 w-4" />
                   <span>Member</span>
@@ -145,8 +159,14 @@ export default function ProfilePage() {
 
             {isEditing && (
               <div className="pt-4 border-t">
-                <Button onClick={handleSave} disabled={isSaving} className="w-full">
-                  {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                <Button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="w-full"
+                >
+                  {isSaving && (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  )}
                   <Save className="h-4 w-4 mr-2" />
                   Save Changes
                 </Button>
@@ -156,5 +176,5 @@ export default function ProfilePage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
 import {
   ArrowLeft,
   Save,
@@ -17,16 +17,16 @@ import {
   Box,
   Tag,
   Search,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
-import { productApi, uploadApi, API_BASE } from "@/lib/api";
-import { useCategoryStore } from "@/store/category-store";
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { productApi, uploadApi, API_BASE } from '@/lib/api';
+import { useCategoryStore } from '@/store/category-store';
 
 interface ProductImage {
   id: number;
@@ -57,7 +57,7 @@ interface Product {
   category: Category;
   categoryId: string;
   isActive: boolean;
-  status?: "active" | "draft" | "archived";
+  status?: 'active' | 'draft' | 'archived';
   isNew: boolean;
   isOnSale: boolean;
   trackInventory?: boolean;
@@ -90,9 +90,13 @@ export default function EditProductPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [currentTag, setCurrentTag] = useState("");
+  const [currentTag, setCurrentTag] = useState('');
   const [isDragging, setIsDragging] = useState(false);
-  const { categories: storeCategories, fetchCategories, loading: isLoadingCategories } = useCategoryStore();
+  const {
+    categories: storeCategories,
+    fetchCategories,
+    loading: isLoadingCategories,
+  } = useCategoryStore();
   const categories = storeCategories;
 
   // Fetch product data
@@ -105,17 +109,17 @@ export default function EditProductPage() {
         //   `http://localhost:5000/api/products/${productId}`,
         // );
         if (!response.success) {
-          throw new Error("Failed to fetch product");
+          throw new Error('Failed to fetch product');
         }
         const productData = response.data;
         if (!productData) {
-          throw new Error("Product not found");
+          throw new Error('Product not found');
         }
         // Mark existing images as from database
         const rawProduct = (productData as any).product || productData;
         const productWithImageFlags = {
           ...rawProduct,
-          categoryId: rawProduct.categoryId ?? rawProduct.category?.id ?? "",
+          categoryId: rawProduct.categoryId ?? rawProduct.category?.id ?? '',
           images:
             (rawProduct.images || [])?.map((img: any) => ({
               ...img,
@@ -124,7 +128,7 @@ export default function EditProductPage() {
         };
         setProduct(productWithImageFlags);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
+        setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setLoading(false);
       }
@@ -152,7 +156,7 @@ export default function EditProductPage() {
     if (errors[field]) {
       setErrors((prev) => ({
         ...prev,
-        [field]: "",
+        [field]: '',
       }));
     }
   };
@@ -178,7 +182,7 @@ export default function EditProductPage() {
         ...prev!,
         tags: [...prev!.tags, currentTag.trim()],
       }));
-      setCurrentTag("");
+      setCurrentTag('');
     }
   };
 
@@ -191,7 +195,7 @@ export default function EditProductPage() {
   };
 
   const handleFilesUpload = async (files: File[]) => {
-    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+    const imageFiles = files.filter((file) => file.type.startsWith('image/'));
 
     // Create preview images with file objects
     const newImages: ProductImage[] = imageFiles.map((file) => ({
@@ -217,7 +221,7 @@ export default function EditProductPage() {
     if (!imageToRemove) return;
 
     // Cleanup object URL if it's a preview
-    if (imageToRemove.url.startsWith("blob:")) {
+    if (imageToRemove.url.startsWith('blob:')) {
       URL.revokeObjectURL(imageToRemove.url);
     }
 
@@ -237,16 +241,16 @@ export default function EditProductPage() {
     const newErrors: Record<string, string> = {};
 
     if (!product.name.trim()) {
-      newErrors.name = "Please enter product name";
+      newErrors.name = 'Please enter product name';
     }
     if (!product.sku.trim()) {
-      newErrors.sku = "Please enter product SKU";
+      newErrors.sku = 'Please enter product SKU';
     }
     if (!product.price || product.price <= 0) {
-      newErrors.price = "Please enter a valid price";
+      newErrors.price = 'Please enter a valid price';
     }
     if (!product.categoryId) {
-      newErrors.category = "Please select a category";
+      newErrors.category = 'Please select a category';
     }
 
     setErrors(newErrors);
@@ -281,13 +285,13 @@ export default function EditProductPage() {
                 };
               } else {
                 throw new Error(
-                  `Upload failed: ${(result as any).error || "Unknown error"}`,
+                  `Upload failed: ${(result as any).error || 'Unknown error'}`,
                 );
               }
             } catch (error) {
-              console.error("Upload error:", error);
+              console.error('Upload error:', error);
               throw new Error(
-                `Failed to upload ${img.name}: ${error instanceof Error ? error.message : "Unknown error"}`,
+                `Failed to upload ${img.name}: ${error instanceof Error ? error.message : 'Unknown error'}`,
               );
             }
           } else {
@@ -352,15 +356,15 @@ export default function EditProductPage() {
         };
       }
 
-      console.log("Final productData:", productData);
-      console.log("Uploaded images:", uploadedImages);
+      console.log('Final productData:', productData);
+      console.log('Uploaded images:', uploadedImages);
 
       const result = await productApi.update(productId, productData);
 
       if (result.success) {
         // Cleanup object URLs after successful save
         product.images.forEach((img) => {
-          if (img.url.startsWith("blob:")) {
+          if (img.url.startsWith('blob:')) {
             URL.revokeObjectURL(img.url);
           }
         });
@@ -368,19 +372,23 @@ export default function EditProductPage() {
         // Delete removed images from S3
         await Promise.all(
           removedImageKeys.map((key) =>
-            uploadApi.deleteFile(key).catch((err) =>
-              console.error("Failed to delete image from S3:", err),
-            ),
+            uploadApi
+              .deleteFile(key)
+              .catch((err) =>
+                console.error('Failed to delete image from S3:', err),
+              ),
           ),
         );
 
-        toast.success("Product updated successfully");
-        router.push("/products");
+        toast.success('Product updated successfully');
+        router.push('/products');
       } else {
-        toast.error(result.message || "Failed to update product");
+        toast.error(result.message || 'Failed to update product');
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Error updating product");
+      toast.error(
+        err instanceof Error ? err.message : 'Error updating product',
+      );
     } finally {
       setSaving(false);
     }
@@ -400,7 +408,7 @@ export default function EditProductPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-800">{error || "Product not found"}</p>
+          <p className="text-red-800">{error || 'Product not found'}</p>
           <Button asChild className="mt-4">
             <Link href="/products">Back to Products</Link>
           </Button>
@@ -411,20 +419,20 @@ export default function EditProductPage() {
 
   const productStatus =
     product.stock === 0
-      ? "out-of-stock"
+      ? 'out-of-stock'
       : !product.isActive
-        ? "draft"
-        : "active";
+        ? 'draft'
+        : 'active';
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "active":
-        return "bg-green-100 text-green-800";
-      case "out-of-stock":
-        return "bg-red-100 text-red-800";
-      case "draft":
-        return "bg-yellow-100 text-yellow-800";
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'out-of-stock':
+        return 'bg-red-100 text-red-800';
+      case 'draft':
+        return 'bg-yellow-100 text-yellow-800';
       default:
-        return "bg-gray-100 text-gray-800";
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -452,10 +460,10 @@ export default function EditProductPage() {
               <span
                 className={`inline-block px-3 py-1 text-xs rounded-full ${getStatusColor(productStatus)}`}
               >
-                {productStatus.replace("-", " ")}
+                {productStatus.replace('-', ' ')}
               </span>
               <Button onClick={handleSubmit} disabled={saving}>
-                {saving ? "Saving..." : "Save Changes"}
+                {saving ? 'Saving...' : 'Save Changes'}
               </Button>
             </div>
           </div>
@@ -484,10 +492,10 @@ export default function EditProductPage() {
                         id="name"
                         value={product.name}
                         onChange={(e) =>
-                          handleInputChange("name", e.target.value)
+                          handleInputChange('name', e.target.value)
                         }
                         placeholder="Enter product name"
-                        className={errors.name ? "border-red-500" : ""}
+                        className={errors.name ? 'border-red-500' : ''}
                       />
                       {errors.name && (
                         <p className="text-sm text-red-500 mt-1">
@@ -502,10 +510,10 @@ export default function EditProductPage() {
                         id="sku"
                         value={product.sku}
                         onChange={(e) =>
-                          handleInputChange("sku", e.target.value)
+                          handleInputChange('sku', e.target.value)
                         }
                         placeholder="Enter product SKU"
-                        className={errors.sku ? "border-red-500" : ""}
+                        className={errors.sku ? 'border-red-500' : ''}
                       />
                       {errors.sku && (
                         <p className="text-sm text-red-500 mt-1">
@@ -523,10 +531,10 @@ export default function EditProductPage() {
                         min="0"
                         value={product.price}
                         onChange={(e) =>
-                          handleInputChange("price", parseFloat(e.target.value))
+                          handleInputChange('price', parseFloat(e.target.value))
                         }
                         placeholder="0.00"
-                        className={errors.price ? "border-red-500" : ""}
+                        className={errors.price ? 'border-red-500' : ''}
                       />
                       {errors.price && (
                         <p className="text-sm text-red-500 mt-1">
@@ -539,22 +547,33 @@ export default function EditProductPage() {
                       <Label htmlFor="category">Category *</Label>
                       <select
                         id="category"
-                        value={product.categoryId || String(product.category?.id ?? "")}
+                        value={
+                          product.categoryId ||
+                          String(product.category?.id ?? '')
+                        }
                         onChange={(e) => {
-                          handleInputChange("categoryId", e.target.value);
-                          setProduct((prev) => prev ? {
-                            ...prev,
-                            category: { ...prev.category, id: e.target.value },
-                          } : prev);
+                          handleInputChange('categoryId', e.target.value);
+                          setProduct((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  category: {
+                                    ...prev.category,
+                                    id: e.target.value,
+                                  },
+                                }
+                              : prev,
+                          );
                         }}
                         disabled={isLoadingCategories}
-                        className={`w-full border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring ${errors.category ? "border-red-500" : ""
-                          } ${isLoadingCategories ? "bg-gray-100" : ""}`}
+                        className={`w-full border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring ${
+                          errors.category ? 'border-red-500' : ''
+                        } ${isLoadingCategories ? 'bg-gray-100' : ''}`}
                       >
                         <option value="">
                           {isLoadingCategories
-                            ? "Loading..."
-                            : "Select category"}
+                            ? 'Loading...'
+                            : 'Select category'}
                         </option>
                         {(categories || []).map((category) => (
                           <option key={category.id} value={category.id}>
@@ -578,10 +597,10 @@ export default function EditProductPage() {
                         type="number"
                         step="0.01"
                         min="0"
-                        value={product.originalPrice || ""}
+                        value={product.originalPrice || ''}
                         onChange={(e) =>
                           handleInputChange(
-                            "originalPrice",
+                            'originalPrice',
                             e.target.value
                               ? parseFloat(e.target.value)
                               : undefined,
@@ -597,14 +616,14 @@ export default function EditProductPage() {
                         id="status"
                         value={
                           product.status ||
-                          (product.isActive ? "active" : "draft")
+                          (product.isActive ? 'active' : 'draft')
                         }
                         onChange={(e) => {
                           const value = e.target.value;
-                          handleInputChange("status", value);
-                          handleInputChange("isActive", value === "active");
+                          handleInputChange('status', value);
+                          handleInputChange('isActive', value === 'active');
                         }}
-                        className={`w-full border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring ${errors.status ? "border-red-500" : ""}`}
+                        className={`w-full border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring ${errors.status ? 'border-red-500' : ''}`}
                       >
                         <option value="active">Active</option>
                         <option value="draft">Draft</option>
@@ -625,7 +644,7 @@ export default function EditProductPage() {
                         min="0"
                         value={product.stock}
                         onChange={(e) =>
-                          handleInputChange("stock", parseInt(e.target.value))
+                          handleInputChange('stock', parseInt(e.target.value))
                         }
                         placeholder="0"
                         disabled={product.trackInventory === false}
@@ -638,7 +657,7 @@ export default function EditProductPage() {
                         id="trackInventory"
                         checked={product.trackInventory !== false}
                         onChange={(e) =>
-                          handleInputChange("trackInventory", e.target.checked)
+                          handleInputChange('trackInventory', e.target.checked)
                         }
                         className="rounded border-gray-300"
                       />
@@ -652,9 +671,9 @@ export default function EditProductPage() {
                     <Label htmlFor="description">Description</Label>
                     <Textarea
                       id="description"
-                      value={product.description || ""}
+                      value={product.description || ''}
                       onChange={(e) =>
-                        handleInputChange("description", e.target.value)
+                        handleInputChange('description', e.target.value)
                       }
                       placeholder="Enter product description"
                       rows={4}
@@ -665,9 +684,9 @@ export default function EditProductPage() {
                     <Label htmlFor="seoKeywords">SEO Keywords</Label>
                     <Input
                       id="seoKeywords"
-                      value={product.seo?.keywords || ""}
+                      value={product.seo?.keywords || ''}
                       onChange={(e) =>
-                        handleSeoChange("keywords", e.target.value)
+                        handleSeoChange('keywords', e.target.value)
                       }
                       placeholder="keyword1, keyword2, keyword3"
                     />
@@ -692,10 +711,10 @@ export default function EditProductPage() {
                         type="number"
                         step="0.01"
                         min="0"
-                        value={product.weight || ""}
+                        value={product.weight || ''}
                         onChange={(e) =>
                           handleInputChange(
-                            "weight",
+                            'weight',
                             e.target.value
                               ? parseFloat(e.target.value)
                               : undefined,
@@ -720,7 +739,7 @@ export default function EditProductPage() {
                           type="number"
                           step="0.01"
                           min="0"
-                          value={product.dimensions?.length || ""}
+                          value={product.dimensions?.length || ''}
                           onChange={(e) =>
                             setProduct((prev) => ({
                               ...prev!,
@@ -744,7 +763,7 @@ export default function EditProductPage() {
                           type="number"
                           step="0.01"
                           min="0"
-                          value={product.dimensions?.width || ""}
+                          value={product.dimensions?.width || ''}
                           onChange={(e) =>
                             setProduct((prev) => ({
                               ...prev!,
@@ -768,7 +787,7 @@ export default function EditProductPage() {
                           type="number"
                           step="0.01"
                           min="0"
-                          value={product.dimensions?.height || ""}
+                          value={product.dimensions?.height || ''}
                           onChange={(e) =>
                             setProduct((prev) => ({
                               ...prev!,
@@ -810,7 +829,7 @@ export default function EditProductPage() {
                         onChange={(e) => setCurrentTag(e.target.value)}
                         placeholder="Add a tag..."
                         onKeyPress={(e) => {
-                          if (e.key === "Enter") {
+                          if (e.key === 'Enter') {
                             e.preventDefault();
                             addTag();
                           }
@@ -859,12 +878,12 @@ export default function EditProductPage() {
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {[
-                        "New",
-                        "Best Seller",
-                        "Sale",
-                        "Limited Edition",
-                        "Eco-Friendly",
-                        "Premium",
+                        'New',
+                        'Best Seller',
+                        'Sale',
+                        'Limited Edition',
+                        'Eco-Friendly',
+                        'Premium',
                       ].map((suggestion) => (
                         <Badge
                           key={suggestion}
@@ -931,10 +950,11 @@ export default function EditProductPage() {
                       const files = Array.from(e.dataTransfer.files);
                       handleFilesUpload(files);
                     }}
-                    className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${isDragging
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-300 hover:border-gray-400"
-                      }`}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
+                      isDragging
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
                   >
                     <input
                       type="file"
@@ -953,7 +973,7 @@ export default function EditProductPage() {
                     >
                       <Upload className="h-10 w-10 mx-auto mb-3 text-gray-400" />
                       <p className="text-sm font-medium text-gray-700 mb-1">
-                        {isDragging ? "Drop files here" : "Drag & drop images"}
+                        {isDragging ? 'Drop files here' : 'Drag & drop images'}
                       </p>
                       <p className="text-xs text-gray-500">
                         or click to browse
@@ -1034,10 +1054,10 @@ export default function EditProductPage() {
                     <Label htmlFor="seoTitle">SEO Title</Label>
                     <Input
                       id="seoTitle"
-                      value={product.seo?.title || product.seoTitle || ""}
+                      value={product.seo?.title || product.seoTitle || ''}
                       onChange={(e) => {
-                        handleInputChange("seoTitle", e.target.value);
-                        handleSeoChange("title", e.target.value);
+                        handleInputChange('seoTitle', e.target.value);
+                        handleSeoChange('title', e.target.value);
                       }}
                       placeholder="Product SEO title"
                       maxLength={60}
@@ -1050,14 +1070,14 @@ export default function EditProductPage() {
                         <span>Character count:</span>
                         <span
                           className={
-                            (product.seo?.title || product.seoTitle || "")
+                            (product.seo?.title || product.seoTitle || '')
                               .length > 60
-                              ? "text-red-500"
-                              : "text-green-500"
+                              ? 'text-red-500'
+                              : 'text-green-500'
                           }
                         >
                           {
-                            (product.seo?.title || product.seoTitle || "")
+                            (product.seo?.title || product.seoTitle || '')
                               .length
                           }
                           /60
@@ -1065,16 +1085,17 @@ export default function EditProductPage() {
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-1">
                         <div
-                          className={`h-1 rounded-full transition-colors ${(product.seo?.title || product.seoTitle || "")
-                            .length > 60
-                            ? "bg-red-500"
-                            : (product.seo?.title || product.seoTitle || "")
-                              .length > 50
-                              ? "bg-yellow-500"
-                              : "bg-green-500"
-                            }`}
+                          className={`h-1 rounded-full transition-colors ${
+                            (product.seo?.title || product.seoTitle || '')
+                              .length > 60
+                              ? 'bg-red-500'
+                              : (product.seo?.title || product.seoTitle || '')
+                                    .length > 50
+                                ? 'bg-yellow-500'
+                                : 'bg-green-500'
+                          }`}
                           style={{
-                            width: `${Math.min(((product.seo?.title || product.seoTitle || "").length / 60) * 100, 100)}%`,
+                            width: `${Math.min(((product.seo?.title || product.seoTitle || '').length / 60) * 100, 100)}%`,
                           }}
                         />
                       </div>
@@ -1086,11 +1107,11 @@ export default function EditProductPage() {
                     <Textarea
                       id="seoDescription"
                       value={
-                        product.seo?.description || product.seoDescription || ""
+                        product.seo?.description || product.seoDescription || ''
                       }
                       onChange={(e) => {
-                        handleInputChange("seoDescription", e.target.value);
-                        handleSeoChange("description", e.target.value);
+                        handleInputChange('seoDescription', e.target.value);
+                        handleSeoChange('description', e.target.value);
                       }}
                       placeholder="SEO description"
                       rows={6}
@@ -1107,17 +1128,17 @@ export default function EditProductPage() {
                             (
                               product.seo?.description ||
                               product.seoDescription ||
-                              ""
+                              ''
                             ).length > 160
-                              ? "text-red-500"
-                              : "text-green-500"
+                              ? 'text-red-500'
+                              : 'text-green-500'
                           }
                         >
                           {
                             (
                               product.seo?.description ||
                               product.seoDescription ||
-                              ""
+                              ''
                             ).length
                           }
                           /160
@@ -1125,22 +1146,23 @@ export default function EditProductPage() {
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-1">
                         <div
-                          className={`h-1 rounded-full transition-colors ${(
-                            product.seo?.description ||
-                            product.seoDescription ||
-                            ""
-                          ).length > 160
-                            ? "bg-red-500"
-                            : (
+                          className={`h-1 rounded-full transition-colors ${
+                            (
                               product.seo?.description ||
                               product.seoDescription ||
-                              ""
-                            ).length > 150
-                              ? "bg-yellow-500"
-                              : "bg-green-500"
-                            }`}
+                              ''
+                            ).length > 160
+                              ? 'bg-red-500'
+                              : (
+                                    product.seo?.description ||
+                                    product.seoDescription ||
+                                    ''
+                                  ).length > 150
+                                ? 'bg-yellow-500'
+                                : 'bg-green-500'
+                          }`}
                           style={{
-                            width: `${Math.min(((product.seo?.description || product.seoDescription || "").length / 160) * 100, 100)}%`,
+                            width: `${Math.min(((product.seo?.description || product.seoDescription || '').length / 160) * 100, 100)}%`,
                           }}
                         />
                       </div>
@@ -1151,9 +1173,9 @@ export default function EditProductPage() {
                     <Label htmlFor="seoKeywords">SEO Keywords</Label>
                     <Input
                       id="seoKeywords"
-                      value={product.seo?.keywords || ""}
+                      value={product.seo?.keywords || ''}
                       onChange={(e) =>
-                        handleSeoChange("keywords", e.target.value)
+                        handleSeoChange('keywords', e.target.value)
                       }
                       placeholder="keyword1, keyword2, keyword3"
                     />
@@ -1169,17 +1191,17 @@ export default function EditProductPage() {
                         {product.seo?.title ||
                           product.seoTitle ||
                           product.name ||
-                          "Product Title"}
+                          'Product Title'}
                       </div>
                       <div className="text-green-800 text-sm truncate">
                         www.yourstore.com/products/
-                        {product?.sku || "product-sku"}
+                        {product?.sku || 'product-sku'}
                       </div>
                       <div className="text-gray-600 text-sm line-clamp-2">
                         {product.seo?.description ||
                           product.seoDescription ||
                           product.description ||
-                          "Product description will appear here..."}
+                          'Product description will appear here...'}
                       </div>
                     </div>
                   </div>

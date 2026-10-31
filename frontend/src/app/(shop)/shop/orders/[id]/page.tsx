@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
-import Link from 'next/link'
+import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import {
   ArrowLeft,
   Package,
@@ -14,75 +14,102 @@ import {
   CreditCard,
   Loader2,
   PackageX,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { orderApi, ApiError } from '@/lib/api'
-import { formatPrice } from '@/lib/utils'
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { orderApi, ApiError } from '@/lib/api';
+import { formatPrice } from '@/lib/utils';
 
-const statusConfig: Record<string, { label: string; icon: any; color: string }> = {
-  PENDING: { label: 'Pending', icon: Clock, color: 'bg-yellow-100 text-yellow-800' },
-  PROCESSING: { label: 'Processing', icon: Package, color: 'bg-blue-100 text-blue-800' },
-  SHIPPED: { label: 'Shipped', icon: Truck, color: 'bg-purple-100 text-purple-800' },
-  DELIVERED: { label: 'Delivered', icon: CheckCircle, color: 'bg-green-100 text-green-800' },
-  CANCELLED: { label: 'Cancelled', icon: XCircle, color: 'bg-red-100 text-red-800' },
-  REFUNDED: { label: 'Refunded', icon: XCircle, color: 'bg-red-100 text-red-800' },
-}
+const statusConfig: Record<
+  string,
+  { label: string; icon: any; color: string }
+> = {
+  PENDING: {
+    label: 'Pending',
+    icon: Clock,
+    color: 'bg-yellow-100 text-yellow-800',
+  },
+  PROCESSING: {
+    label: 'Processing',
+    icon: Package,
+    color: 'bg-blue-100 text-blue-800',
+  },
+  SHIPPED: {
+    label: 'Shipped',
+    icon: Truck,
+    color: 'bg-purple-100 text-purple-800',
+  },
+  DELIVERED: {
+    label: 'Delivered',
+    icon: CheckCircle,
+    color: 'bg-green-100 text-green-800',
+  },
+  CANCELLED: {
+    label: 'Cancelled',
+    icon: XCircle,
+    color: 'bg-red-100 text-red-800',
+  },
+  REFUNDED: {
+    label: 'Refunded',
+    icon: XCircle,
+    color: 'bg-red-100 text-red-800',
+  },
+};
 
-const statusTimeline = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED']
+const statusTimeline = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
 
 function formatDate(date: string | Date | null | undefined) {
-  if (!date) return '—'
+  if (!date) return '—';
   return new Date(date).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  })
+  });
 }
 
 export default function CustomerOrderDetailPage() {
-  const params = useParams()
-  const id = params.id as string
+  const params = useParams();
+  const id = params.id as string;
 
-  const [order, setOrder] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [order, setOrder] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchOrder()
-  }, [id])
+    fetchOrder();
+  }, [id]);
 
   const fetchOrder = async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      const response = await orderApi.getById(id)
+      const response = await orderApi.getById(id);
       if (response.success) {
-        setOrder(response.data)
+        setOrder(response.data);
       } else {
-        throw new Error('Failed to fetch order')
+        throw new Error('Failed to fetch order');
       }
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.message)
+        setError(err.message);
       } else {
-        setError(err instanceof Error ? err.message : 'Failed to load order')
+        setError(err instanceof Error ? err.message : 'Failed to load order');
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="flex justify-center items-center py-24">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
-    )
+    );
   }
 
   if (error || !order) {
@@ -98,14 +125,15 @@ export default function CustomerOrderDetailPage() {
           </Link>
         </Button>
       </div>
-    )
+    );
   }
 
-  const displayStatus = order.status || 'PENDING'
-  const StatusIcon = statusConfig[displayStatus]?.icon || Clock
-  const statusColorClass = statusConfig[displayStatus]?.color || 'bg-gray-100 text-gray-800'
-  const address = order.shippingAddress || {}
-  const currentStepIndex = statusTimeline.indexOf(displayStatus)
+  const displayStatus = order.status || 'PENDING';
+  const StatusIcon = statusConfig[displayStatus]?.icon || Clock;
+  const statusColorClass =
+    statusConfig[displayStatus]?.color || 'bg-gray-100 text-gray-800';
+  const address = order.shippingAddress || {};
+  const currentStepIndex = statusTimeline.indexOf(displayStatus);
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
@@ -128,7 +156,9 @@ export default function CustomerOrderDetailPage() {
                 {statusConfig[displayStatus]?.label || displayStatus}
               </Badge>
             </div>
-            <p className="text-muted-foreground">Placed on {formatDate(order.createdAt)}</p>
+            <p className="text-muted-foreground">
+              Placed on {formatDate(order.createdAt)}
+            </p>
           </div>
         </div>
 
@@ -138,13 +168,16 @@ export default function CustomerOrderDetailPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 {statusTimeline.map((step, index) => {
-                  const stepConfig = statusConfig[step]
-                  const StepIcon = stepConfig.icon
-                  const isActive = index <= currentStepIndex
-                  const isCurrent = index === currentStepIndex
+                  const stepConfig = statusConfig[step];
+                  const StepIcon = stepConfig.icon;
+                  const isActive = index <= currentStepIndex;
+                  const isCurrent = index === currentStepIndex;
 
                   return (
-                    <div key={step} className="flex flex-col items-center flex-1">
+                    <div
+                      key={step}
+                      className="flex flex-col items-center flex-1"
+                    >
                       <div
                         className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-colors ${
                           isActive
@@ -177,7 +210,7 @@ export default function CustomerOrderDetailPage() {
                         />
                       )}
                     </div>
-                  )
+                  );
                 })}
               </div>
             </CardContent>
@@ -198,38 +231,49 @@ export default function CustomerOrderDetailPage() {
               <CardContent className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Order Number</span>
-                  <span className="font-medium">{order.orderNumber || '—'}</span>
+                  <span className="font-medium">
+                    {order.orderNumber || '—'}
+                  </span>
                 </div>
                 <Separator />
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Status</span>
                   <span className="font-medium capitalize">
-                    {statusConfig[displayStatus]?.label || displayStatus.toLowerCase()}
+                    {statusConfig[displayStatus]?.label ||
+                      displayStatus.toLowerCase()}
                   </span>
                 </div>
                 <Separator />
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Payment Status</span>
-                  <span className="font-medium">{order.paymentStatus || '—'}</span>
+                  <span className="font-medium">
+                    {order.paymentStatus || '—'}
+                  </span>
                 </div>
                 <Separator />
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Payment Method</span>
-                  <span className="font-medium">{order.paymentMethod || '—'}</span>
+                  <span className="font-medium">
+                    {order.paymentMethod || '—'}
+                  </span>
                 </div>
                 {order.trackingNumber && (
                   <>
                     <Separator />
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Tracking #</span>
-                      <span className="font-medium font-mono text-xs">{order.trackingNumber}</span>
+                      <span className="font-medium font-mono text-xs">
+                        {order.trackingNumber}
+                      </span>
                     </div>
                   </>
                 )}
                 <Separator />
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Created</span>
-                  <span className="font-medium">{formatDate(order.createdAt)}</span>
+                  <span className="font-medium">
+                    {formatDate(order.createdAt)}
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -244,15 +288,27 @@ export default function CustomerOrderDetailPage() {
               </CardHeader>
               <CardContent className="text-sm space-y-1">
                 {address.firstName && address.lastName && (
-                  <p className="font-medium">{address.firstName} {address.lastName}</p>
+                  <p className="font-medium">
+                    {address.firstName} {address.lastName}
+                  </p>
                 )}
-                {address.company && <p className="text-muted-foreground">{address.company}</p>}
-                <p className="text-muted-foreground">{address.address1 || address.street || '—'}</p>
-                {address.address2 && <p className="text-muted-foreground">{address.address2}</p>}
+                {address.company && (
+                  <p className="text-muted-foreground">{address.company}</p>
+                )}
                 <p className="text-muted-foreground">
-                  {[address.city, address.state, address.zipCode].filter(Boolean).join(', ')}
+                  {address.address1 || address.street || '—'}
                 </p>
-                <p className="text-muted-foreground">{address.country || '—'}</p>
+                {address.address2 && (
+                  <p className="text-muted-foreground">{address.address2}</p>
+                )}
+                <p className="text-muted-foreground">
+                  {[address.city, address.state, address.zipCode]
+                    .filter(Boolean)
+                    .join(', ')}
+                </p>
+                <p className="text-muted-foreground">
+                  {address.country || '—'}
+                </p>
               </CardContent>
             </Card>
 
@@ -271,7 +327,11 @@ export default function CustomerOrderDetailPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span>{Number(order.shipping) === 0 ? 'FREE' : formatPrice(Number(order.shipping))}</span>
+                  <span>
+                    {Number(order.shipping) === 0
+                      ? 'FREE'
+                      : formatPrice(Number(order.shipping))}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Tax</span>
@@ -283,7 +343,9 @@ export default function CustomerOrderDetailPage() {
                   <span>{formatPrice(Number(order.total))}</span>
                 </div>
                 {order.currency && (
-                  <p className="text-xs text-muted-foreground text-right">{order.currency}</p>
+                  <p className="text-xs text-muted-foreground text-right">
+                    {order.currency}
+                  </p>
                 )}
               </CardContent>
             </Card>
@@ -306,12 +368,18 @@ export default function CustomerOrderDetailPage() {
                 {order.items && order.items.length > 0 ? (
                   <div className="space-y-4">
                     {order.items.map((item: any) => {
-                      const productName = item.product?.name || item.productSnapshot?.name || 'Product'
-                      const productImage = item.product?.images?.[0]?.url
-                      const itemTotal = Number(item.price) * item.quantity
+                      const productName =
+                        item.product?.name ||
+                        item.productSnapshot?.name ||
+                        'Product';
+                      const productImage = item.product?.images?.[0]?.url;
+                      const itemTotal = Number(item.price) * item.quantity;
 
                       return (
-                        <div key={item.id} className="flex gap-4 p-3 rounded-lg border">
+                        <div
+                          key={item.id}
+                          className="flex gap-4 p-3 rounded-lg border"
+                        >
                           {productImage ? (
                             <div className="w-16 h-16 rounded-md bg-muted overflow-hidden flex-shrink-0">
                               <img
@@ -326,24 +394,31 @@ export default function CustomerOrderDetailPage() {
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{productName}</p>
+                            <p className="font-medium text-sm truncate">
+                              {productName}
+                            </p>
                             {item.variant && (
                               <p className="text-xs text-muted-foreground">
                                 {item.variant.name || item.variantId}
                               </p>
                             )}
                             {item.product?.sku && (
-                              <p className="text-xs text-muted-foreground font-mono">SKU: {item.product.sku}</p>
+                              <p className="text-xs text-muted-foreground font-mono">
+                                SKU: {item.product.sku}
+                              </p>
                             )}
                             <div className="flex items-center justify-between mt-2">
                               <span className="text-sm text-muted-foreground">
-                                {formatPrice(Number(item.price))} x {item.quantity}
+                                {formatPrice(Number(item.price))} x{' '}
+                                {item.quantity}
                               </span>
-                              <span className="text-sm font-medium">{formatPrice(itemTotal)}</span>
+                              <span className="text-sm font-medium">
+                                {formatPrice(itemTotal)}
+                              </span>
                             </div>
                           </div>
                         </div>
-                      )
+                      );
                     })}
                   </div>
                 ) : (
@@ -362,7 +437,9 @@ export default function CustomerOrderDetailPage() {
                   <CardTitle>Order Notes</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{order.notes}</p>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    {order.notes}
+                  </p>
                 </CardContent>
               </Card>
             )}
@@ -370,5 +447,5 @@ export default function CustomerOrderDetailPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

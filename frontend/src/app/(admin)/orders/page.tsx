@@ -1,15 +1,39 @@
-'use client'
+'use client';
 
-import { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
-import { ArrowLeft, Search, Eye, Package, Truck, CheckCircle, XCircle, Clock, ChevronDown, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { adminApi, ApiError } from '@/lib/api'
+import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import {
+  ArrowLeft,
+  Search,
+  Eye,
+  Package,
+  Truck,
+  CheckCircle,
+  XCircle,
+  Clock,
+  ChevronDown,
+  Loader2,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { adminApi, ApiError } from '@/lib/api';
 
-const statusFilterOptions = ['All', 'Pending', 'Processing', 'Shipped', 'Completed', 'Cancelled']
-const paymentMethodFilterOptions = ['All', 'Credit Card', 'PayPal', 'Apple Pay', 'Google Pay']
+const statusFilterOptions = [
+  'All',
+  'Pending',
+  'Processing',
+  'Shipped',
+  'Completed',
+  'Cancelled',
+];
+const paymentMethodFilterOptions = [
+  'All',
+  'Credit Card',
+  'PayPal',
+  'Apple Pay',
+  'Google Pay',
+];
 
 const statusApiMap: Record<string, string> = {
   pending: 'PENDING',
@@ -18,7 +42,7 @@ const statusApiMap: Record<string, string> = {
   completed: 'DELIVERED',
   cancelled: 'CANCELLED',
   refunded: 'REFUNDED',
-}
+};
 
 const statusDisplayMap: Record<string, string> = {
   PENDING: 'pending',
@@ -27,61 +51,65 @@ const statusDisplayMap: Record<string, string> = {
   DELIVERED: 'completed',
   CANCELLED: 'cancelled',
   REFUNDED: 'refunded',
-}
+};
 
 const formatPrice = (price: number) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-  }).format(price)
-}
+  }).format(price);
+};
 
 const getStatusIcon = (status: string) => {
   switch (status) {
     case 'pending':
-      return <Clock className="h-4 w-4" />
+      return <Clock className="h-4 w-4" />;
     case 'processing':
-      return <Package className="h-4 w-4" />
+      return <Package className="h-4 w-4" />;
     case 'shipped':
-      return <Truck className="h-4 w-4" />
+      return <Truck className="h-4 w-4" />;
     case 'completed':
-      return <CheckCircle className="h-4 w-4" />
+      return <CheckCircle className="h-4 w-4" />;
     case 'cancelled':
     case 'refunded':
-      return <XCircle className="h-4 w-4" />
+      return <XCircle className="h-4 w-4" />;
     default:
-      return <Clock className="h-4 w-4" />
+      return <Clock className="h-4 w-4" />;
   }
-}
+};
 
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'pending':
-      return 'bg-yellow-100 text-yellow-800'
+      return 'bg-yellow-100 text-yellow-800';
     case 'processing':
-      return 'bg-blue-100 text-blue-800'
+      return 'bg-blue-100 text-blue-800';
     case 'shipped':
-      return 'bg-purple-100 text-purple-800'
+      return 'bg-purple-100 text-purple-800';
     case 'completed':
-      return 'bg-green-100 text-green-800'
+      return 'bg-green-100 text-green-800';
     case 'cancelled':
     case 'refunded':
-      return 'bg-red-100 text-red-800'
+      return 'bg-red-100 text-red-800';
     default:
-      return 'bg-gray-100 text-gray-800'
+      return 'bg-gray-100 text-gray-800';
   }
-}
+};
 
 function mapOrderFromApi(order: any) {
-  const address = order.shippingAddress || {}
-  const itemsCount = order.items?.length || 0
-  const displayStatus = statusDisplayMap[order.status] || order.status.toLowerCase()
+  const address = order.shippingAddress || {};
+  const itemsCount = order.items?.length || 0;
+  const displayStatus =
+    statusDisplayMap[order.status] || order.status.toLowerCase();
 
   return {
     id: order.orderNumber || order.id,
     _id: order.id,
     customer: {
-      name: order.user?.name || `${address.firstName || ''} ${address.lastName || ''}`.trim() || 'Guest',
+      name:
+        order.user?.name ||
+        `${address.firstName || ''} ${address.lastName || ''}`.trim() ||
+        'Guest',
       email: order.user?.email || address.email || '',
       phone: address.phone || '',
     },
@@ -102,118 +130,121 @@ function mapOrderFromApi(order: any) {
       quantity: item.quantity,
       price: Number(item.price),
     })),
-  }
+  };
 }
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedStatus, setSelectedStatus] = useState('All')
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('All')
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalOrders, setTotalOrders] = useState(0)
-  const [totalPages, setTotalPages] = useState(1)
-  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null)
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('All');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('All');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
 
-  const ordersPerPage = 10
+  const ordersPerPage = 10;
 
   const fetchOrders = useCallback(async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      const apiStatus = selectedStatus === 'All' ? undefined : (statusApiMap[selectedStatus.toLowerCase()] || selectedStatus.toUpperCase())
+      const apiStatus =
+        selectedStatus === 'All'
+          ? undefined
+          : statusApiMap[selectedStatus.toLowerCase()] ||
+            selectedStatus.toUpperCase();
       const response = await adminApi.getOrders({
         page: currentPage,
         limit: ordersPerPage,
         status: apiStatus,
-      })
-      const rawOrders = response.data?.orders || []
-      setOrders(rawOrders.map(mapOrderFromApi))
-      setTotalOrders(response.data?.pagination?.total || 0)
-      setTotalPages(response.data?.pagination?.pages || 1)
+      });
+      const rawOrders = response.data?.orders || [];
+      setOrders(rawOrders.map(mapOrderFromApi));
+      setTotalOrders(response.data?.pagination?.total || 0);
+      setTotalPages(response.data?.pagination?.pages || 1);
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.message)
+        setError(err.message);
       } else {
-        setError('Failed to load orders. Please try again.')
+        setError('Failed to load orders. Please try again.');
       }
-      setOrders([])
+      setOrders([]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [currentPage, selectedStatus])
+  }, [currentPage, selectedStatus]);
 
   useEffect(() => {
-    setCurrentPage(1)
-  }, [selectedStatus])
+    setCurrentPage(1);
+  }, [selectedStatus]);
 
   useEffect(() => {
-    fetchOrders()
-  }, [fetchOrders])
+    fetchOrders();
+  }, [fetchOrders]);
 
-  const filteredOrders = orders.filter(order => {
+  const filteredOrders = orders.filter((order) => {
     const matchesSearch =
       !searchQuery ||
       order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.customer.email.toLowerCase().includes(searchQuery.toLowerCase())
+      order.customer.email.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesPayment = selectedPaymentMethod === 'All' || order.paymentMethod === selectedPaymentMethod
+    const matchesPayment =
+      selectedPaymentMethod === 'All' ||
+      order.paymentMethod === selectedPaymentMethod;
 
-    return matchesSearch && matchesPayment
-  })
+    return matchesSearch && matchesPayment;
+  });
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
-    setUpdatingOrderId(orderId)
+    setUpdatingOrderId(orderId);
     try {
-      const apiStatus = statusApiMap[newStatus] || newStatus.toUpperCase()
-      await adminApi.updateOrderStatus(orderId, apiStatus)
-      setOrders(prev =>
-        prev.map(o =>
-          o._id === orderId ? { ...o, status: newStatus } : o
-        )
-      )
+      const apiStatus = statusApiMap[newStatus] || newStatus.toUpperCase();
+      await adminApi.updateOrderStatus(orderId, apiStatus);
+      setOrders((prev) =>
+        prev.map((o) => (o._id === orderId ? { ...o, status: newStatus } : o)),
+      );
     } catch (err) {
       if (err instanceof ApiError) {
-        alert(`Failed to update status: ${err.message}`)
+        alert(`Failed to update status: ${err.message}`);
       } else {
-        alert('Failed to update status. Please try again.')
+        alert('Failed to update status. Please try again.');
       }
     } finally {
-      setUpdatingOrderId(null)
+      setUpdatingOrderId(null);
     }
-  }
+  };
 
   const handleRefund = async (orderId: string) => {
-    if (!confirm('Are you sure you want to process a refund for this order?')) return
-    setUpdatingOrderId(orderId)
+    if (!confirm('Are you sure you want to process a refund for this order?'))
+      return;
+    setUpdatingOrderId(orderId);
     try {
-      await adminApi.updateOrderStatus(orderId, 'REFUNDED')
-      setOrders(prev =>
-        prev.map(o =>
-          o._id === orderId ? { ...o, status: 'refunded' } : o
-        )
-      )
+      await adminApi.updateOrderStatus(orderId, 'REFUNDED');
+      setOrders((prev) =>
+        prev.map((o) => (o._id === orderId ? { ...o, status: 'refunded' } : o)),
+      );
     } catch (err) {
       if (err instanceof ApiError) {
-        alert(`Failed to process refund: ${err.message}`)
+        alert(`Failed to process refund: ${err.message}`);
       } else {
-        alert('Failed to process refund. Please try again.')
+        alert('Failed to process refund. Please try again.');
       }
     } finally {
-      setUpdatingOrderId(null)
+      setUpdatingOrderId(null);
     }
-  }
+  };
 
   const stats = {
     total: totalOrders,
-    pending: orders.filter(o => o.status === 'pending').length,
-    processing: orders.filter(o => o.status === 'processing').length,
-    shipped: orders.filter(o => o.status === 'shipped').length,
-    completed: orders.filter(o => o.status === 'completed').length,
-  }
+    pending: orders.filter((o) => o.status === 'pending').length,
+    processing: orders.filter((o) => o.status === 'processing').length,
+    shipped: orders.filter((o) => o.status === 'shipped').length,
+    completed: orders.filter((o) => o.status === 'completed').length,
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -232,9 +263,7 @@ export default function OrdersPage() {
           </p>
         </div>
         <Button asChild>
-          <Link href="/admin/analytics">
-            View Analytics
-          </Link>
+          <Link href="/admin/analytics">View Analytics</Link>
         </Button>
       </div>
 
@@ -296,8 +325,10 @@ export default function OrdersPage() {
                   onChange={(e) => setSelectedStatus(e.target.value)}
                   className="appearance-none bg-background border border-input rounded-md px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
-                  {statusFilterOptions.map(status => (
-                    <option key={status} value={status}>{status}</option>
+                  {statusFilterOptions.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
                   ))}
                 </select>
                 <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 pointer-events-none text-muted-foreground" />
@@ -310,17 +341,17 @@ export default function OrdersPage() {
                   onChange={(e) => setSelectedPaymentMethod(e.target.value)}
                   className="appearance-none bg-background border border-input rounded-md px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
-                  {paymentMethodFilterOptions.map(method => (
-                    <option key={method} value={method}>{method}</option>
+                  {paymentMethodFilterOptions.map((method) => (
+                    <option key={method} value={method}>
+                      {method}
+                    </option>
                   ))}
                 </select>
                 <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 pointer-events-none text-muted-foreground" />
               </div>
 
               {/* Export Button */}
-              <Button variant="outline">
-                Export
-              </Button>
+              <Button variant="outline">Export</Button>
             </div>
           </div>
         </CardContent>
@@ -329,9 +360,7 @@ export default function OrdersPage() {
       {/* Orders Table */}
       <Card>
         <CardHeader>
-          <CardTitle>
-            Orders ({totalOrders})
-          </CardTitle>
+          <CardTitle>Orders ({totalOrders})</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -363,33 +392,47 @@ export default function OrdersPage() {
                   </thead>
                   <tbody>
                     {filteredOrders.map((order) => (
-                      <tr key={order._id} className="border-b hover:bg-muted/50">
+                      <tr
+                        key={order._id}
+                        className="border-b hover:bg-muted/50"
+                      >
                         <td className="p-4">
                           <div>
                             <p className="font-medium">{order.id}</p>
-                            <p className="text-sm text-muted-foreground">{order.customer.email}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {order.customer.email}
+                            </p>
                           </div>
                         </td>
                         <td className="p-4">
                           <div>
                             <p className="font-medium">{order.customer.name}</p>
-                            <p className="text-sm text-muted-foreground">{order.customer.phone}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {order.customer.phone}
+                            </p>
                           </div>
                         </td>
                         <td className="p-4">
                           <div>
-                            <p className="font-medium">{new Date(order.date).toLocaleDateString()}</p>
+                            <p className="font-medium">
+                              {new Date(order.date).toLocaleDateString()}
+                            </p>
                             <p className="text-sm text-muted-foreground">
-                              {order.shippingAddress.city}, {order.shippingAddress.state}
+                              {order.shippingAddress.city},{' '}
+                              {order.shippingAddress.state}
                             </p>
                           </div>
                         </td>
-                        <td className="p-4 font-medium">{formatPrice(order.amount)}</td>
+                        <td className="p-4 font-medium">
+                          {formatPrice(order.amount)}
+                        </td>
                         <td className="p-4">{order.paymentMethod}</td>
                         <td className="p-4">
                           <div className="flex items-center gap-2">
                             {getStatusIcon(order.status)}
-                            <span className={`inline-block px-2 py-1 text-xs rounded-full ${getStatusColor(order.status)}`}>
+                            <span
+                              className={`inline-block px-2 py-1 text-xs rounded-full ${getStatusColor(order.status)}`}
+                            >
                               {order.status}
                             </span>
                           </div>
@@ -407,21 +450,34 @@ export default function OrdersPage() {
                               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                             ) : (
                               <>
-                                {order.status !== 'completed' && order.status !== 'cancelled' && order.status !== 'refunded' && (
-                                  <div className="relative">
-                                    <select
-                                      value={order.status}
-                                      onChange={(e) => handleStatusUpdate(order._id, e.target.value)}
-                                      className="text-xs border border-input rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
-                                    >
-                                      <option value="pending">Pending</option>
-                                      <option value="processing">Processing</option>
-                                      <option value="shipped">Shipped</option>
-                                      <option value="completed">Completed</option>
-                                      <option value="cancelled">Cancelled</option>
-                                    </select>
-                                  </div>
-                                )}
+                                {order.status !== 'completed' &&
+                                  order.status !== 'cancelled' &&
+                                  order.status !== 'refunded' && (
+                                    <div className="relative">
+                                      <select
+                                        value={order.status}
+                                        onChange={(e) =>
+                                          handleStatusUpdate(
+                                            order._id,
+                                            e.target.value,
+                                          )
+                                        }
+                                        className="text-xs border border-input rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
+                                      >
+                                        <option value="pending">Pending</option>
+                                        <option value="processing">
+                                          Processing
+                                        </option>
+                                        <option value="shipped">Shipped</option>
+                                        <option value="completed">
+                                          Completed
+                                        </option>
+                                        <option value="cancelled">
+                                          Cancelled
+                                        </option>
+                                      </select>
+                                    </div>
+                                  )}
 
                                 {order.status === 'completed' && (
                                   <Button
@@ -445,12 +501,17 @@ export default function OrdersPage() {
 
               {filteredOrders.length === 0 && (
                 <div className="text-center py-12">
-                  <p className="text-muted-foreground mb-4">No orders found matching your criteria.</p>
-                  <Button variant="outline" onClick={() => {
-                    setSearchQuery('')
-                    setSelectedStatus('All')
-                    setSelectedPaymentMethod('All')
-                  }}>
+                  <p className="text-muted-foreground mb-4">
+                    No orders found matching your criteria.
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSelectedStatus('All');
+                      setSelectedPaymentMethod('All');
+                    }}
+                  >
                     Clear Filters
                   </Button>
                 </div>
@@ -468,16 +529,18 @@ export default function OrdersPage() {
                   </Button>
 
                   <div className="flex gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <Button
-                        key={page}
-                        variant={currentPage === page ? 'default' : 'outline'}
-                        size="icon"
-                        onClick={() => setCurrentPage(page)}
-                      >
-                        {page}
-                      </Button>
-                    ))}
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                      (page) => (
+                        <Button
+                          key={page}
+                          variant={currentPage === page ? 'default' : 'outline'}
+                          size="icon"
+                          onClick={() => setCurrentPage(page)}
+                        >
+                          {page}
+                        </Button>
+                      ),
+                    )}
                   </div>
 
                   <Button
@@ -494,5 +557,5 @@ export default function OrdersPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
