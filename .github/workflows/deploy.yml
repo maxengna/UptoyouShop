@@ -3,12 +3,12 @@
 
 name: CI/CD - UptoyouShop Application with Docker
 
-# on:
-#   push:
-#     branches: [ main ]
-#     tags: [ 'v*.*.*' ]   # support git tags like v1.0.0
-#   pull_request:
-#     branches: [ main ]
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*.*.*' ]   # support git tags like v1.0.0
+  pull_request:
+    branches: [ main ]
 
 
 # Allow Workflow to request OIDC token to access AWS
