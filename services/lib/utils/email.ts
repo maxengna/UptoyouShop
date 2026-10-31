@@ -1,13 +1,15 @@
-import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses'
+import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 
-const ses = new SESClient({ region: process.env.AWS_REGION || 'ap-southeast-1' })
+const ses = new SESClient({
+  region: process.env.AWS_REGION || 'ap-southeast-1',
+});
 
 export async function sendPasswordResetEmail(
   to: string,
-  token: string
+  token: string,
 ): Promise<void> {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const resetUrl = `${appUrl}/reset-password/${token}`
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const resetUrl = `${appUrl}/reset-password/${token}`;
 
   const command = new SendEmailCommand({
     Source: process.env.EMAIL_FROM || 'noreply@uptoyoushop.com',
@@ -34,7 +36,7 @@ export async function sendPasswordResetEmail(
         },
       },
     },
-  })
+  });
 
-  await ses.send(command)
+  await ses.send(command);
 }

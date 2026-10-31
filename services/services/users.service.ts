@@ -1,7 +1,7 @@
-import { NextRequest } from "next/server";
-import { getServerSession } from "next-auth";
-import { prisma } from "../../database/prisma";
-import { z } from "zod";
+import { NextRequest } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { prisma } from '../../database/prisma';
+import { z } from 'zod';
 
 // Profile update schema
 const updateProfileSchema = z.object({
@@ -17,7 +17,7 @@ export async function updateProfile(request: NextRequest) {
     if (!session?.user?.email) {
       return {
         success: false,
-        error: "Unauthorized",
+        error: 'Unauthorized',
         status: 401,
       };
     }
@@ -33,7 +33,7 @@ export async function updateProfile(request: NextRequest) {
     if (!user) {
       return {
         success: false,
-        error: "User not found",
+        error: 'User not found',
         status: 404,
       };
     }
@@ -58,15 +58,15 @@ export async function updateProfile(request: NextRequest) {
     return {
       success: true,
       data: updatedUser,
-      message: "Profile updated successfully",
+      message: 'Profile updated successfully',
     };
   } catch (error) {
-    console.error("Update profile error:", error);
+    console.error('Update profile error:', error);
 
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: "Invalid profile data",
+        error: 'Invalid profile data',
         details: error.errors,
         status: 400,
       };
@@ -74,7 +74,7 @@ export async function updateProfile(request: NextRequest) {
 
     return {
       success: false,
-      error: "Failed to update profile",
+      error: 'Failed to update profile',
       status: 500,
     };
   }
@@ -87,7 +87,7 @@ export async function getUserProfile() {
     if (!session?.user?.email) {
       return {
         success: false,
-        error: "Unauthorized",
+        error: 'Unauthorized',
         status: 401,
       };
     }
@@ -114,7 +114,7 @@ export async function getUserProfile() {
     if (!user) {
       return {
         success: false,
-        error: "User not found",
+        error: 'User not found',
         status: 404,
       };
     }
@@ -124,10 +124,10 @@ export async function getUserProfile() {
       data: user,
     };
   } catch (error) {
-    console.error("Get profile error:", error);
+    console.error('Get profile error:', error);
     return {
       success: false,
-      error: "Failed to get profile",
+      error: 'Failed to get profile',
       status: 500,
     };
   }
@@ -135,7 +135,7 @@ export async function getUserProfile() {
 
 // Address schema
 const addressSchema = z.object({
-  type: z.enum(["SHIPPING", "BILLING"]),
+  type: z.enum(['SHIPPING', 'BILLING']),
   firstName: z.string().min(1),
   lastName: z.string().min(1),
   company: z.string().optional(),
@@ -156,7 +156,7 @@ export async function addAddress(request: NextRequest) {
     if (!session?.user?.email) {
       return {
         success: false,
-        error: "Unauthorized",
+        error: 'Unauthorized',
         status: 401,
       };
     }
@@ -172,7 +172,7 @@ export async function addAddress(request: NextRequest) {
     if (!user) {
       return {
         success: false,
-        error: "User not found",
+        error: 'User not found',
         status: 404,
       };
     }
@@ -200,15 +200,15 @@ export async function addAddress(request: NextRequest) {
     return {
       success: true,
       data: address,
-      message: "Address added successfully",
+      message: 'Address added successfully',
     };
   } catch (error) {
-    console.error("Add address error:", error);
+    console.error('Add address error:', error);
 
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: "Invalid address data",
+        error: 'Invalid address data',
         details: error.errors,
         status: 400,
       };
@@ -216,7 +216,7 @@ export async function addAddress(request: NextRequest) {
 
     return {
       success: false,
-      error: "Failed to add address",
+      error: 'Failed to add address',
       status: 500,
     };
   }
@@ -229,7 +229,7 @@ export async function getUserAddresses() {
     if (!session?.user?.email) {
       return {
         success: false,
-        error: "Unauthorized",
+        error: 'Unauthorized',
         status: 401,
       };
     }
@@ -241,14 +241,14 @@ export async function getUserAddresses() {
     if (!user) {
       return {
         success: false,
-        error: "User not found",
+        error: 'User not found',
         status: 404,
       };
     }
 
     const addresses = await prisma.address.findMany({
       where: { userId: user.id },
-      orderBy: { isDefault: "desc" },
+      orderBy: { isDefault: 'desc' },
     });
 
     return {
@@ -256,10 +256,10 @@ export async function getUserAddresses() {
       data: addresses,
     };
   } catch (error) {
-    console.error("Get addresses error:", error);
+    console.error('Get addresses error:', error);
     return {
       success: false,
-      error: "Failed to get addresses",
+      error: 'Failed to get addresses',
       status: 500,
     };
   }
@@ -272,7 +272,7 @@ export async function updateAddress(addressId: string, request: NextRequest) {
     if (!session?.user?.email) {
       return {
         success: false,
-        error: "Unauthorized",
+        error: 'Unauthorized',
         status: 401,
       };
     }
@@ -288,7 +288,7 @@ export async function updateAddress(addressId: string, request: NextRequest) {
     if (!user) {
       return {
         success: false,
-        error: "User not found",
+        error: 'User not found',
         status: 404,
       };
     }
@@ -304,7 +304,7 @@ export async function updateAddress(addressId: string, request: NextRequest) {
     if (!existingAddress) {
       return {
         success: false,
-        error: "Address not found",
+        error: 'Address not found',
         status: 404,
       };
     }
@@ -331,15 +331,15 @@ export async function updateAddress(addressId: string, request: NextRequest) {
     return {
       success: true,
       data: updatedAddress,
-      message: "Address updated successfully",
+      message: 'Address updated successfully',
     };
   } catch (error) {
-    console.error("Update address error:", error);
+    console.error('Update address error:', error);
 
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: "Invalid address data",
+        error: 'Invalid address data',
         details: error.errors,
         status: 400,
       };
@@ -347,7 +347,7 @@ export async function updateAddress(addressId: string, request: NextRequest) {
 
     return {
       success: false,
-      error: "Failed to update address",
+      error: 'Failed to update address',
       status: 500,
     };
   }
@@ -360,7 +360,7 @@ export async function deleteAddress(addressId: string) {
     if (!session?.user?.email) {
       return {
         success: false,
-        error: "Unauthorized",
+        error: 'Unauthorized',
         status: 401,
       };
     }
@@ -373,7 +373,7 @@ export async function deleteAddress(addressId: string) {
     if (!user) {
       return {
         success: false,
-        error: "User not found",
+        error: 'User not found',
         status: 404,
       };
     }
@@ -389,7 +389,7 @@ export async function deleteAddress(addressId: string) {
     if (!existingAddress) {
       return {
         success: false,
-        error: "Address not found",
+        error: 'Address not found',
         status: 404,
       };
     }
@@ -402,7 +402,7 @@ export async function deleteAddress(addressId: string) {
     if (addressCount === 1) {
       return {
         success: false,
-        error: "Cannot delete the only address",
+        error: 'Cannot delete the only address',
         status: 400,
       };
     }
@@ -414,13 +414,13 @@ export async function deleteAddress(addressId: string) {
 
     return {
       success: true,
-      message: "Address deleted successfully",
+      message: 'Address deleted successfully',
     };
   } catch (error) {
-    console.error("Delete address error:", error);
+    console.error('Delete address error:', error);
     return {
       success: false,
-      error: "Failed to delete address",
+      error: 'Failed to delete address',
       status: 500,
     };
   }
@@ -433,7 +433,7 @@ export async function getUserOrderHistory(request: NextRequest) {
     if (!session?.user?.email) {
       return {
         success: false,
-        error: "Unauthorized",
+        error: 'Unauthorized',
         status: 401,
       };
     }
@@ -446,16 +446,16 @@ export async function getUserOrderHistory(request: NextRequest) {
     if (!user) {
       return {
         success: false,
-        error: "User not found",
+        error: 'User not found',
         status: 404,
       };
     }
 
     // Get query parameters
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const status = searchParams.get("status");
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const status = searchParams.get('status');
 
     // Build where clause
     const where: any = { userId: user.id };
@@ -478,7 +478,7 @@ export async function getUserOrderHistory(request: NextRequest) {
           },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -499,10 +499,10 @@ export async function getUserOrderHistory(request: NextRequest) {
       },
     };
   } catch (error) {
-    console.error("Get order history error:", error);
+    console.error('Get order history error:', error);
     return {
       success: false,
-      error: "Failed to get order history",
+      error: 'Failed to get order history',
       status: 500,
     };
   }

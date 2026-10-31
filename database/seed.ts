@@ -1,10 +1,10 @@
-import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcryptjs'
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting database seeding...')
+  console.log('🌱 Starting database seeding...');
 
   // Create categories
   const electronics = await prisma.category.create({
@@ -14,7 +14,7 @@ async function main() {
       description: 'Electronic devices and accessories',
       imageKey: 'category/daa2c281-7de7-41af-a342-233c50ddeeaf.jpg',
     },
-  })
+  });
 
   const clothing = await prisma.category.create({
     data: {
@@ -23,7 +23,7 @@ async function main() {
       description: 'Fashion and apparel',
       imageKey: 'category/9f7bdfb1-59c5-44ef-9991-2b74c0da02f5.jpg',
     },
-  })
+  });
 
   const home = await prisma.category.create({
     data: {
@@ -32,7 +32,7 @@ async function main() {
       description: 'Home decor and garden supplies',
       imageKey: 'category/0b4c1943-ba34-4668-a21c-62804288b9d2.jpg',
     },
-  })
+  });
 
   const sports = await prisma.category.create({
     data: {
@@ -41,26 +41,28 @@ async function main() {
       description: 'Sports equipment and accessories',
       imageKey: 'category/4d41ad11-8921-440e-ac0a-130ed241ad4b.jpg',
     },
-  })
+  });
 
-  console.log('✅ Categories created')
+  console.log('✅ Categories created');
 
   const productImageMap: Record<string, string> = {
     'wireless-headphones': 'products/1a105d73-7268-438e-b860-5b209504ede6.jpg',
     'smart-watch': 'products/c08a0bf7-1d53-44e6-9964-7f398c17402c.jpg',
-    'organic-cotton-tshirt': 'products/ce4f61d4-f451-43f4-9d2e-bfa4a5c7baeb.jpg',
+    'organic-cotton-tshirt':
+      'products/ce4f61d4-f451-43f4-9d2e-bfa4a5c7baeb.jpg',
     'laptop-stand': 'products/9214a277-4611-4511-9a44-b129ce425fbe.jpg',
     'usb-c-hub': 'products/3bf2236a-51e8-4591-9f17-81211e01d690.jpg',
     'wireless-mouse': 'products/63f89ed9-e8b0-4dc9-8ef9-6ac612663189.jpg',
     'mechanical-keyboard': 'products/875aaf39-f13e-42a6-a858-f2f2fc3255c4.jpg',
-  }
+  };
 
   // Create products
   const products = [
     {
       name: 'Wireless Headphones',
       slug: 'wireless-headphones',
-      description: 'Premium noise-cancelling wireless headphones with 30-hour battery life and superior sound quality.',
+      description:
+        'Premium noise-cancelling wireless headphones with 30-hour battery life and superior sound quality.',
       price: 299.99,
       originalPrice: 399.99,
       sku: 'WH-001',
@@ -72,12 +74,14 @@ async function main() {
       weight: 0.25,
       dimensions: { length: 20, width: 18, height: 8 },
       seoTitle: 'Premium Wireless Headphones - Noise Cancelling',
-      seoDescription: 'Experience crystal-clear audio with our premium wireless headphones featuring active noise cancellation.',
+      seoDescription:
+        'Experience crystal-clear audio with our premium wireless headphones featuring active noise cancellation.',
     },
     {
       name: 'Smart Watch',
       slug: 'smart-watch',
-      description: 'Feature-rich smartwatch with health tracking, GPS, and smartphone integration.',
+      description:
+        'Feature-rich smartwatch with health tracking, GPS, and smartphone integration.',
       price: 199.99,
       originalPrice: 249.99,
       sku: 'SW-003',
@@ -88,12 +92,14 @@ async function main() {
       weight: 0.05,
       dimensions: { length: 4.4, width: 3.8, height: 1.1 },
       seoTitle: 'Smart Watch with Health Tracking',
-      seoDescription: 'Stay connected and track your fitness with our advanced smartwatch.',
+      seoDescription:
+        'Stay connected and track your fitness with our advanced smartwatch.',
     },
     {
       name: 'Organic Cotton T-Shirt',
       slug: 'organic-cotton-tshirt',
-      description: 'Comfortable and sustainable organic cotton t-shirt perfect for everyday wear.',
+      description:
+        'Comfortable and sustainable organic cotton t-shirt perfect for everyday wear.',
       price: 29.99,
       sku: 'CT-002',
       stock: 50,
@@ -102,12 +108,14 @@ async function main() {
       weight: 0.15,
       dimensions: { length: 28, width: 20, height: 1 },
       seoTitle: 'Organic Cotton T-Shirt',
-      seoDescription: 'Eco-friendly and comfortable organic cotton t-shirt for sustainable fashion.',
+      seoDescription:
+        'Eco-friendly and comfortable organic cotton t-shirt for sustainable fashion.',
     },
     {
       name: 'Laptop Stand',
       slug: 'laptop-stand',
-      description: 'Adjustable aluminum laptop stand for ergonomic workspace setup.',
+      description:
+        'Adjustable aluminum laptop stand for ergonomic workspace setup.',
       price: 49.99,
       sku: 'LS-004',
       stock: 25,
@@ -116,12 +124,14 @@ async function main() {
       weight: 1.2,
       dimensions: { length: 25, width: 20, height: 15 },
       seoTitle: 'Adjustable Laptop Stand',
-      seoDescription: 'Improve your posture and workspace with our adjustable laptop stand.',
+      seoDescription:
+        'Improve your posture and workspace with our adjustable laptop stand.',
     },
     {
       name: 'USB-C Hub',
       slug: 'usb-c-hub',
-      description: '7-in-1 USB-C hub with multiple ports for all your connectivity needs.',
+      description:
+        '7-in-1 USB-C hub with multiple ports for all your connectivity needs.',
       price: 39.99,
       sku: 'UH-005',
       stock: 30,
@@ -130,12 +140,14 @@ async function main() {
       weight: 0.08,
       dimensions: { length: 12, width: 4, height: 1.5 },
       seoTitle: '7-in-1 USB-C Hub',
-      seoDescription: 'Expand your connectivity with our versatile 7-in-1 USB-C hub.',
+      seoDescription:
+        'Expand your connectivity with our versatile 7-in-1 USB-C hub.',
     },
     {
       name: 'Wireless Mouse',
       slug: 'wireless-mouse',
-      description: 'Ergonomic wireless mouse with precision tracking and long battery life.',
+      description:
+        'Ergonomic wireless mouse with precision tracking and long battery life.',
       price: 29.99,
       sku: 'WM-006',
       stock: 40,
@@ -144,12 +156,14 @@ async function main() {
       weight: 0.1,
       dimensions: { length: 11, width: 6, height: 3.5 },
       seoTitle: 'Ergonomic Wireless Mouse',
-      seoDescription: 'Work comfortably with our ergonomic wireless mouse featuring precision tracking.',
+      seoDescription:
+        'Work comfortably with our ergonomic wireless mouse featuring precision tracking.',
     },
     {
       name: 'Mechanical Keyboard',
       slug: 'mechanical-keyboard',
-      description: 'RGB mechanical keyboard with blue switches and customizable backlighting.',
+      description:
+        'RGB mechanical keyboard with blue switches and customizable backlighting.',
       price: 89.99,
       sku: 'MK-007',
       stock: 12,
@@ -159,25 +173,24 @@ async function main() {
       weight: 0.8,
       dimensions: { length: 45, width: 15, height: 4 },
       seoTitle: 'RGB Mechanical Keyboard',
-      seoDescription: 'Enhance your typing experience with our RGB mechanical keyboard.',
+      seoDescription:
+        'Enhance your typing experience with our RGB mechanical keyboard.',
     },
-  ]
+  ];
 
-  const createdProducts = []
+  const createdProducts = [];
   for (const productData of products) {
     const product = await prisma.product.create({
       data: productData,
-    })
-    createdProducts.push(product)
+    });
+    createdProducts.push(product);
   }
 
-  console.log(`✅ Created ${createdProducts.length} products`)
+  console.log(`✅ Created ${createdProducts.length} products`);
 
   // Create product images
   for (const product of createdProducts) {
-    const images = [
-      { imageKey: productImageMap[product.slug], isMain: true },
-    ]
+    const images = [{ imageKey: productImageMap[product.slug], isMain: true }];
 
     for (const imageData of images) {
       await prisma.productImage.create({
@@ -185,20 +198,22 @@ async function main() {
           productId: product.id,
           ...imageData,
         },
-      })
+      });
     }
   }
 
-  console.log('✅ Product images created')
+  console.log('✅ Product images created');
 
   // Create product variants for some products
-  const headphones = createdProducts.find(p => p.slug === 'wireless-headphones')
+  const headphones = createdProducts.find(
+    (p) => p.slug === 'wireless-headphones',
+  );
   if (headphones) {
     const variants = [
       { name: 'Color', value: 'Black', sku: 'WH-001-BLK', price: 299.99 },
       { name: 'Color', value: 'Silver', sku: 'WH-001-SLV', price: 299.99 },
       { name: 'Color', value: 'Blue', sku: 'WH-001-BLU', price: 319.99 },
-    ]
+    ];
 
     for (const variantData of variants) {
       await prisma.productVariant.create({
@@ -206,18 +221,20 @@ async function main() {
           productId: headphones.id,
           ...variantData,
         },
-      })
+      });
     }
   }
 
-  const tshirt = createdProducts.find(p => p.slug === 'organic-cotton-tshirt')
+  const tshirt = createdProducts.find(
+    (p) => p.slug === 'organic-cotton-tshirt',
+  );
   if (tshirt) {
     const variants = [
       { name: 'Size', value: 'Small', sku: 'CT-002-SML', price: 29.99 },
       { name: 'Size', value: 'Medium', sku: 'CT-002-MED', price: 29.99 },
       { name: 'Size', value: 'Large', sku: 'CT-002-LRG', price: 29.99 },
       { name: 'Size', value: 'XL', sku: 'CT-002-XL', price: 34.99 },
-    ]
+    ];
 
     for (const variantData of variants) {
       await prisma.productVariant.create({
@@ -225,11 +242,11 @@ async function main() {
           productId: tshirt.id,
           ...variantData,
         },
-      })
+      });
     }
   }
 
-  console.log('✅ Product variants created')
+  console.log('✅ Product variants created');
 
   // Create inventory records
   for (const product of createdProducts) {
@@ -239,13 +256,13 @@ async function main() {
         quantity: product.stock,
         reorderLevel: 5,
       },
-    })
+    });
   }
 
-  console.log('✅ Inventory records created')
+  console.log('✅ Inventory records created');
 
   // Create admin user
-  const hashedPassword = await bcrypt.hash('admin123', 10)
+  const hashedPassword = await bcrypt.hash('admin123', 10);
   const adminUser = await prisma.user.create({
     data: {
       email: 'admin@uptoyoushop.com',
@@ -254,10 +271,10 @@ async function main() {
       role: 'ADMIN',
       emailVerified: true,
     },
-  })
+  });
 
   // Create test customer user
-  const customerPassword = await bcrypt.hash('customer123', 10)
+  const customerPassword = await bcrypt.hash('customer123', 10);
   const customerUser = await prisma.user.create({
     data: {
       email: 'customer@example.com',
@@ -266,9 +283,9 @@ async function main() {
       role: 'CUSTOMER',
       emailVerified: true,
     },
-  })
+  });
 
-  console.log('✅ Users created')
+  console.log('✅ Users created');
 
   // Create customer addresses
   await prisma.address.create({
@@ -287,12 +304,12 @@ async function main() {
       phone: '+1 555-123-4567',
       isDefault: true,
     },
-  })
+  });
 
-  console.log('✅ Customer address created')
+  console.log('✅ Customer address created');
 
   // Create sample reviews
-  const reviewProducts = createdProducts.slice(0, 3)
+  const reviewProducts = createdProducts.slice(0, 3);
   for (const product of reviewProducts) {
     await prisma.review.create({
       data: {
@@ -303,26 +320,38 @@ async function main() {
         content: `I really love this ${product.name.toLowerCase()}. It exceeded my expectations and I would definitely recommend it to others.`,
         isVerified: true,
       },
-    })
+    });
   }
 
-  console.log('✅ Sample reviews created')
+  console.log('✅ Sample reviews created');
 
   // Create shipping methods
   const shippingMethods = [
-    { name: 'Standard Shipping', description: '5-7 business days', price: 9.99 },
-    { name: 'Express Shipping', description: '2-3 business days', price: 19.99 },
-    { name: 'Overnight Shipping', description: 'Next business day', price: 29.99 },
+    {
+      name: 'Standard Shipping',
+      description: '5-7 business days',
+      price: 9.99,
+    },
+    {
+      name: 'Express Shipping',
+      description: '2-3 business days',
+      price: 19.99,
+    },
+    {
+      name: 'Overnight Shipping',
+      description: 'Next business day',
+      price: 29.99,
+    },
     { name: 'Free Shipping', description: '7-10 business days', price: 0 },
-  ]
+  ];
 
   for (const methodData of shippingMethods) {
     await prisma.shippingMethod.create({
       data: methodData,
-    })
+    });
   }
 
-  console.log('✅ Shipping methods created')
+  console.log('✅ Shipping methods created');
 
   // Create coupons
   await prisma.coupon.create({
@@ -331,14 +360,14 @@ async function main() {
       name: 'Welcome Discount',
       description: '10% off your first order',
       type: 'PERCENTAGE',
-      value: 10.00,
-      minAmount: 50.00,
+      value: 10.0,
+      minAmount: 50.0,
       maxUses: 100,
       isActive: true,
       startsAt: new Date(),
       expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
     },
-  })
+  });
 
   await prisma.coupon.create({
     data: {
@@ -347,15 +376,15 @@ async function main() {
       description: 'Free shipping on orders over $50',
       type: 'FREE_SHIPPING',
       value: 0,
-      minAmount: 50.00,
+      minAmount: 50.0,
       maxUses: 200,
       isActive: true,
       startsAt: new Date(),
       expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days from now
     },
-  })
+  });
 
-  console.log('✅ Coupons created')
+  console.log('✅ Coupons created');
 
   // Create system settings
   await prisma.setting.createMany({
@@ -378,21 +407,21 @@ async function main() {
       },
       {
         key: 'free_shipping_threshold',
-        value: { threshold: 50.00 },
+        value: { threshold: 50.0 },
       },
     ],
-  })
+  });
 
-  console.log('✅ System settings created')
+  console.log('✅ System settings created');
 
-  console.log('🎉 Database seeding completed successfully!')
+  console.log('🎉 Database seeding completed successfully!');
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Error during seeding:', e)
-    process.exit(1)
+    console.error('❌ Error during seeding:', e);
+    process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect()
-  })
+    await prisma.$disconnect();
+  });

@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import { addAddress, getUserAddresses } from "@/services/users.service";
+import { NextRequest, NextResponse } from 'next/server';
+import { addAddress, getUserAddresses } from '@/services/users.service';
 
 export async function GET() {
   const result = await getUserAddresses();

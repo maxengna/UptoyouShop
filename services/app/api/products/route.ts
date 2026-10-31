@@ -1,32 +1,32 @@
-import { NextRequest } from "next/server";
-import { z } from "zod";
-import { prisma } from "../../../../database/prisma";
+import { NextRequest } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '../../../../database/prisma';
 import {
   successResponse,
   errorResponse,
   validationErrorResponse,
-} from "../../../lib/utils/api";
+} from '../../../lib/utils/api';
 import {
   getProducts as getProductsService,
   createProduct as createProductService,
-} from "@/services/products.service";
-import { requireAdmin } from "@/services/admin.service";
+} from '@/services/products.service';
+import { requireAdmin } from '@/services/admin.service';
 
 // Validation schema
 const createProductSchema = z.object({
-  name: z.string().min(1, "Product name is required"),
-  sku: z.string().min(1, "SKU is required"),
+  name: z.string().min(1, 'Product name is required'),
+  sku: z.string().min(1, 'SKU is required'),
   description: z.string().optional(),
   price: z
     .string()
-    .min(1, "Price is required")
+    .min(1, 'Price is required')
     .transform((val) => parseFloat(val)),
   comparePrice: z
     .string()
     .optional()
     .transform((val) => (val ? parseFloat(val) : undefined)),
-  category: z.string().min(1, "Category is required"),
-  status: z.enum(["active", "draft", "archived"]).default("active"),
+  category: z.string().min(1, 'Category is required'),
+  status: z.enum(['active', 'draft', 'archived']).default('active'),
   trackInventory: z.boolean().default(true),
   stock: z
     .string()
@@ -67,8 +67,8 @@ const createProductSchema = z.object({
 function generateSlug(text: string): string {
   return text
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
 }
 
 export async function POST(request: NextRequest) {
@@ -80,8 +80,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    console.log("POST /api/products - body:", body);
-    console.log("POST /api/products - body type:", typeof body);
+    console.log('POST /api/products - body:', body);
+    console.log('POST /api/products - body type:', typeof body);
 
     // Validate request body
     const validatedData = createProductSchema.parse(body);
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
       sku: validatedData.sku,
       stock: validatedData.stock || 0,
       categoryId: category.id,
-      isActive: validatedData.status === "active",
+      isActive: validatedData.status === 'active',
       isNew: false,
       isOnSale: false,
       tags: validatedData.tags,
@@ -147,28 +147,28 @@ export async function POST(request: NextRequest) {
 
     // Call service to create product
     const result = await createProductService(
-      new Request("http://localhost", {
-        method: "POST",
+      new Request('http://localhost', {
+        method: 'POST',
         body: JSON.stringify(productData),
       }) as NextRequest,
     );
 
     if (!result.success) {
-      return errorResponse(result.error || "Failed to create product", 400);
+      return errorResponse(result.error || 'Failed to create product', 400);
     }
 
     return successResponse(
       { product: result.data },
-      result.message || "Product created successfully",
+      result.message || 'Product created successfully',
     );
   } catch (error) {
-    console.error("Error creating product:", error);
+    console.error('Error creating product:', error);
 
     if (error instanceof z.ZodError) {
       return validationErrorResponse(error.errors);
     }
 
-    return errorResponse("Internal server error", 500);
+    return errorResponse('Internal server error', 500);
   }
 }
 
@@ -177,13 +177,13 @@ export async function GET(request: NextRequest) {
     const result = await getProductsService(request);
 
     if (!result.success) {
-      return errorResponse(result.error || "Failed to fetch products", 500);
+      return errorResponse(result.error || 'Failed to fetch products', 500);
     }
 
     return successResponse(result.data);
   } catch (error) {
-    console.error("Error fetching products:", error);
+    console.error('Error fetching products:', error);
 
-    return errorResponse("Internal server error", 500);
+    return errorResponse('Internal server error', 500);
   }
 }

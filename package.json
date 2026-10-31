@@ -1,6 +1,11 @@
 {
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
   "devDependencies": {
     "@types/node": "^25.6.0",
+    "prettier": "^3.9.10",
     "prisma": "^5.22.0"
   },
   "dependencies": {

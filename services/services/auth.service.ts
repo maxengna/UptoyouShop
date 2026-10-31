@@ -1,11 +1,11 @@
-import { NextRequest } from "next/server";
-import { getServerSession } from "next-auth";
-import crypto from "crypto";
-import { prisma } from "../../database/prisma";
-import { z } from "zod";
-import bcrypt from "bcryptjs";
-import { sendPasswordResetEmail } from "@/lib/utils/email";
-import { resetPasswordConfirmSchema } from "@/lib/validations/auth";
+import { NextRequest } from 'next/server';
+import { getServerSession } from 'next-auth';
+import crypto from 'crypto';
+import { prisma } from '../../database/prisma';
+import { z } from 'zod';
+import bcrypt from 'bcryptjs';
+import { sendPasswordResetEmail } from '@/lib/utils/email';
+import { resetPasswordConfirmSchema } from '@/lib/validations/auth';
 
 // Registration schema
 const registerSchema = z.object({
@@ -27,7 +27,7 @@ export async function registerUser(request: NextRequest) {
     if (existingUser) {
       return {
         success: false,
-        error: "User with this email already exists",
+        error: 'User with this email already exists',
         status: 409,
       };
     }
@@ -41,7 +41,7 @@ export async function registerUser(request: NextRequest) {
         name,
         email,
         passwordHash,
-        role: "CUSTOMER",
+        role: 'CUSTOMER',
       },
       select: {
         id: true,
@@ -56,15 +56,15 @@ export async function registerUser(request: NextRequest) {
     return {
       success: true,
       data: user,
-      message: "User registered successfully",
+      message: 'User registered successfully',
     };
   } catch (error) {
-    console.error("Register error:", error);
+    console.error('Register error:', error);
 
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: "Invalid registration data",
+        error: 'Invalid registration data',
         details: error.errors,
         status: 400,
       };
@@ -72,7 +72,7 @@ export async function registerUser(request: NextRequest) {
 
     return {
       success: false,
-      error: "Failed to register user",
+      error: 'Failed to register user',
       status: 500,
     };
   }
@@ -97,7 +97,7 @@ export async function loginUser(request: NextRequest) {
     if (!user || !user.passwordHash) {
       return {
         success: false,
-        error: "Invalid email or password",
+        error: 'Invalid email or password',
         status: 401,
       };
     }
@@ -108,7 +108,7 @@ export async function loginUser(request: NextRequest) {
     if (!isPasswordValid) {
       return {
         success: false,
-        error: "Invalid email or password",
+        error: 'Invalid email or password',
         status: 401,
       };
     }
@@ -125,15 +125,15 @@ export async function loginUser(request: NextRequest) {
     return {
       success: true,
       data: userResponse,
-      message: "Login successful",
+      message: 'Login successful',
     };
   } catch (error) {
-    console.error("Login error:", error);
+    console.error('Login error:', error);
 
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: "Invalid login data",
+        error: 'Invalid login data',
         details: error.errors,
         status: 400,
       };
@@ -141,7 +141,7 @@ export async function loginUser(request: NextRequest) {
 
     return {
       success: false,
-      error: "Failed to login",
+      error: 'Failed to login',
       status: 500,
     };
   }
@@ -154,7 +154,7 @@ export async function getCurrentUser() {
     if (!session?.user?.email) {
       return {
         success: false,
-        error: "Unauthorized",
+        error: 'Unauthorized',
         status: 401,
       };
     }
@@ -176,7 +176,7 @@ export async function getCurrentUser() {
     if (!user) {
       return {
         success: false,
-        error: "User not found",
+        error: 'User not found',
         status: 404,
       };
     }
@@ -186,10 +186,10 @@ export async function getCurrentUser() {
       data: user,
     };
   } catch (error) {
-    console.error("Get current user error:", error);
+    console.error('Get current user error:', error);
     return {
       success: false,
-      error: "Failed to get user",
+      error: 'Failed to get user',
       status: 500,
     };
   }
@@ -209,7 +209,7 @@ export async function requestPasswordReset(request: NextRequest) {
     });
 
     if (user) {
-      const token = crypto.randomBytes(32).toString("hex");
+      const token = crypto.randomBytes(32).toString('hex');
       const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
       await prisma.passwordResetToken.create({
@@ -222,15 +222,15 @@ export async function requestPasswordReset(request: NextRequest) {
     return {
       success: true,
       message:
-        "If an account with this email exists, a password reset link has been sent",
+        'If an account with this email exists, a password reset link has been sent',
     };
   } catch (error) {
-    console.error("Request password reset error:", error);
+    console.error('Request password reset error:', error);
 
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: "Invalid email",
+        error: 'Invalid email',
         details: error.errors,
         status: 400,
       };
@@ -238,7 +238,7 @@ export async function requestPasswordReset(request: NextRequest) {
 
     return {
       success: false,
-      error: "Failed to request password reset",
+      error: 'Failed to request password reset',
       status: 500,
     };
   }
@@ -253,7 +253,7 @@ export async function verifyResetToken(token: string) {
     if (!record || record.usedAt || record.expiresAt < new Date()) {
       return {
         success: false,
-        error: "Invalid or expired reset token",
+        error: 'Invalid or expired reset token',
         status: 400,
       };
     }
@@ -263,10 +263,10 @@ export async function verifyResetToken(token: string) {
       data: { email: record.email },
     };
   } catch (error) {
-    console.error("Verify reset token error:", error);
+    console.error('Verify reset token error:', error);
     return {
       success: false,
-      error: "Failed to verify reset token",
+      error: 'Failed to verify reset token',
       status: 500,
     };
   }
@@ -284,7 +284,7 @@ export async function confirmPasswordReset(request: NextRequest) {
     if (!record || record.usedAt || record.expiresAt < new Date()) {
       return {
         success: false,
-        error: "Invalid or expired reset token",
+        error: 'Invalid or expired reset token',
         status: 400,
       };
     }
@@ -296,7 +296,7 @@ export async function confirmPasswordReset(request: NextRequest) {
     if (!user) {
       return {
         success: false,
-        error: "User not found",
+        error: 'User not found',
         status: 404,
       };
     }
@@ -319,15 +319,15 @@ export async function confirmPasswordReset(request: NextRequest) {
 
     return {
       success: true,
-      message: "Password has been reset successfully",
+      message: 'Password has been reset successfully',
     };
   } catch (error) {
-    console.error("Confirm password reset error:", error);
+    console.error('Confirm password reset error:', error);
 
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: "Invalid password data",
+        error: 'Invalid password data',
         details: error.errors,
         status: 400,
       };
@@ -335,7 +335,7 @@ export async function confirmPasswordReset(request: NextRequest) {
 
     return {
       success: false,
-      error: "Failed to reset password",
+      error: 'Failed to reset password',
       status: 500,
     };
   }
@@ -353,7 +353,7 @@ export async function changePassword(request: NextRequest) {
     if (!session?.user?.email) {
       return {
         success: false,
-        error: "Unauthorized",
+        error: 'Unauthorized',
         status: 401,
       };
     }
@@ -369,7 +369,7 @@ export async function changePassword(request: NextRequest) {
     if (!user || !user.passwordHash) {
       return {
         success: false,
-        error: "User not found",
+        error: 'User not found',
         status: 404,
       };
     }
@@ -383,7 +383,7 @@ export async function changePassword(request: NextRequest) {
     if (!isCurrentPasswordValid) {
       return {
         success: false,
-        error: "Current password is incorrect",
+        error: 'Current password is incorrect',
         status: 401,
       };
     }
@@ -399,15 +399,15 @@ export async function changePassword(request: NextRequest) {
 
     return {
       success: true,
-      message: "Password changed successfully",
+      message: 'Password changed successfully',
     };
   } catch (error) {
-    console.error("Change password error:", error);
+    console.error('Change password error:', error);
 
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: "Invalid password data",
+        error: 'Invalid password data',
         details: error.errors,
         status: 400,
       };
@@ -415,7 +415,7 @@ export async function changePassword(request: NextRequest) {
 
     return {
       success: false,
-      error: "Failed to change password",
+      error: 'Failed to change password',
       status: 500,
     };
   }

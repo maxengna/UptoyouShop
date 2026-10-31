@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import { join, resolve } from "path";
-import { v4 as uuidv4 } from "uuid";
-import { requireAdmin } from "@/services/admin.service";
+import { NextRequest, NextResponse } from 'next/server';
+import { writeFile, mkdir } from 'fs/promises';
+import { join, resolve } from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import { requireAdmin } from '@/services/admin.service';
 
 const ALLOWED_ORIGIN =
   process.env.NODE_ENV === 'production'
@@ -11,9 +11,9 @@ const ALLOWED_ORIGIN =
 
 export async function OPTIONS(request: NextRequest) {
   const headers = {
-    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-    "Access-Control-Allow-Methods": "POST, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
+    'Access-Control-Allow-Methods': 'POST, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
   };
 
   return new NextResponse(null, { status: 200, headers });
@@ -22,9 +22,9 @@ export async function OPTIONS(request: NextRequest) {
 export async function POST(request: NextRequest) {
   // Add CORS headers
   const headers = {
-    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-    "Access-Control-Allow-Methods": "POST, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
+    'Access-Control-Allow-Methods': 'POST, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
   };
 
   try {
@@ -38,20 +38,20 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await request.formData();
-    const file: File | null = data.get("file") as unknown as File;
+    const file: File | null = data.get('file') as unknown as File;
 
     if (!file) {
       return NextResponse.json(
-        { error: "No file uploaded" },
+        { error: 'No file uploaded' },
         { status: 400, headers },
       );
     }
 
     // Validate file type
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: "Invalid file type. Only JPEG, PNG, and WebP are allowed" },
+        { error: 'Invalid file type. Only JPEG, PNG, and WebP are allowed' },
         { status: 400, headers },
       );
     }
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     const maxSize = 5 * 1024 * 1024; // 5MB in bytes
     if (file.size > maxSize) {
       return NextResponse.json(
-        { error: "File too large. Maximum size is 5MB" },
+        { error: 'File too large. Maximum size is 5MB' },
         { status: 400, headers },
       );
     }
@@ -70,48 +70,50 @@ export async function POST(request: NextRequest) {
 
     // Validate file content via magic bytes
     const MAGIC_BYTES: Record<string, Uint8Array> = {
-      "image/jpeg": new Uint8Array([0xFF, 0xD8, 0xFF]),
-      "image/png": new Uint8Array([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]),
-      "image/webp": new Uint8Array([0x52, 0x49, 0x46, 0x46]), // "RIFF"
+      'image/jpeg': new Uint8Array([0xff, 0xd8, 0xff]),
+      'image/png': new Uint8Array([
+        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+      ]),
+      'image/webp': new Uint8Array([0x52, 0x49, 0x46, 0x46]), // "RIFF"
     };
 
     const magic = MAGIC_BYTES[file.type];
     if (!magic || !magic.every((byte, i) => buffer[i] === byte)) {
       return NextResponse.json(
-        { error: "File content does not match declared type" },
+        { error: 'File content does not match declared type' },
         { status: 400, headers },
       );
     }
 
     // Hardcode extension based on validated MIME type
     const EXTENSION_MAP: Record<string, string> = {
-      "image/jpeg": "jpg",
-      "image/png": "png",
-      "image/webp": "webp",
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/webp': 'webp',
     };
     const uniqueFilename = `${uuidv4()}.${EXTENSION_MAP[file.type]}`;
 
     // Create uploads directory if it doesn't exist
-    const uploadsDir = join(process.cwd(), "public", "uploads");
-    console.log("Uploads directory:", uploadsDir);
+    const uploadsDir = join(process.cwd(), 'public', 'uploads');
+    console.log('Uploads directory:', uploadsDir);
 
     try {
       await mkdir(uploadsDir, { recursive: true });
-      console.log("Directory created/verified");
+      console.log('Directory created/verified');
     } catch (dirError) {
-      console.error("Directory creation error:", dirError);
+      console.error('Directory creation error:', dirError);
       throw dirError;
     }
 
     // Write file to uploads directory
     const filePath = join(uploadsDir, uniqueFilename);
-    console.log("File path:", filePath);
+    console.log('File path:', filePath);
 
     try {
       await writeFile(filePath, buffer);
-      console.log("File written successfully");
+      console.log('File written successfully');
     } catch (writeError) {
-      console.error("File write error:", writeError);
+      console.error('File write error:', writeError);
       throw writeError;
     }
 
@@ -132,16 +134,16 @@ export async function POST(request: NextRequest) {
       { headers },
     );
   } catch (error) {
-    console.error("Upload error:", error);
-    console.error("Error details:", {
-      message: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : "No stack",
+    console.error('Upload error:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack',
     });
 
     return NextResponse.json(
       {
-        error: "Failed to upload file",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error: 'Failed to upload file',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500, headers },
     );
@@ -160,35 +162,35 @@ export async function DELETE(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const filePath = searchParams.get("path");
+    const filePath = searchParams.get('path');
 
     if (!filePath) {
       return NextResponse.json(
-        { error: "No file path provided" },
+        { error: 'No file path provided' },
         { status: 400 },
       );
     }
 
     // For security, only allow deleting files from uploads directory
-    const uploadsDir = resolve(process.cwd(), "public", "uploads");
-    const fullPath = resolve(process.cwd(), "public", filePath);
+    const uploadsDir = resolve(process.cwd(), 'public', 'uploads');
+    const fullPath = resolve(process.cwd(), 'public', filePath);
 
     if (!fullPath.startsWith(uploadsDir)) {
-      return NextResponse.json({ error: "Invalid file path" }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid file path' }, { status: 400 });
     }
 
     // Use fs/promises for delete operation
-    const { unlink } = await import("fs/promises");
+    const { unlink } = await import('fs/promises');
     await unlink(fullPath);
 
     return NextResponse.json({
       success: true,
-      message: "File deleted successfully",
+      message: 'File deleted successfully',
     });
   } catch (error) {
-    console.error("Delete error:", error);
+    console.error('Delete error:', error);
     return NextResponse.json(
-      { error: "Failed to delete file" },
+      { error: 'Failed to delete file' },
       { status: 500 },
     );
   }

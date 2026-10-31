@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
 import {
   getCart,
   addToCart,
   updateCartItem,
   removeCartItem,
   clearCart,
-} from "@/services/cart.service";
+} from '@/services/cart.service';
 
 export async function GET(request: NextRequest) {
   const result = await getCart(request);
@@ -35,11 +35,11 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   const url = new URL(request.url);
-  const itemId = url.pathname.split("/").pop();
+  const itemId = url.pathname.split('/').pop();
 
   if (!itemId) {
     return NextResponse.json(
-      { success: false, error: "Cart item ID required" },
+      { success: false, error: 'Cart item ID required' },
       { status: 400 },
     );
   }
@@ -58,7 +58,7 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   const url = new URL(request.url);
-  const itemId = url.pathname.split("/").pop();
+  const itemId = url.pathname.split('/').pop();
 
   if (itemId) {
     // Delete specific cart item

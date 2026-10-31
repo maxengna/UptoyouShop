@@ -1,7 +1,7 @@
-import { NextRequest } from "next/server";
-import { getServerSession } from "next-auth";
-import { prisma } from "../../database/prisma";
-import { z } from "zod";
+import { NextRequest } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { prisma } from '../../database/prisma';
+import { z } from 'zod';
 
 // Admin authentication check
 export async function requireAdmin() {
@@ -10,7 +10,7 @@ export async function requireAdmin() {
   if (!session?.user?.email) {
     return {
       success: false,
-      error: "Unauthorized",
+      error: 'Unauthorized',
       status: 401,
     };
   }
@@ -19,10 +19,10 @@ export async function requireAdmin() {
     where: { email: session.user.email },
   });
 
-  if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
+  if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
     return {
       success: false,
-      error: "Insufficient permissions",
+      error: 'Insufficient permissions',
       status: 403,
     };
   }
@@ -37,10 +37,10 @@ export async function getAdminOrders(request: NextRequest) {
     if (!authResult.success) return authResult;
 
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const status = searchParams.get("status");
-    const paymentStatus = searchParams.get("paymentStatus");
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const status = searchParams.get('status');
+    const paymentStatus = searchParams.get('paymentStatus');
 
     // Build where clause
     const where: any = {};
@@ -70,7 +70,7 @@ export async function getAdminOrders(request: NextRequest) {
         },
         payments: true,
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -91,10 +91,10 @@ export async function getAdminOrders(request: NextRequest) {
       },
     };
   } catch (error) {
-    console.error("Get admin orders error:", error);
+    console.error('Get admin orders error:', error);
     return {
       success: false,
-      error: "Failed to fetch orders",
+      error: 'Failed to fetch orders',
       status: 500,
     };
   }
@@ -135,7 +135,7 @@ export async function getAdminOrderById(orderId: string) {
     if (!order) {
       return {
         success: false,
-        error: "Order not found",
+        error: 'Order not found',
         status: 404,
       };
     }
@@ -145,10 +145,10 @@ export async function getAdminOrderById(orderId: string) {
       data: order,
     };
   } catch (error) {
-    console.error("Get admin order error:", error);
+    console.error('Get admin order error:', error);
     return {
       success: false,
-      error: "Failed to fetch order",
+      error: 'Failed to fetch order',
       status: 500,
     };
   }
@@ -167,12 +167,12 @@ export async function updateAdminOrderStatus(
     const { status, trackingNumber } = z
       .object({
         status: z.enum([
-          "PENDING",
-          "PROCESSING",
-          "SHIPPED",
-          "DELIVERED",
-          "CANCELLED",
-          "REFUNDED",
+          'PENDING',
+          'PROCESSING',
+          'SHIPPED',
+          'DELIVERED',
+          'CANCELLED',
+          'REFUNDED',
         ]),
         trackingNumber: z.string().optional(),
       })
@@ -184,8 +184,8 @@ export async function updateAdminOrderStatus(
       data: {
         status,
         ...(trackingNumber && { trackingNumber }),
-        ...(status === "SHIPPED" && { shippedAt: new Date() }),
-        ...(status === "DELIVERED" && { deliveredAt: new Date() }),
+        ...(status === 'SHIPPED' && { shippedAt: new Date() }),
+        ...(status === 'DELIVERED' && { deliveredAt: new Date() }),
       },
       include: {
         items: {
@@ -197,7 +197,7 @@ export async function updateAdminOrderStatus(
     });
 
     // Update inventory when order is shipped/delivered
-    if (status === "SHIPPED" || status === "DELIVERED") {
+    if (status === 'SHIPPED' || status === 'DELIVERED') {
       for (const item of order.items) {
         await prisma.inventory.update({
           where: { productId: item.productId },
@@ -214,7 +214,7 @@ export async function updateAdminOrderStatus(
     }
 
     // Release inventory if order is cancelled
-    if (status === "CANCELLED") {
+    if (status === 'CANCELLED') {
       for (const item of order.items) {
         await prisma.inventory.update({
           where: { productId: item.productId },
@@ -230,15 +230,15 @@ export async function updateAdminOrderStatus(
     return {
       success: true,
       data: order,
-      message: "Order status updated successfully",
+      message: 'Order status updated successfully',
     };
   } catch (error) {
-    console.error("Update admin order status error:", error);
+    console.error('Update admin order status error:', error);
 
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: "Invalid request data",
+        error: 'Invalid request data',
         details: error.errors,
         status: 400,
       };
@@ -246,7 +246,7 @@ export async function updateAdminOrderStatus(
 
     return {
       success: false,
-      error: "Failed to update order status",
+      error: 'Failed to update order status',
       status: 500,
     };
   }
@@ -259,7 +259,7 @@ export async function getSalesAnalytics(request: NextRequest) {
     if (!authResult.success) return authResult;
 
     const { searchParams } = new URL(request.url);
-    const period = searchParams.get("period") || "30"; // days
+    const period = searchParams.get('period') || '30'; // days
 
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - parseInt(period));
@@ -271,7 +271,7 @@ export async function getSalesAnalytics(request: NextRequest) {
           gte: startDate,
         },
         status: {
-          not: "CANCELLED",
+          not: 'CANCELLED',
         },
       },
       include: {
@@ -322,7 +322,7 @@ export async function getSalesAnalytics(request: NextRequest) {
     // Get daily sales data
     const dailySales = new Map();
     orders.forEach((order) => {
-      const date = order.createdAt.toISOString().split("T")[0];
+      const date = order.createdAt.toISOString().split('T')[0];
       const revenue = Number(order.total);
 
       if (dailySales.has(date)) {
@@ -348,10 +348,10 @@ export async function getSalesAnalytics(request: NextRequest) {
       },
     };
   } catch (error) {
-    console.error("Get sales analytics error:", error);
+    console.error('Get sales analytics error:', error);
     return {
       success: false,
-      error: "Failed to fetch sales analytics",
+      error: 'Failed to fetch sales analytics',
       status: 500,
     };
   }
@@ -419,10 +419,10 @@ export async function getProductAnalytics(request: NextRequest) {
       data: productAnalytics,
     };
   } catch (error) {
-    console.error("Get product analytics error:", error);
+    console.error('Get product analytics error:', error);
     return {
       success: false,
-      error: "Failed to fetch product analytics",
+      error: 'Failed to fetch product analytics',
       status: 500,
     };
   }
@@ -435,7 +435,7 @@ export async function getCustomerAnalytics(request: NextRequest) {
     if (!authResult.success) return authResult;
 
     const { searchParams } = new URL(request.url);
-    const period = searchParams.get("period") || "30"; // days
+    const period = searchParams.get('period') || '30'; // days
 
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - parseInt(period));
@@ -443,7 +443,7 @@ export async function getCustomerAnalytics(request: NextRequest) {
     // Get customer data
     const customers = await prisma.user.findMany({
       where: {
-        role: "CUSTOMER",
+        role: 'CUSTOMER',
       },
       include: {
         orders: {
@@ -503,10 +503,10 @@ export async function getCustomerAnalytics(request: NextRequest) {
       },
     };
   } catch (error) {
-    console.error("Get customer analytics error:", error);
+    console.error('Get customer analytics error:', error);
     return {
       success: false,
-      error: "Failed to fetch customer analytics",
+      error: 'Failed to fetch customer analytics',
       status: 500,
     };
   }
@@ -531,7 +531,7 @@ export async function getSystemHealth() {
       prisma.order.count(),
       prisma.order.aggregate({
         _sum: { total: true },
-        where: { status: { not: "CANCELLED" } },
+        where: { status: { not: 'CANCELLED' } },
       }),
       prisma.inventory.count({
         where: { quantity: { lte: 5 } },
@@ -541,7 +541,7 @@ export async function getSystemHealth() {
     // Get recent orders
     const recentOrders = await prisma.order.findMany({
       take: 5,
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
       include: {
         user: {
           select: {
@@ -590,10 +590,10 @@ export async function getSystemHealth() {
       },
     };
   } catch (error) {
-    console.error("Get system health error:", error);
+    console.error('Get system health error:', error);
     return {
       success: false,
-      error: "Failed to fetch system health",
+      error: 'Failed to fetch system health',
       status: 500,
     };
   }
@@ -606,18 +606,18 @@ export async function getAdminUsers(request: NextRequest) {
     if (!authResult.success) return authResult;
 
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const role = searchParams.get("role");
-    const search = searchParams.get("search");
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const role = searchParams.get('role');
+    const search = searchParams.get('search');
 
     // Build where clause
     const where: any = {};
     if (role) where.role = role.toUpperCase();
     if (search) {
       where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { email: { contains: search, mode: "insensitive" } },
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
       ];
     }
 
@@ -641,7 +641,7 @@ export async function getAdminUsers(request: NextRequest) {
           },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -662,10 +662,10 @@ export async function getAdminUsers(request: NextRequest) {
       },
     };
   } catch (error) {
-    console.error("Get admin users error:", error);
+    console.error('Get admin users error:', error);
     return {
       success: false,
-      error: "Failed to fetch users",
+      error: 'Failed to fetch users',
       status: 500,
     };
   }

@@ -1,28 +1,29 @@
 // App constants
-export const APP_NAME = 'UpToYouShop'
-export const APP_DESCRIPTION = 'A modern e-commerce platform'
-export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+export const APP_NAME = 'UpToYouShop';
+export const APP_DESCRIPTION = 'A modern e-commerce platform';
+export const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 // Currency constants
-export const CURRENCY = 'USD'
-export const CURRENCY_SYMBOL = '$'
+export const CURRENCY = 'USD';
+export const CURRENCY_SYMBOL = '$';
 
 // Tax constants
-export const TAX_RATE = 0.08 // 8%
-export const FREE_SHIPPING_THRESHOLD = 50
+export const TAX_RATE = 0.08; // 8%
+export const FREE_SHIPPING_THRESHOLD = 50;
 
 // Pagination constants
-export const DEFAULT_PAGE_SIZE = 12
-export const MAX_PAGE_SIZE = 100
+export const DEFAULT_PAGE_SIZE = 12;
+export const MAX_PAGE_SIZE = 100;
 
 // Image constants
-export const DEFAULT_PRODUCT_IMAGE = '/images/product-placeholder.jpg'
-export const DEFAULT_CATEGORY_IMAGE = '/images/category-placeholder.jpg'
-export const DEFAULT_USER_AVATAR = '/images/user-placeholder.jpg'
+export const DEFAULT_PRODUCT_IMAGE = '/images/product-placeholder.jpg';
+export const DEFAULT_CATEGORY_IMAGE = '/images/category-placeholder.jpg';
+export const DEFAULT_USER_AVATAR = '/images/user-placeholder.jpg';
 
 // Cart constants
-export const CART_EXPIRY_DAYS = 30
-export const MAX_CART_ITEMS = 99
+export const CART_EXPIRY_DAYS = 30;
+export const MAX_CART_ITEMS = 99;
 
 // Order constants
 export const ORDER_STATUSES = {
@@ -32,7 +33,7 @@ export const ORDER_STATUSES = {
   DELIVERED: 'DELIVERED',
   CANCELLED: 'CANCELLED',
   REFUNDED: 'REFUNDED',
-} as const
+} as const;
 
 export const PAYMENT_STATUSES = {
   PENDING: 'PENDING',
@@ -41,34 +42,34 @@ export const PAYMENT_STATUSES = {
   FAILED: 'FAILED',
   REFUNDED: 'REFUNDED',
   PARTIALLY_REFUNDED: 'PARTIALLY_REFUNDED',
-} as const
+} as const;
 
 export const PAYMENT_METHODS = {
   CREDIT_CARD: 'credit_card',
   PAYPAL: 'paypal',
   STRIPE: 'stripe',
   BANK_TRANSFER: 'bank_transfer',
-} as const
+} as const;
 
 // User roles
 export const USER_ROLES = {
   CUSTOMER: 'CUSTOMER',
   ADMIN: 'ADMIN',
   SUPER_ADMIN: 'SUPER_ADMIN',
-} as const
+} as const;
 
 // Address types
 export const ADDRESS_TYPES = {
   SHIPPING: 'SHIPPING',
   BILLING: 'BILLING',
-} as const
+} as const;
 
 // Coupon types
 export const COUPON_TYPES = {
   PERCENTAGE: 'PERCENTAGE',
   FIXED_AMOUNT: 'FIXED_AMOUNT',
   FREE_SHIPPING: 'FREE_SHIPPING',
-} as const
+} as const;
 
 // Product constants
 export const PRODUCT_STATUSES = {
@@ -76,26 +77,26 @@ export const PRODUCT_STATUSES = {
   INACTIVE: 'INACTIVE',
   DRAFT: 'DRAFT',
   ARCHIVED: 'ARCHIVED',
-} as const
+} as const;
 
 // Review constants
 export const REVIEW_RATINGS = {
   MIN: 1,
   MAX: 5,
-} as const
+} as const;
 
 // Shipping constants
-export const DEFAULT_SHIPPING_COST = 9.99
-export const EXPRESS_SHIPPING_COST = 19.99
-export const OVERNIGHT_SHIPPING_COST = 29.99
+export const DEFAULT_SHIPPING_COST = 9.99;
+export const EXPRESS_SHIPPING_COST = 19.99;
+export const OVERNIGHT_SHIPPING_COST = 29.99;
 
 // Inventory constants
-export const LOW_STOCK_THRESHOLD = 5
-export const OUT_OF_STOCK_THRESHOLD = 0
+export const LOW_STOCK_THRESHOLD = 5;
+export const OUT_OF_STOCK_THRESHOLD = 0;
 
 // Email constants
-export const EMAIL_FROM = process.env.EMAIL_FROM || 'noreply@uptoyoushop.com'
-export const SUPPORT_EMAIL = 'support@uptoyoushop.com'
+export const EMAIL_FROM = process.env.EMAIL_FROM || 'noreply@uptoyoushop.com';
+export const SUPPORT_EMAIL = 'support@uptoyoushop.com';
 
 // Social media constants
 export const SOCIAL_LINKS = {
@@ -103,7 +104,7 @@ export const SOCIAL_LINKS = {
   TWITTER: 'https://twitter.com/uptoyoushop',
   INSTAGRAM: 'https://instagram.com/uptoyoushop',
   LINKEDIN: 'https://linkedin.com/company/uptoyoushop',
-} as const
+} as const;
 
 // Analytics constants
 export const ANALYTICS_PERIODS = {
@@ -113,7 +114,7 @@ export const ANALYTICS_PERIODS = {
   LAST_30_DAYS: '30',
   LAST_90_DAYS: '90',
   LAST_YEAR: '365',
-} as const
+} as const;
 
 // Sort options for products
 export const PRODUCT_SORT_OPTIONS = {
@@ -123,7 +124,7 @@ export const PRODUCT_SORT_OPTIONS = {
   NAME_DESC: 'name-desc',
   NEWEST: 'newest',
   RATING: 'rating',
-} as const
+} as const;
 
 // API endpoints
 export const API_ENDPOINTS = {
@@ -138,7 +139,7 @@ export const API_ENDPOINTS = {
   WISHLIST: '/api/wishlist',
   COUPONS: '/api/coupons',
   SHIPPING: '/api/shipping',
-} as const
+} as const;
 
 // Error messages
 export const ERROR_MESSAGES = {
@@ -176,7 +177,7 @@ export const ERROR_MESSAGES = {
   AGE_VERIFICATION_REQUIRED: 'Age verification required',
   LOCATION_RESTRICTED: 'Product not available in your location',
   QUANTITY_LIMIT: 'Quantity limit exceeded',
-} as const
+} as const;
 
 // Success messages
 export const SUCCESS_MESSAGES = {
@@ -216,7 +217,7 @@ export const SUCCESS_MESSAGES = {
   EMAIL_SENT: 'Email sent successfully',
   PASSWORD_RESET_SENT: 'Password reset email sent',
   ACCOUNT_VERIFIED: 'Account verified successfully',
-} as const
+} as const;
 
 // Validation patterns
 export const VALIDATION_PATTERNS = {
@@ -225,13 +226,14 @@ export const VALIDATION_PATTERNS = {
   PASSWORD: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/,
   ZIP_CODE_US: /^\d{5}(-\d{4})?$/,
   ZIP_CODE_UK: /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i,
-  CREDIT_CARD: /^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|3[0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})$/,
+  CREDIT_CARD:
+    /^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|3[0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})$/,
   SLUG: /^[a-z0-9-]+$/,
   SKU: /^[A-Z0-9-]+$/,
   COUPON_CODE: /^[A-Z0-9-]+$/,
   ORDER_NUMBER: /^ORD-\d+-[A-Z0-9]+$/,
   TRACKING_NUMBER: /^TRK-[A-Z0-9-]+$/,
-} as const
+} as const;
 
 // File upload constants
 export const FILE_UPLOAD = {
@@ -239,7 +241,7 @@ export const FILE_UPLOAD = {
   ALLOWED_TYPES: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
   PRODUCT_IMAGE_MAX_SIZE: 2 * 1024 * 1024, // 2MB
   AVATAR_MAX_SIZE: 1 * 1024 * 1024, // 1MB
-} as const
+} as const;
 
 // Cache constants
 export const CACHE_KEYS = {
@@ -253,14 +255,14 @@ export const CACHE_KEYS = {
   COUPONS: 'coupons',
   SHIPPING_METHODS: 'shipping_methods',
   ANALYTICS: 'analytics',
-} as const
+} as const;
 
 export const CACHE_TTL = {
   SHORT: 60, // 1 minute
   MEDIUM: 300, // 5 minutes
   LONG: 3600, // 1 hour
   VERY_LONG: 86400, // 24 hours
-} as const
+} as const;
 
 // Rate limiting constants
 export const RATE_LIMITS = {
@@ -269,7 +271,7 @@ export const RATE_LIMITS = {
   PASSWORD_RESET: { requests: 3, window: 3600 }, // 3 requests per hour
   API: { requests: 100, window: 60 }, // 100 requests per minute
   SEARCH: { requests: 30, window: 60 }, // 30 requests per minute
-} as const
+} as const;
 
 // Feature flags
 export const FEATURES = {
@@ -285,4 +287,4 @@ export const FEATURES = {
   ENABLE_SUBSCRIPTIONS: false,
   ENABLE_GIFT_CARDS: false,
   ENABLE_LOYALTY_PROGRAM: false,
-} as const
+} as const;

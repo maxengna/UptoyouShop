@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import { updateAddress, deleteAddress } from "@/services/users.service";
+import { NextRequest, NextResponse } from 'next/server';
+import { updateAddress, deleteAddress } from '@/services/users.service';
 
 export async function PUT(
   request: NextRequest,

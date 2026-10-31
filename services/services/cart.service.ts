@@ -1,7 +1,7 @@
-import { NextRequest } from "next/server";
-import { getServerSession } from "next-auth";
-import { prisma } from "../../database/prisma";
-import { z } from "zod";
+import { NextRequest } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { prisma } from '../../database/prisma';
+import { z } from 'zod';
 
 // Get user's cart
 export async function getCart(request: NextRequest) {
@@ -11,7 +11,7 @@ export async function getCart(request: NextRequest) {
     if (!session?.user?.email) {
       return {
         success: false,
-        error: "Unauthorized",
+        error: 'Unauthorized',
         status: 401,
       };
     }
@@ -24,7 +24,7 @@ export async function getCart(request: NextRequest) {
     if (!user) {
       return {
         success: false,
-        error: "User not found",
+        error: 'User not found',
         status: 404,
       };
     }
@@ -94,10 +94,10 @@ export async function getCart(request: NextRequest) {
       },
     };
   } catch (error) {
-    console.error("Get cart error:", error);
+    console.error('Get cart error:', error);
     return {
       success: false,
-      error: "Failed to fetch cart",
+      error: 'Failed to fetch cart',
       status: 500,
     };
   }
@@ -117,7 +117,7 @@ export async function addToCart(request: NextRequest) {
     if (!session?.user?.email) {
       return {
         success: false,
-        error: "Unauthorized",
+        error: 'Unauthorized',
         status: 401,
       };
     }
@@ -133,7 +133,7 @@ export async function addToCart(request: NextRequest) {
     if (!user) {
       return {
         success: false,
-        error: "User not found",
+        error: 'User not found',
         status: 404,
       };
     }
@@ -150,7 +150,7 @@ export async function addToCart(request: NextRequest) {
     if (!product) {
       return {
         success: false,
-        error: "Product not found",
+        error: 'Product not found',
         status: 404,
       };
     }
@@ -163,7 +163,7 @@ export async function addToCart(request: NextRequest) {
     if (availableStock < quantity) {
       return {
         success: false,
-        error: "Insufficient stock",
+        error: 'Insufficient stock',
         status: 400,
       };
     }
@@ -201,7 +201,7 @@ export async function addToCart(request: NextRequest) {
       if (availableStock < newQuantity) {
         return {
           success: false,
-          error: "Insufficient stock",
+          error: 'Insufficient stock',
           status: 400,
         };
       }
@@ -263,15 +263,15 @@ export async function addToCart(request: NextRequest) {
           itemCount,
         },
       },
-      message: "Item added to cart",
+      message: 'Item added to cart',
     };
   } catch (error) {
-    console.error("Add to cart error:", error);
+    console.error('Add to cart error:', error);
 
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: "Invalid request data",
+        error: 'Invalid request data',
         details: error.errors,
         status: 400,
       };
@@ -279,7 +279,7 @@ export async function addToCart(request: NextRequest) {
 
     return {
       success: false,
-      error: "Failed to add item to cart",
+      error: 'Failed to add item to cart',
       status: 500,
     };
   }
@@ -292,7 +292,7 @@ export async function updateCartItem(itemId: string, request: NextRequest) {
     if (!session?.user?.email) {
       return {
         success: false,
-        error: "Unauthorized",
+        error: 'Unauthorized',
         status: 401,
       };
     }
@@ -331,7 +331,7 @@ export async function updateCartItem(itemId: string, request: NextRequest) {
     if (!cartItem) {
       return {
         success: false,
-        error: "Cart item not found",
+        error: 'Cart item not found',
         status: 404,
       };
     }
@@ -345,7 +345,7 @@ export async function updateCartItem(itemId: string, request: NextRequest) {
     if (availableStock < quantity) {
       return {
         success: false,
-        error: "Insufficient stock",
+        error: 'Insufficient stock',
         status: 400,
       };
     }
@@ -394,15 +394,15 @@ export async function updateCartItem(itemId: string, request: NextRequest) {
           itemCount,
         },
       },
-      message: "Cart item updated",
+      message: 'Cart item updated',
     };
   } catch (error) {
-    console.error("Update cart item error:", error);
+    console.error('Update cart item error:', error);
 
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: "Invalid request data",
+        error: 'Invalid request data',
         details: error.errors,
         status: 400,
       };
@@ -410,7 +410,7 @@ export async function updateCartItem(itemId: string, request: NextRequest) {
 
     return {
       success: false,
-      error: "Failed to update cart item",
+      error: 'Failed to update cart item',
       status: 500,
     };
   }
@@ -423,7 +423,7 @@ export async function removeCartItem(itemId: string) {
     if (!session?.user?.email) {
       return {
         success: false,
-        error: "Unauthorized",
+        error: 'Unauthorized',
         status: 401,
       };
     }
@@ -436,7 +436,7 @@ export async function removeCartItem(itemId: string) {
     if (!user) {
       return {
         success: false,
-        error: "User not found",
+        error: 'User not found',
         status: 404,
       };
     }
@@ -454,7 +454,7 @@ export async function removeCartItem(itemId: string) {
     if (!cartItem) {
       return {
         success: false,
-        error: "Cart item not found",
+        error: 'Cart item not found',
         status: 404,
       };
     }
@@ -501,13 +501,13 @@ export async function removeCartItem(itemId: string) {
           itemCount,
         },
       },
-      message: "Cart item removed",
+      message: 'Cart item removed',
     };
   } catch (error) {
-    console.error("Remove cart item error:", error);
+    console.error('Remove cart item error:', error);
     return {
       success: false,
-      error: "Failed to remove cart item",
+      error: 'Failed to remove cart item',
       status: 500,
     };
   }
@@ -520,7 +520,7 @@ export async function clearCart() {
     if (!session?.user?.email) {
       return {
         success: false,
-        error: "Unauthorized",
+        error: 'Unauthorized',
         status: 401,
       };
     }
@@ -533,7 +533,7 @@ export async function clearCart() {
     if (!user) {
       return {
         success: false,
-        error: "User not found",
+        error: 'User not found',
         status: 404,
       };
     }
@@ -549,7 +549,7 @@ export async function clearCart() {
     if (!cart) {
       return {
         success: false,
-        error: "No active cart found",
+        error: 'No active cart found',
         status: 404,
       };
     }
@@ -561,13 +561,13 @@ export async function clearCart() {
 
     return {
       success: true,
-      message: "Cart cleared successfully",
+      message: 'Cart cleared successfully',
     };
   } catch (error) {
-    console.error("Clear cart error:", error);
+    console.error('Clear cart error:', error);
     return {
       success: false,
-      error: "Failed to clear cart",
+      error: 'Failed to clear cart',
       status: 500,
     };
   }

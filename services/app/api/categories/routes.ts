@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "../../../../database/prisma";
-import { requireAdmin } from "@/services/admin.service";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '../../../../database/prisma';
+import { requireAdmin } from '@/services/admin.service';
 
 export async function GET() {
   try {
@@ -9,7 +9,7 @@ export async function GET() {
         isActive: true,
       },
       orderBy: {
-        name: "asc",
+        name: 'asc',
       },
     });
 
@@ -18,12 +18,12 @@ export async function GET() {
       categories: categories.map((cat) => cat.name),
     });
   } catch (error) {
-    console.error("Error fetching categories:", error);
+    console.error('Error fetching categories:', error);
 
     return NextResponse.json(
       {
         success: false,
-        message: "Internal server error",
+        message: 'Internal server error',
       },
       { status: 500 },
     );
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: "Category name is required",
+          message: 'Category name is required',
         },
         { status: 400 },
       );
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: "Category already exists",
+          message: 'Category already exists',
         },
         { status: 400 },
       );
@@ -72,8 +72,8 @@ export async function POST(request: NextRequest) {
     // Create new category
     const slug = name
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
 
     const newCategory = await prisma.category.create({
       data: {
@@ -85,16 +85,16 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Category created successfully",
+      message: 'Category created successfully',
       category: newCategory,
     });
   } catch (error) {
-    console.error("Error creating category:", error);
+    console.error('Error creating category:', error);
 
     return NextResponse.json(
       {
         success: false,
-        message: "Internal server error",
+        message: 'Internal server error',
       },
       { status: 500 },
     );

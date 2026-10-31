@@ -1,17 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
 import {
   getUserProfile,
   updateProfile,
   getUserAddresses,
   getUserOrderHistory,
-} from "@/services/users.service";
+} from '@/services/users.service';
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
-  const pathSegments = url.pathname.split("/").filter(Boolean);
+  const pathSegments = url.pathname.split('/').filter(Boolean);
 
   // Handle different GET endpoints
-  if (pathSegments.length === 4 && pathSegments[3] === "addresses") {
+  if (pathSegments.length === 4 && pathSegments[3] === 'addresses') {
     // GET /api/users/addresses
     const result = await getUserAddresses();
 
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(result);
-  } else if (pathSegments.length === 4 && pathSegments[3] === "orders") {
+  } else if (pathSegments.length === 4 && pathSegments[3] === 'orders') {
     // GET /api/users/orders
     const result = await getUserOrderHistory(request);
 
@@ -52,14 +52,14 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   const url = new URL(request.url);
-  const pathSegments = url.pathname.split("/").filter(Boolean);
+  const pathSegments = url.pathname.split('/').filter(Boolean);
 
-  if (pathSegments.length === 4 && pathSegments[3] === "addresses") {
+  if (pathSegments.length === 4 && pathSegments[3] === 'addresses') {
     // PUT /api/users/addresses/[id] - handled by separate route
     return NextResponse.json(
       {
         success: false,
-        error: "Use /api/users/addresses/[id] for updating addresses",
+        error: 'Use /api/users/addresses/[id] for updating addresses',
       },
       { status: 400 },
     );

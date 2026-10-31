@@ -1,6 +1,6 @@
-import { NextRequest } from "next/server";
-import { prisma } from "../../database/prisma";
-import { z } from "zod";
+import { NextRequest } from 'next/server';
+import { prisma } from '../../database/prisma';
+import { z } from 'zod';
 
 // Image schema for validation
 const imageSchema = z.object({
@@ -23,14 +23,14 @@ const querySchema = z.object({
   maxPrice: z.coerce.number().min(0).optional(),
   sortBy: z
     .enum([
-      "price-asc",
-      "price-desc",
-      "name-asc",
-      "name-desc",
-      "newest",
-      "rating",
+      'price-asc',
+      'price-desc',
+      'name-asc',
+      'name-desc',
+      'newest',
+      'rating',
     ])
-    .default("newest"),
+    .default('newest'),
   inStock: z.coerce.boolean().optional(),
 });
 
@@ -63,9 +63,9 @@ export async function getProducts(request: NextRequest) {
 
     if (search) {
       where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
-        { sku: { contains: search, mode: "insensitive" } },
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { sku: { contains: search, mode: 'insensitive' } },
       ];
     }
 
@@ -80,26 +80,26 @@ export async function getProducts(request: NextRequest) {
     }
 
     // Build order by clause
-    let orderBy: any = { createdAt: "desc" };
+    let orderBy: any = { createdAt: 'desc' };
 
     switch (sortBy) {
-      case "price-asc":
-        orderBy = { price: "asc" };
+      case 'price-asc':
+        orderBy = { price: 'asc' };
         break;
-      case "price-desc":
-        orderBy = { price: "desc" };
+      case 'price-desc':
+        orderBy = { price: 'desc' };
         break;
-      case "name-asc":
-        orderBy = { name: "asc" };
+      case 'name-asc':
+        orderBy = { name: 'asc' };
         break;
-      case "name-desc":
-        orderBy = { name: "desc" };
+      case 'name-desc':
+        orderBy = { name: 'desc' };
         break;
-      case "newest":
-        orderBy = { createdAt: "desc" };
+      case 'newest':
+        orderBy = { createdAt: 'desc' };
         break;
-      case "rating":
-        orderBy = { reviews: { _avg: { rating: "desc" } } };
+      case 'rating':
+        orderBy = { reviews: { _avg: { rating: 'desc' } } };
         break;
     }
 
@@ -112,7 +112,7 @@ export async function getProducts(request: NextRequest) {
       include: {
         category: true,
         images: {
-          orderBy: { sortOrder: "asc" },
+          orderBy: { sortOrder: 'asc' },
           take: 3,
         },
         variants: {
@@ -161,19 +161,19 @@ export async function getProducts(request: NextRequest) {
       },
     };
   } catch (error) {
-    console.error("Products service error:", error);
+    console.error('Products service error:', error);
 
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: "Invalid query parameters",
+        error: 'Invalid query parameters',
         details: error.errors,
       };
     }
 
     return {
       success: false,
-      error: "Failed to fetch products",
+      error: 'Failed to fetch products',
     };
   }
 }
@@ -218,7 +218,7 @@ export async function createProduct(request: NextRequest) {
     if (existingProduct) {
       return {
         success: false,
-        error: "Product with this SKU already exists",
+        error: 'Product with this SKU already exists',
       };
     }
 
@@ -230,7 +230,7 @@ export async function createProduct(request: NextRequest) {
     if (existingSlug) {
       return {
         success: false,
-        error: "Product with this slug already exists",
+        error: 'Product with this slug already exists',
       };
     }
 
@@ -275,7 +275,7 @@ export async function createProduct(request: NextRequest) {
       include: {
         category: true,
         images: {
-          orderBy: { sortOrder: "asc" },
+          orderBy: { sortOrder: 'asc' },
         },
         variants: true,
         inventory: true,
@@ -285,22 +285,22 @@ export async function createProduct(request: NextRequest) {
     return {
       success: true,
       data: productWithImages,
-      message: "Product created successfully",
+      message: 'Product created successfully',
     };
   } catch (error) {
-    console.error("Create product error:", error);
+    console.error('Create product error:', error);
 
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: "Invalid product data",
+        error: 'Invalid product data',
         details: error.errors,
       };
     }
 
     return {
       success: false,
-      error: "Failed to create product",
+      error: 'Failed to create product',
     };
   }
 }
@@ -312,7 +312,7 @@ export async function getProductById(id: string) {
       include: {
         category: true,
         images: {
-          orderBy: { sortOrder: "asc" },
+          orderBy: { sortOrder: 'asc' },
         },
         variants: {
           where: { isActive: true },
@@ -326,7 +326,7 @@ export async function getProductById(id: string) {
               },
             },
           },
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: 'desc' },
         },
         inventory: true,
       },
@@ -335,7 +335,7 @@ export async function getProductById(id: string) {
     if (!product) {
       return {
         success: false,
-        error: "Product not found",
+        error: 'Product not found',
         status: 404,
       };
     }
@@ -358,10 +358,10 @@ export async function getProductById(id: string) {
       },
     };
   } catch (error) {
-    console.error("Get product error:", error);
+    console.error('Get product error:', error);
     return {
       success: false,
-      error: "Failed to fetch product",
+      error: 'Failed to fetch product',
     };
   }
 }
@@ -381,7 +381,7 @@ export async function updateProduct(id: string, request: NextRequest) {
     if (!existingProduct) {
       return {
         success: false,
-        error: "Product not found",
+        error: 'Product not found',
         status: 404,
       };
     }
@@ -395,7 +395,7 @@ export async function updateProduct(id: string, request: NextRequest) {
       if (skuExists) {
         return {
           success: false,
-          error: "Product with this SKU already exists",
+          error: 'Product with this SKU already exists',
         };
       }
     }
@@ -441,7 +441,7 @@ export async function updateProduct(id: string, request: NextRequest) {
       include: {
         category: true,
         images: {
-          orderBy: { sortOrder: "asc" },
+          orderBy: { sortOrder: 'asc' },
         },
         variants: true,
         inventory: true,
@@ -451,22 +451,22 @@ export async function updateProduct(id: string, request: NextRequest) {
     return {
       success: true,
       data: updatedProduct,
-      message: "Product updated successfully",
+      message: 'Product updated successfully',
     };
   } catch (error) {
-    console.error("Update product error:", error);
+    console.error('Update product error:', error);
 
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: "Invalid product data",
+        error: 'Invalid product data',
         details: error.errors,
       };
     }
 
     return {
       success: false,
-      error: "Failed to update product",
+      error: 'Failed to update product',
     };
   }
 }
@@ -484,7 +484,7 @@ export async function deleteProduct(id: string) {
     if (!existingProduct) {
       return {
         success: false,
-        error: "Product not found",
+        error: 'Product not found',
         status: 404,
       };
     }
@@ -493,7 +493,7 @@ export async function deleteProduct(id: string) {
     if (existingProduct.orderItems.length > 0) {
       return {
         success: false,
-        error: "Cannot delete product with existing orders",
+        error: 'Cannot delete product with existing orders',
         status: 400,
       };
     }
@@ -505,13 +505,13 @@ export async function deleteProduct(id: string) {
 
     return {
       success: true,
-      message: "Product deleted successfully",
+      message: 'Product deleted successfully',
     };
   } catch (error) {
-    console.error("Delete product error:", error);
+    console.error('Delete product error:', error);
     return {
       success: false,
-      error: "Failed to delete product",
+      error: 'Failed to delete product',
     };
   }
 }
