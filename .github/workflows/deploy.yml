@@ -305,7 +305,7 @@ jobs:
     name: Notify Slack
     runs-on: ubuntu-latest
     needs: [code-quality, build-backend, build-frontend, update-flux-manifests]
-    if: always() && github.event.name == 'push'
+    if: always() && github.event_name == 'push'
 
     steps:
       - name: Send Slack Notification

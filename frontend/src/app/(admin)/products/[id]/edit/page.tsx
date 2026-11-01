@@ -1243,7 +1243,10 @@ export default function EditProductPage() {
                       💡 Pro Tips
                     </h4>
                     <ul className="text-xs text-amber-700 space-y-1">
-                      <li>• Use action words like &quot;Buy&quot;, &quot;Shop&quot;, &quot;Order&quot;</li>
+                      <li>
+                        • Use action words like &quot;Buy&quot;,
+                        &quot;Shop&quot;, &quot;Order&quot;
+                      </li>
                       <li>• Include brand name for recognition</li>
                       <li>• Add location if targeting local customers</li>
                       <li>

@@ -17,70 +17,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { productApi, PaginationMeta } from '@/lib/api';
 import { useCategoryStore } from '@/store/category-store';
+import {
+  getStatusFromProduct,
+  getStatusColor,
+  formatPrice,
+  type Product,
+} from './product-utils';
 
-export interface Product {
-  id: any;
-  name: string;
-  slug: string;
-  description?: string;
-  price: any;
-  originalPrice?: any;
-  sku: string;
-  stock: any;
-  category: {
-    id: string;
-    name: string;
-    slug: string;
-  };
-  categoryId: string;
-  isActive: boolean;
-  isNew: boolean;
-  isOnSale: boolean;
-  tags: string[];
-  images: Array<{
-    id: string;
-    url: string;
-    sortOrder: number;
-  }>;
-  createdAt: string;
-  updatedAt: string;
-  inventory?: {
-    quantity: string;
-    reorderLevel: string;
-  };
-  averageRating?: string | null;
-  reviewCount: string;
-}
 
 const statuses = ['All', 'Active', 'Out of Stock', 'Draft', 'Archived'];
-
-export const getStatusFromProduct = (product: Product): string => {
-  if (product.stock === 0) return 'out-of-stock';
-  if (!product.isActive) return 'draft';
-  return 'active';
-};
-
-export const formatPrice = (price: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(price);
-};
-
-export const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'active':
-      return 'bg-green-100 text-green-800';
-    case 'out-of-stock':
-      return 'bg-red-100 text-red-800';
-    case 'draft':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'archived':
-      return 'bg-gray-100 text-gray-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
-};
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);

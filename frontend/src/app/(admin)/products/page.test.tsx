@@ -1,8 +1,9 @@
 import {
   getStatusFromProduct,
   getStatusColor,
-} from '@/app/(admin)/products/page';
-import type { Product } from '@/app/(admin)/products/page';
+  formatPrice,
+  type Product,
+} from './product-utils';
 
 const createProduct = (overrides: Partial<Product> = {}): Product => ({
   id: '1',

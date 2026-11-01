@@ -1,64 +1,68 @@
+
 <!doctype html>
 <html lang="en">
-  <head>
+
+<head>
     <title>Code coverage report for lib/api.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../prettify.css" />
     <link rel="stylesheet" href="../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style type="text/css">
-      .coverage-summary .sorter {
-        background-image: url(../sort-arrow-sprite.png);
-      }
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
     </style>
-  </head>
-
-  <body>
-    <div class="wrapper">
-      <div class="pad1">
-        <h1>
-          <a href="../index.html">All files</a> /
-          <a href="index.html">lib</a> api.ts
-        </h1>
-        <div class="clearfix">
-          <div class="fl pad1y space-right2">
-            <span class="strong">34.75% </span>
-            <span class="quiet">Statements</span>
-            <span class="fraction">358/1030</span>
-          </div>
-
-          <div class="fl pad1y space-right2">
-            <span class="strong">0% </span>
-            <span class="quiet">Branches</span>
-            <span class="fraction">0/1</span>
-          </div>
-
-          <div class="fl pad1y space-right2">
-            <span class="strong">0% </span>
-            <span class="quiet">Functions</span>
-            <span class="fraction">0/57</span>
-          </div>
-
-          <div class="fl pad1y space-right2">
-            <span class="strong">34.75% </span>
-            <span class="quiet">Lines</span>
-            <span class="fraction">358/1030</span>
-          </div>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">lib</a> api.ts</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">35.03% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>377/1076</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>0/57</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">35.03% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>377/1076</span>
+            </div>
+        
+            
         </div>
         <p class="quiet">
-          Press <em>n</em> or <em>j</em> to go to the next uncovered block,
-          <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
         </p>
         <template id="filterTemplate">
-          <div class="quiet">
-            Filter:
-            <input type="search" id="fileSearch" />
-          </div>
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
         </template>
-      </div>
-      <div class="status-line low"></div>
-      <pre><table class="coverage">
+    </div>
+    <div class='status-line low'></div>
+    <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
 <a name='L3'></a><a href='#L3'>3</a>
@@ -1089,11 +1093,56 @@
 <a name='L1028'></a><a href='#L1028'>1028</a>
 <a name='L1029'></a><a href='#L1029'>1029</a>
 <a name='L1030'></a><a href='#L1030'>1030</a>
-<a name='L1031'></a><a href='#L1031'>1031</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L1031'></a><a href='#L1031'>1031</a>
+<a name='L1032'></a><a href='#L1032'>1032</a>
+<a name='L1033'></a><a href='#L1033'>1033</a>
+<a name='L1034'></a><a href='#L1034'>1034</a>
+<a name='L1035'></a><a href='#L1035'>1035</a>
+<a name='L1036'></a><a href='#L1036'>1036</a>
+<a name='L1037'></a><a href='#L1037'>1037</a>
+<a name='L1038'></a><a href='#L1038'>1038</a>
+<a name='L1039'></a><a href='#L1039'>1039</a>
+<a name='L1040'></a><a href='#L1040'>1040</a>
+<a name='L1041'></a><a href='#L1041'>1041</a>
+<a name='L1042'></a><a href='#L1042'>1042</a>
+<a name='L1043'></a><a href='#L1043'>1043</a>
+<a name='L1044'></a><a href='#L1044'>1044</a>
+<a name='L1045'></a><a href='#L1045'>1045</a>
+<a name='L1046'></a><a href='#L1046'>1046</a>
+<a name='L1047'></a><a href='#L1047'>1047</a>
+<a name='L1048'></a><a href='#L1048'>1048</a>
+<a name='L1049'></a><a href='#L1049'>1049</a>
+<a name='L1050'></a><a href='#L1050'>1050</a>
+<a name='L1051'></a><a href='#L1051'>1051</a>
+<a name='L1052'></a><a href='#L1052'>1052</a>
+<a name='L1053'></a><a href='#L1053'>1053</a>
+<a name='L1054'></a><a href='#L1054'>1054</a>
+<a name='L1055'></a><a href='#L1055'>1055</a>
+<a name='L1056'></a><a href='#L1056'>1056</a>
+<a name='L1057'></a><a href='#L1057'>1057</a>
+<a name='L1058'></a><a href='#L1058'>1058</a>
+<a name='L1059'></a><a href='#L1059'>1059</a>
+<a name='L1060'></a><a href='#L1060'>1060</a>
+<a name='L1061'></a><a href='#L1061'>1061</a>
+<a name='L1062'></a><a href='#L1062'>1062</a>
+<a name='L1063'></a><a href='#L1063'>1063</a>
+<a name='L1064'></a><a href='#L1064'>1064</a>
+<a name='L1065'></a><a href='#L1065'>1065</a>
+<a name='L1066'></a><a href='#L1066'>1066</a>
+<a name='L1067'></a><a href='#L1067'>1067</a>
+<a name='L1068'></a><a href='#L1068'>1068</a>
+<a name='L1069'></a><a href='#L1069'>1069</a>
+<a name='L1070'></a><a href='#L1070'>1070</a>
+<a name='L1071'></a><a href='#L1071'>1071</a>
+<a name='L1072'></a><a href='#L1072'>1072</a>
+<a name='L1073'></a><a href='#L1073'>1073</a>
+<a name='L1074'></a><a href='#L1074'>1074</a>
+<a name='L1075'></a><a href='#L1075'>1075</a>
+<a name='L1076'></a><a href='#L1076'>1076</a>
+<a name='L1077'></a><a href='#L1077'>1077</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -1153,7 +1202,6 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1465,6 +1513,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1482,6 +1531,8 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1554,17 +1605,22 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1595,13 +1651,21 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1611,6 +1675,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1639,11 +1704,14 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1651,6 +1719,9 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -1743,6 +1814,23 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1995,6 +2083,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -2009,6 +2098,8 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -2025,6 +2116,11 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -2122,9 +2218,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// API utility functions
 &nbsp;
 export const API_BASE =
-  process.env.NODE_ENV === <span class="branch-0 cbranch-no" title="branch not covered" >"production"</span>
-<span class="cstat-no" title="statement not covered" >    ? ""</span>
-    : "http://localhost:5000";
+  process.env.NODE_ENV === <span class="branch-0 cbranch-no" title="branch not covered" >'production' ? '' : '</span>http://localhost:5000';
 &nbsp;
 export interface ApiResponse&lt;T = any&gt; {
   success: boolean;
@@ -2158,7 +2252,7 @@ export interface Product {
   price: number;
   comparePrice?: number;
   category: string;
-  status: "active" | "draft" | "archived";
+  status: 'active' | 'draft' | 'archived';
   trackInventory: boolean;
   stock?: number;
   weight?: number;
@@ -2189,45 +2283,45 @@ class ApiError extends Error {
 <span class="cstat-no" title="statement not covered" >    public data?: any,</span>
 <span class="cstat-no" title="statement not covered" >  ) {</span>
 <span class="cstat-no" title="statement not covered" >    super(message);</span>
-<span class="cstat-no" title="statement not covered" >    this.name = "ApiError";</span>
+<span class="cstat-no" title="statement not covered" >    this.name = 'ApiError';</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 }
 &nbsp;
 // Token management — stored in closure only, NOT in localStorage
-let _accessToken: string | null = null
-let _refreshPromise: Promise&lt;string | null&gt; | null = null
+let _accessToken: string | null = null;
+let _refreshPromise: Promise&lt;string | null&gt; | null = null;
 &nbsp;
 export <span class="fstat-no" title="function not covered" >function setAccessToken(token: string | null) {</span>
-<span class="cstat-no" title="statement not covered" >  _accessToken = token</span>
+<span class="cstat-no" title="statement not covered" >  _accessToken = token;</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
 export <span class="fstat-no" title="function not covered" >async function attemptRefresh(): Promise&lt;string | null&gt; {</span>
-<span class="cstat-no" title="statement not covered" >  if (_refreshPromise) return _refreshPromise</span>
-<span class="cstat-no" title="statement not covered" >  _refreshPromise = _doRefresh()</span>
-<span class="cstat-no" title="statement not covered" >  const result = await _refreshPromise</span>
-<span class="cstat-no" title="statement not covered" >  _refreshPromise = null</span>
-<span class="cstat-no" title="statement not covered" >  return result</span>
+<span class="cstat-no" title="statement not covered" >  if (_refreshPromise) return _refreshPromise;</span>
+<span class="cstat-no" title="statement not covered" >  _refreshPromise = _doRefresh();</span>
+<span class="cstat-no" title="statement not covered" >  const result = await _refreshPromise;</span>
+<span class="cstat-no" title="statement not covered" >  _refreshPromise = null;</span>
+<span class="cstat-no" title="statement not covered" >  return result;</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
 export <span class="fstat-no" title="function not covered" >function getAccessToken(): string | null {</span>
-<span class="cstat-no" title="statement not covered" >  return _accessToken</span>
+<span class="cstat-no" title="statement not covered" >  return _accessToken;</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >async function _doRefresh(): Promise&lt;string | null&gt; {</span></span>
 <span class="cstat-no" title="statement not covered" >  try {</span>
 <span class="cstat-no" title="statement not covered" >    const res = await fetch(`${API_BASE}/api/auth/refresh`, {</span>
-<span class="cstat-no" title="statement not covered" >      method: "POST",</span>
-<span class="cstat-no" title="statement not covered" >      credentials: "include",</span>
-<span class="cstat-no" title="statement not covered" >    })</span>
-<span class="cstat-no" title="statement not covered" >    if (!res.ok) return null</span>
-<span class="cstat-no" title="statement not covered" >    const data = await res.json()</span>
+<span class="cstat-no" title="statement not covered" >      method: 'POST',</span>
+<span class="cstat-no" title="statement not covered" >      credentials: 'include',</span>
+<span class="cstat-no" title="statement not covered" >    });</span>
+<span class="cstat-no" title="statement not covered" >    if (!res.ok) return null;</span>
+<span class="cstat-no" title="statement not covered" >    const data = await res.json();</span>
 <span class="cstat-no" title="statement not covered" >    if (data.success &amp;&amp; data.data?.accessToken) {</span>
-<span class="cstat-no" title="statement not covered" >      setAccessToken(data.data.accessToken)</span>
-<span class="cstat-no" title="statement not covered" >      return data.data.accessToken</span>
+<span class="cstat-no" title="statement not covered" >      setAccessToken(data.data.accessToken);</span>
+<span class="cstat-no" title="statement not covered" >      return data.data.accessToken;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-<span class="cstat-no" title="statement not covered" >    return null</span>
+<span class="cstat-no" title="statement not covered" >    return null;</span>
 <span class="cstat-no" title="statement not covered" >  } catch {</span>
-<span class="cstat-no" title="statement not covered" >    return null</span>
+<span class="cstat-no" title="statement not covered" >    return null;</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
@@ -2242,16 +2336,16 @@ export <span class="fstat-no" title="function not covered" >function getAccessTo
 <span class="cstat-no" title="statement not covered" >  const url = `${API_BASE}${endpoint}`;</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >  const config: RequestInit = {</span>
-<span class="cstat-no" title="statement not covered" >    method: options?.method || "GET",</span>
+<span class="cstat-no" title="statement not covered" >    method: options?.method || 'GET',</span>
 <span class="cstat-no" title="statement not covered" >    headers: {},</span>
-<span class="cstat-no" title="statement not covered" >    credentials: "include",</span>
+<span class="cstat-no" title="statement not covered" >    credentials: 'include',</span>
 <span class="cstat-no" title="statement not covered" >  };</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >  // Attach access token if available</span>
 <span class="cstat-no" title="statement not covered" >  if (_accessToken) {</span>
 <span class="cstat-no" title="statement not covered" >    config.headers = {</span>
 <span class="cstat-no" title="statement not covered" >      ...config.headers,</span>
-<span class="cstat-no" title="statement not covered" >      "Authorization": `Bearer ${_accessToken}`,</span>
+<span class="cstat-no" title="statement not covered" >      Authorization: `Bearer ${_accessToken}`,</span>
 <span class="cstat-no" title="statement not covered" >    };</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" ></span>
@@ -2259,7 +2353,7 @@ export <span class="fstat-no" title="function not covered" >function getAccessTo
 <span class="cstat-no" title="statement not covered" >  if (!skipContentType &amp;&amp; options?.body) {</span>
 <span class="cstat-no" title="statement not covered" >    config.headers = {</span>
 <span class="cstat-no" title="statement not covered" >      ...config.headers,</span>
-<span class="cstat-no" title="statement not covered" >      "Content-Type": "application/json",</span>
+<span class="cstat-no" title="statement not covered" >      'Content-Type': 'application/json',</span>
 <span class="cstat-no" title="statement not covered" >    };</span>
 <span class="cstat-no" title="statement not covered" >    config.body = JSON.stringify(options.body);</span>
 <span class="cstat-no" title="statement not covered" >  } else if (options?.body) {</span>
@@ -2273,21 +2367,21 @@ export <span class="fstat-no" title="function not covered" >function getAccessTo
 <span class="cstat-no" title="statement not covered" >    if (response.status === 401) {</span>
 <span class="cstat-no" title="statement not covered" >      // Token expired, try refresh</span>
 <span class="cstat-no" title="statement not covered" >      if (!_refreshPromise) {</span>
-<span class="cstat-no" title="statement not covered" >        _refreshPromise = attemptRefresh()</span>
+<span class="cstat-no" title="statement not covered" >        _refreshPromise = attemptRefresh();</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
-<span class="cstat-no" title="statement not covered" >      const newToken = await _refreshPromise</span>
-<span class="cstat-no" title="statement not covered" >      _refreshPromise = null</span>
+<span class="cstat-no" title="statement not covered" >      const newToken = await _refreshPromise;</span>
+<span class="cstat-no" title="statement not covered" >      _refreshPromise = null;</span>
 <span class="cstat-no" title="statement not covered" >      if (newToken &amp;&amp; _accessToken) {</span>
 <span class="cstat-no" title="statement not covered" >        config.headers = {</span>
 <span class="cstat-no" title="statement not covered" >          ...config.headers,</span>
-<span class="cstat-no" title="statement not covered" >          "Authorization": `Bearer ${_accessToken}`,</span>
+<span class="cstat-no" title="statement not covered" >          Authorization: `Bearer ${_accessToken}`,</span>
 <span class="cstat-no" title="statement not covered" >        };</span>
 <span class="cstat-no" title="statement not covered" >        const retryResponse = await fetch(url, config);</span>
 <span class="cstat-no" title="statement not covered" >        if (retryResponse.ok) {</span>
 <span class="cstat-no" title="statement not covered" >          return retryResponse.json();</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
-<span class="cstat-no" title="statement not covered" >      throw new ApiError("Unauthorized", 401);</span>
+<span class="cstat-no" title="statement not covered" >      throw new ApiError('Unauthorized', 401);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    if (!response.ok) {</span>
@@ -2305,9 +2399,9 @@ export <span class="fstat-no" title="function not covered" >function getAccessTo
 <span class="cstat-no" title="statement not covered" >      throw error;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >    console.error("API request failed:", error);</span>
+<span class="cstat-no" title="statement not covered" >    console.error('API request failed:', error);</span>
 <span class="cstat-no" title="statement not covered" >    throw new ApiError(</span>
-<span class="cstat-no" title="statement not covered" >      "Network error. Please check your connection.",</span>
+<span class="cstat-no" title="statement not covered" >      'Network error. Please check your connection.',</span>
 <span class="cstat-no" title="statement not covered" >      0,</span>
 <span class="cstat-no" title="statement not covered" >      error,</span>
 <span class="cstat-no" title="statement not covered" >    );</span>
@@ -2319,9 +2413,9 @@ export const uploadApi = {
   // Upload a single file to S3
   uploadFile: <span class="fstat-no" title="function not covered" >async (file: File, folder?: string) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    const formData = new FormData();</span>
-<span class="cstat-no" title="statement not covered" >    formData.append("file", file);</span>
+<span class="cstat-no" title="statement not covered" >    formData.append('file', file);</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >    const query = folder ? `?folder=${encodeURIComponent(folder)}` : "";</span>
+<span class="cstat-no" title="statement not covered" >    const query = folder ? `?folder=${encodeURIComponent(folder)}` : '';</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{</span>
 <span class="cstat-no" title="statement not covered" >      success: boolean;</span>
@@ -2335,7 +2429,7 @@ export const uploadApi = {
 <span class="cstat-no" title="statement not covered" >    }&gt;(</span>
 <span class="cstat-no" title="statement not covered" >      `/api/upload${query}`,</span>
 <span class="cstat-no" title="statement not covered" >      {</span>
-<span class="cstat-no" title="statement not covered" >        method: "POST",</span>
+<span class="cstat-no" title="statement not covered" >        method: 'POST',</span>
 <span class="cstat-no" title="statement not covered" >        body: formData,</span>
 <span class="cstat-no" title="statement not covered" >      },</span>
 <span class="cstat-no" title="statement not covered" >      true, // Skip Content-Type for FormData</span>
@@ -2343,13 +2437,13 @@ export const uploadApi = {
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
   // Delete a file from S3
-  deleteFile: <span class="fstat-no" title="function not covered" >async (imageKey: string, bucket?: "products" | "categories") =&gt; {</span>
+  deleteFile: <span class="fstat-no" title="function not covered" >async (imageKey: string, bucket?: 'products' | 'categories') =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    let query = `key=${encodeURIComponent(imageKey)}`;</span>
 <span class="cstat-no" title="statement not covered" >    if (bucket) query += `&amp;bucket=${bucket}`;</span>
 <span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{ success: boolean; message: string }&gt;(</span>
 <span class="cstat-no" title="statement not covered" >      `/api/upload?${query}`,</span>
 <span class="cstat-no" title="statement not covered" >      {</span>
-<span class="cstat-no" title="statement not covered" >        method: "DELETE",</span>
+<span class="cstat-no" title="statement not covered" >        method: 'DELETE',</span>
 <span class="cstat-no" title="statement not covered" >      },</span>
 <span class="cstat-no" title="statement not covered" >    );</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
@@ -2359,14 +2453,14 @@ export const uploadApi = {
 export const productApi = {
   // Create a new product
   create: <span class="fstat-no" title="function not covered" >async (</span>
-<span class="cstat-no" title="statement not covered" >    productData: Omit&lt;Product, "id" | "createdAt" | "updatedAt"&gt;,</span>
+<span class="cstat-no" title="statement not covered" >    productData: Omit&lt;Product, 'id' | 'createdAt' | 'updatedAt'&gt;,</span>
 <span class="cstat-no" title="statement not covered" >  ) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{</span>
 <span class="cstat-no" title="statement not covered" >      success: boolean;</span>
 <span class="cstat-no" title="statement not covered" >      message: string;</span>
 <span class="cstat-no" title="statement not covered" >      data: { product: Product };</span>
-<span class="cstat-no" title="statement not covered" >    }&gt;("/api/products", {</span>
-<span class="cstat-no" title="statement not covered" >      method: "POST",</span>
+<span class="cstat-no" title="statement not covered" >    }&gt;('/api/products', {</span>
+<span class="cstat-no" title="statement not covered" >      method: 'POST',</span>
 <span class="cstat-no" title="statement not covered" >      body: productData, // Don't stringify here, apiRequest will do it</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
@@ -2374,17 +2468,17 @@ export const productApi = {
   // Get all products (with optional pagination/filter params)
   getAll: <span class="fstat-no" title="function not covered" >async (params?: ProductQueryParams) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    const query = new URLSearchParams();</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.page) query.set("page", String(params.page));</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.limit) query.set("limit", String(params.limit));</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.search) query.set("search", params.search);</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.category) query.set("category", params.category);</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.showAll) query.set("showAll", "true");</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.page) query.set('page', String(params.page));</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.limit) query.set('limit', String(params.limit));</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.search) query.set('search', params.search);</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.category) query.set('category', params.category);</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.showAll) query.set('showAll', 'true');</span>
 <span class="cstat-no" title="statement not covered" >    const qs = query.toString();</span>
 <span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{</span>
 <span class="cstat-no" title="statement not covered" >      success: boolean;</span>
 <span class="cstat-no" title="statement not covered" >      message: string;</span>
 <span class="cstat-no" title="statement not covered" >      data: { products: Product[]; pagination: PaginationMeta };</span>
-<span class="cstat-no" title="statement not covered" >    }&gt;(`/api/products${qs ? `?${qs}` : ""}`);</span>
+<span class="cstat-no" title="statement not covered" >    }&gt;(`/api/products${qs ? `?${qs}` : ''}`);</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
   // Get a single product
@@ -2401,7 +2495,7 @@ export const productApi = {
 <span class="cstat-no" title="statement not covered" >      message: string;</span>
 <span class="cstat-no" title="statement not covered" >      data: { product: Product };</span>
 <span class="cstat-no" title="statement not covered" >    }&gt;(`/api/products/${id}`, {</span>
-<span class="cstat-no" title="statement not covered" >      method: "PUT",</span>
+<span class="cstat-no" title="statement not covered" >      method: 'PUT',</span>
 <span class="cstat-no" title="statement not covered" >      body: productData, // Don't stringify here, apiRequest will do it</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
@@ -2411,14 +2505,14 @@ export const productApi = {
 <span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{ success: boolean; message: string }&gt;(</span>
 <span class="cstat-no" title="statement not covered" >      `/api/products/${id}`,</span>
 <span class="cstat-no" title="statement not covered" >      {</span>
-<span class="cstat-no" title="statement not covered" >        method: "DELETE",</span>
+<span class="cstat-no" title="statement not covered" >        method: 'DELETE',</span>
 <span class="cstat-no" title="statement not covered" >      },</span>
 <span class="cstat-no" title="statement not covered" >    );</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
   // Get next available SKU
   getNextSku: <span class="fstat-no" title="function not covered" >async (prefix?: string) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    const query = prefix ? `?prefix=${encodeURIComponent(prefix)}` : "";</span>
+<span class="cstat-no" title="statement not covered" >    const query = prefix ? `?prefix=${encodeURIComponent(prefix)}` : '';</span>
 <span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{ success: boolean; data: { sku: string } }&gt;(</span>
 <span class="cstat-no" title="statement not covered" >      `/api/products/next-sku${query}`,</span>
 <span class="cstat-no" title="statement not covered" >    );</span>
@@ -2426,8 +2520,8 @@ export const productApi = {
 &nbsp;
   // Health check
   health: <span class="fstat-no" title="function not covered" >async () =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{ status: string }&gt;("/api/health", {</span>
-<span class="cstat-no" title="statement not covered" >      method: "GET",</span>
+<span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{ status: string }&gt;('/api/health', {</span>
+<span class="cstat-no" title="statement not covered" >      method: 'GET',</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 };
@@ -2456,15 +2550,15 @@ export interface CategoryQueryParams {
 export const categoryApi = {
   getAll: <span class="fstat-no" title="function not covered" >async (params?: CategoryQueryParams) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    const query = new URLSearchParams();</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.page) query.set("page", String(params.page));</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.limit) query.set("limit", String(params.limit));</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.page) query.set('page', String(params.page));</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.limit) query.set('limit', String(params.limit));</span>
 <span class="cstat-no" title="statement not covered" >    const qs = query.toString();</span>
 <span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{</span>
 <span class="cstat-no" title="statement not covered" >      success: boolean;</span>
 <span class="cstat-no" title="statement not covered" >      data: { categories: Category[]; pagination?: PaginationMeta };</span>
 <span class="cstat-no" title="statement not covered" >      categories: Category[];</span>
 <span class="cstat-no" title="statement not covered" >      message: string;</span>
-<span class="cstat-no" title="statement not covered" >    }&gt;(`/api/categories${qs ? `?${qs}` : ""}`);</span>
+<span class="cstat-no" title="statement not covered" >    }&gt;(`/api/categories${qs ? `?${qs}` : ''}`);</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
   getById: <span class="fstat-no" title="function not covered" >async (id: string) =&gt; {</span>
@@ -2488,27 +2582,30 @@ export const categoryApi = {
 <span class="cstat-no" title="statement not covered" >      success: boolean;</span>
 <span class="cstat-no" title="statement not covered" >      data: Category;</span>
 <span class="cstat-no" title="statement not covered" >      message: string;</span>
-<span class="cstat-no" title="statement not covered" >    }&gt;("/api/categories", {</span>
-<span class="cstat-no" title="statement not covered" >      method: "POST",</span>
+<span class="cstat-no" title="statement not covered" >    }&gt;('/api/categories', {</span>
+<span class="cstat-no" title="statement not covered" >      method: 'POST',</span>
 <span class="cstat-no" title="statement not covered" >      body: data,</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
-  update: <span class="fstat-no" title="function not covered" >async (id: string, data: Partial&lt;{</span>
-<span class="cstat-no" title="statement not covered" >    name: string;</span>
-<span class="cstat-no" title="statement not covered" >    slug: string;</span>
-<span class="cstat-no" title="statement not covered" >    description?: string;</span>
-<span class="cstat-no" title="statement not covered" >    imageKey?: string;</span>
-<span class="cstat-no" title="statement not covered" >    parentId?: string;</span>
-<span class="cstat-no" title="statement not covered" >    isActive?: boolean;</span>
-<span class="cstat-no" title="statement not covered" >    sortOrder?: number;</span>
-<span class="cstat-no" title="statement not covered" >  }&gt;) =&gt; {</span>
+  update: <span class="fstat-no" title="function not covered" >async (</span>
+<span class="cstat-no" title="statement not covered" >    id: string,</span>
+<span class="cstat-no" title="statement not covered" >    data: Partial&lt;{</span>
+<span class="cstat-no" title="statement not covered" >      name: string;</span>
+<span class="cstat-no" title="statement not covered" >      slug: string;</span>
+<span class="cstat-no" title="statement not covered" >      description?: string;</span>
+<span class="cstat-no" title="statement not covered" >      imageKey?: string;</span>
+<span class="cstat-no" title="statement not covered" >      parentId?: string;</span>
+<span class="cstat-no" title="statement not covered" >      isActive?: boolean;</span>
+<span class="cstat-no" title="statement not covered" >      sortOrder?: number;</span>
+<span class="cstat-no" title="statement not covered" >    }&gt;,</span>
+<span class="cstat-no" title="statement not covered" >  ) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{</span>
 <span class="cstat-no" title="statement not covered" >      success: boolean;</span>
 <span class="cstat-no" title="statement not covered" >      data: Category;</span>
 <span class="cstat-no" title="statement not covered" >      message: string;</span>
 <span class="cstat-no" title="statement not covered" >    }&gt;(`/api/categories/${id}`, {</span>
-<span class="cstat-no" title="statement not covered" >      method: "PUT",</span>
+<span class="cstat-no" title="statement not covered" >      method: 'PUT',</span>
 <span class="cstat-no" title="statement not covered" >      body: data,</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
@@ -2518,7 +2615,7 @@ export const categoryApi = {
 <span class="cstat-no" title="statement not covered" >      success: boolean;</span>
 <span class="cstat-no" title="statement not covered" >      message: string;</span>
 <span class="cstat-no" title="statement not covered" >    }&gt;(`/api/categories/${id}`, {</span>
-<span class="cstat-no" title="statement not covered" >      method: "DELETE",</span>
+<span class="cstat-no" title="statement not covered" >      method: 'DELETE',</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 };
@@ -2556,53 +2653,58 @@ export interface AuthResponse {
 &nbsp;
 export const authApi = {
   register: <span class="fstat-no" title="function not covered" >async (data: RegisterData) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    return apiRequest&lt;AuthResponse&gt;("/api/auth/register", {</span>
-<span class="cstat-no" title="statement not covered" >      method: "POST",</span>
+<span class="cstat-no" title="statement not covered" >    return apiRequest&lt;AuthResponse&gt;('/api/auth/register', {</span>
+<span class="cstat-no" title="statement not covered" >      method: 'POST',</span>
 <span class="cstat-no" title="statement not covered" >      body: data,</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
   login: <span class="fstat-no" title="function not covered" >async (data: LoginData) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    return apiRequest&lt;AuthResponse&gt;("/api/auth/login", {</span>
-<span class="cstat-no" title="statement not covered" >      method: "POST",</span>
+<span class="cstat-no" title="statement not covered" >    return apiRequest&lt;AuthResponse&gt;('/api/auth/login', {</span>
+<span class="cstat-no" title="statement not covered" >      method: 'POST',</span>
 <span class="cstat-no" title="statement not covered" >      body: data,</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
   googleLogin: <span class="fstat-no" title="function not covered" >async (accessToken: string) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    return apiRequest&lt;AuthResponse&gt;("/api/auth/google", {</span>
-<span class="cstat-no" title="statement not covered" >      method: "POST",</span>
+<span class="cstat-no" title="statement not covered" >    return apiRequest&lt;AuthResponse&gt;('/api/auth/google', {</span>
+<span class="cstat-no" title="statement not covered" >      method: 'POST',</span>
 <span class="cstat-no" title="statement not covered" >      body: { accessToken },</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
   facebookLogin: <span class="fstat-no" title="function not covered" >async (accessToken: string) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    return apiRequest&lt;AuthResponse&gt;("/api/auth/facebook", {</span>
-<span class="cstat-no" title="statement not covered" >      method: "POST",</span>
+<span class="cstat-no" title="statement not covered" >    return apiRequest&lt;AuthResponse&gt;('/api/auth/facebook', {</span>
+<span class="cstat-no" title="statement not covered" >      method: 'POST',</span>
 <span class="cstat-no" title="statement not covered" >      body: { accessToken },</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
   requestPasswordReset: <span class="fstat-no" title="function not covered" >async (email: string) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{ success: boolean; message: string }&gt;("/api/auth/reset-password", {</span>
-<span class="cstat-no" title="statement not covered" >      method: "POST",</span>
-<span class="cstat-no" title="statement not covered" >      body: { email },</span>
-<span class="cstat-no" title="statement not covered" >    });</span>
+<span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{ success: boolean; message: string }&gt;(</span>
+<span class="cstat-no" title="statement not covered" >      '/api/auth/reset-password',</span>
+<span class="cstat-no" title="statement not covered" >      {</span>
+<span class="cstat-no" title="statement not covered" >        method: 'POST',</span>
+<span class="cstat-no" title="statement not covered" >        body: { email },</span>
+<span class="cstat-no" title="statement not covered" >      },</span>
+<span class="cstat-no" title="statement not covered" >    );</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
   verifyResetToken: <span class="fstat-no" title="function not covered" >async (token: string) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{ success: boolean; data?: { email: string }; error?: string }&gt;(</span>
-<span class="cstat-no" title="statement not covered" >      `/api/auth/reset-password/verify?token=${encodeURIComponent(token)}`</span>
-<span class="cstat-no" title="statement not covered" >    );</span>
+<span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{</span>
+<span class="cstat-no" title="statement not covered" >      success: boolean;</span>
+<span class="cstat-no" title="statement not covered" >      data?: { email: string };</span>
+<span class="cstat-no" title="statement not covered" >      error?: string;</span>
+<span class="cstat-no" title="statement not covered" >    }&gt;(`/api/auth/reset-password/verify?token=${encodeURIComponent(token)}`);</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
   confirmPasswordReset: <span class="fstat-no" title="function not covered" >async (token: string, password: string) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{ success: boolean; message: string; error?: string }&gt;(</span>
-<span class="cstat-no" title="statement not covered" >      "/api/auth/reset-password/confirm",</span>
+<span class="cstat-no" title="statement not covered" >      '/api/auth/reset-password/confirm',</span>
 <span class="cstat-no" title="statement not covered" >      {</span>
-<span class="cstat-no" title="statement not covered" >        method: "POST",</span>
+<span class="cstat-no" title="statement not covered" >        method: 'POST',</span>
 <span class="cstat-no" title="statement not covered" >        body: { token, password },</span>
-<span class="cstat-no" title="statement not covered" >      }</span>
+<span class="cstat-no" title="statement not covered" >      },</span>
 <span class="cstat-no" title="statement not covered" >    );</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 };
@@ -2621,25 +2723,34 @@ export const userApi = {
 <span class="cstat-no" title="statement not covered" >        avatar?: string;</span>
 <span class="cstat-no" title="statement not covered" >        createdAt: string;</span>
 <span class="cstat-no" title="statement not covered" >      };</span>
-<span class="cstat-no" title="statement not covered" >    }&gt;("/api/user");</span>
+<span class="cstat-no" title="statement not covered" >    }&gt;('/api/user');</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
-  updateProfile: <span class="fstat-no" title="function not covered" >async (data: { name?: string; phone?: string; avatar?: string }) =&gt; {</span>
+  updateProfile: <span class="fstat-no" title="function not covered" >async (data: {</span>
+<span class="cstat-no" title="statement not covered" >    name?: string;</span>
+<span class="cstat-no" title="statement not covered" >    phone?: string;</span>
+<span class="cstat-no" title="statement not covered" >    avatar?: string;</span>
+<span class="cstat-no" title="statement not covered" >  }) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{ success: boolean; message: string; data: any }&gt;(</span>
-<span class="cstat-no" title="statement not covered" >      "/api/user",</span>
-<span class="cstat-no" title="statement not covered" >      { method: "PUT", body: data },</span>
+<span class="cstat-no" title="statement not covered" >      '/api/user',</span>
+<span class="cstat-no" title="statement not covered" >      { method: 'PUT', body: data },</span>
 <span class="cstat-no" title="statement not covered" >    );</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
-  getOrders: <span class="fstat-no" title="function not covered" >async (params?: { page?: number; limit?: number; status?: string }) =&gt; {</span>
+  getOrders: <span class="fstat-no" title="function not covered" >async (params?: {</span>
+<span class="cstat-no" title="statement not covered" >    page?: number;</span>
+<span class="cstat-no" title="statement not covered" >    limit?: number;</span>
+<span class="cstat-no" title="statement not covered" >    status?: string;</span>
+<span class="cstat-no" title="statement not covered" >  }) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    const query = new URLSearchParams();</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.page) query.set("page", String(params.page));</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.limit) query.set("limit", String(params.limit));</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.status) query.set("status", params.status);</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.page) query.set('page', String(params.page));</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.limit) query.set('limit', String(params.limit));</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.status) query.set('status', params.status);</span>
 <span class="cstat-no" title="statement not covered" >    const qs = query.toString();</span>
-<span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{ success: boolean; data: { orders: any[]; pagination: any } }&gt;(</span>
-<span class="cstat-no" title="statement not covered" >      `/api/user/orders${qs ? `?${qs}` : ""}`,</span>
-<span class="cstat-no" title="statement not covered" >    );</span>
+<span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{</span>
+<span class="cstat-no" title="statement not covered" >      success: boolean;</span>
+<span class="cstat-no" title="statement not covered" >      data: { orders: any[]; pagination: any };</span>
+<span class="cstat-no" title="statement not covered" >    }&gt;(`/api/user/orders${qs ? `?${qs}` : ''}`);</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
   getWishlist: <span class="fstat-no" title="function not covered" >async () =&gt; {</span>
@@ -2665,20 +2776,23 @@ export const userApi = {
 <span class="cstat-no" title="statement not covered" >          };</span>
 <span class="cstat-no" title="statement not covered" >        }&gt;;</span>
 <span class="cstat-no" title="statement not covered" >      };</span>
-<span class="cstat-no" title="statement not covered" >    }&gt;("/api/user/wishlist");</span>
+<span class="cstat-no" title="statement not covered" >    }&gt;('/api/user/wishlist');</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
   addToWishlist: <span class="fstat-no" title="function not covered" >async (productId: string) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{ success: boolean; data: any; message: string }&gt;("/api/user/wishlist", {</span>
-<span class="cstat-no" title="statement not covered" >      method: "POST",</span>
-<span class="cstat-no" title="statement not covered" >      body: { productId },</span>
-<span class="cstat-no" title="statement not covered" >    });</span>
+<span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{ success: boolean; data: any; message: string }&gt;(</span>
+<span class="cstat-no" title="statement not covered" >      '/api/user/wishlist',</span>
+<span class="cstat-no" title="statement not covered" >      {</span>
+<span class="cstat-no" title="statement not covered" >        method: 'POST',</span>
+<span class="cstat-no" title="statement not covered" >        body: { productId },</span>
+<span class="cstat-no" title="statement not covered" >      },</span>
+<span class="cstat-no" title="statement not covered" >    );</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
   removeFromWishlist: <span class="fstat-no" title="function not covered" >async (wishlistItemId: string) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{ success: boolean; message: string }&gt;(</span>
 <span class="cstat-no" title="statement not covered" >      `/api/user/wishlist/${wishlistItemId}`,</span>
-<span class="cstat-no" title="statement not covered" >      { method: "DELETE" },</span>
+<span class="cstat-no" title="statement not covered" >      { method: 'DELETE' },</span>
 <span class="cstat-no" title="statement not covered" >    );</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 };
@@ -2757,17 +2871,37 @@ export interface AnalyticsOverview {
   productsChange: number;
   salesByDay: Array&lt;{ date: string; revenue: number; orders: number }&gt;;
   topProducts: Array&lt;{
-    id: string; name: string; sales: number; revenue: number; stock: number; image: string | null;
+    id: string;
+    name: string;
+    sales: number;
+    revenue: number;
+    stock: number;
+    image: string | null;
   }&gt;;
   recentOrders: Array&lt;{
-    id: string; customer: string; amount: number; status: string; date: string; items: number;
+    id: string;
+    customer: string;
+    amount: number;
+    status: string;
+    date: string;
+    items: number;
   }&gt;;
   lowStockProducts: number;
   outOfStockProducts: number;
-  topRatedProducts: Array&lt;{ id: string; name: string; averageRating: number; reviewsCount: number }&gt;;
+  topRatedProducts: Array&lt;{
+    id: string;
+    name: string;
+    averageRating: number;
+    reviewsCount: number;
+  }&gt;;
   newCustomers: number;
   activeCustomers: number;
-  topCustomers: Array&lt;{ id: string; name: string | null; email: string; totalSpent: number }&gt;;
+  topCustomers: Array&lt;{
+    id: string;
+    name: string | null;
+    email: string;
+    totalSpent: number;
+  }&gt;;
 }
 &nbsp;
 // Admin API functions
@@ -2826,10 +2960,10 @@ export const adminApi = {
 <span class="cstat-no" title="statement not covered" >    search?: string;</span>
 <span class="cstat-no" title="statement not covered" >  }) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    const query = new URLSearchParams();</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.page) query.set("page", String(params.page));</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.limit) query.set("limit", String(params.limit));</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.role) query.set("role", params.role);</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.search) query.set("search", params.search);</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.page) query.set('page', String(params.page));</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.limit) query.set('limit', String(params.limit));</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.role) query.set('role', params.role);</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.search) query.set('search', params.search);</span>
 <span class="cstat-no" title="statement not covered" >    const qs = query.toString();</span>
 <span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{</span>
 <span class="cstat-no" title="statement not covered" >      success: boolean;</span>
@@ -2847,7 +2981,7 @@ export const adminApi = {
 <span class="cstat-no" title="statement not covered" >        }&gt;;</span>
 <span class="cstat-no" title="statement not covered" >        pagination: PaginationMeta;</span>
 <span class="cstat-no" title="statement not covered" >      };</span>
-<span class="cstat-no" title="statement not covered" >    }&gt;(`/api/admin/users${qs ? `?${qs}` : ""}`);</span>
+<span class="cstat-no" title="statement not covered" >    }&gt;(`/api/admin/users${qs ? `?${qs}` : ''}`);</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
   getUserById: <span class="fstat-no" title="function not covered" >async (id: string) =&gt; {</span>
@@ -2899,7 +3033,7 @@ export const adminApi = {
 <span class="cstat-no" title="statement not covered" >      message?: string;</span>
 <span class="cstat-no" title="statement not covered" >      data: { id: string; email: string; name: string; role: string };</span>
 <span class="cstat-no" title="statement not covered" >    }&gt;(`/api/admin/users/${id}/role`, {</span>
-<span class="cstat-no" title="statement not covered" >      method: "PUT",</span>
+<span class="cstat-no" title="statement not covered" >      method: 'PUT',</span>
 <span class="cstat-no" title="statement not covered" >      body: { role },</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
@@ -2918,10 +3052,10 @@ export const adminApi = {
 <span class="cstat-no" title="statement not covered" >    paymentStatus?: string;</span>
 <span class="cstat-no" title="statement not covered" >  }) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    const query = new URLSearchParams();</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.page) query.set("page", String(params.page));</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.limit) query.set("limit", String(params.limit));</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.status) query.set("status", params.status);</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.paymentStatus) query.set("paymentStatus", params.paymentStatus);</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.page) query.set('page', String(params.page));</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.limit) query.set('limit', String(params.limit));</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.status) query.set('status', params.status);</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.paymentStatus) query.set('paymentStatus', params.paymentStatus);</span>
 <span class="cstat-no" title="statement not covered" >    const qs = query.toString();</span>
 <span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{</span>
 <span class="cstat-no" title="statement not covered" >      success: boolean;</span>
@@ -2929,7 +3063,7 @@ export const adminApi = {
 <span class="cstat-no" title="statement not covered" >        orders: any[];</span>
 <span class="cstat-no" title="statement not covered" >        pagination: PaginationMeta;</span>
 <span class="cstat-no" title="statement not covered" >      };</span>
-<span class="cstat-no" title="statement not covered" >    }&gt;(`/api/admin/orders${qs ? `?${qs}` : ""}`);</span>
+<span class="cstat-no" title="statement not covered" >    }&gt;(`/api/admin/orders${qs ? `?${qs}` : ''}`);</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
   updateOrderStatus: <span class="fstat-no" title="function not covered" >async (orderId: string, status: string) =&gt; {</span>
@@ -2938,7 +3072,7 @@ export const adminApi = {
 <span class="cstat-no" title="statement not covered" >      message: string;</span>
 <span class="cstat-no" title="statement not covered" >      data: any;</span>
 <span class="cstat-no" title="statement not covered" >    }&gt;(`/api/orders/${orderId}/status`, {</span>
-<span class="cstat-no" title="statement not covered" >      method: "PUT",</span>
+<span class="cstat-no" title="statement not covered" >      method: 'PUT',</span>
 <span class="cstat-no" title="statement not covered" >      body: { status },</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
@@ -2967,8 +3101,8 @@ export const orderApi = {
 <span class="cstat-no" title="statement not covered" >      success: boolean;</span>
 <span class="cstat-no" title="statement not covered" >      message: string;</span>
 <span class="cstat-no" title="statement not covered" >      data: any;</span>
-<span class="cstat-no" title="statement not covered" >    }&gt;("/api/orders", {</span>
-<span class="cstat-no" title="statement not covered" >      method: "POST",</span>
+<span class="cstat-no" title="statement not covered" >    }&gt;('/api/orders', {</span>
+<span class="cstat-no" title="statement not covered" >      method: 'POST',</span>
 <span class="cstat-no" title="statement not covered" >      body: data,</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
@@ -2986,134 +3120,142 @@ export const orderApi = {
 export const reviewApi = {
   getProductReviews: <span class="fstat-no" title="function not covered" >async (productId: string, page = 1, limit = 10) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{</span>
-<span class="cstat-no" title="statement not covered" >      success: boolean</span>
+<span class="cstat-no" title="statement not covered" >      success: boolean;</span>
 <span class="cstat-no" title="statement not covered" >      data: {</span>
-<span class="cstat-no" title="statement not covered" >        reviews: any[]</span>
+<span class="cstat-no" title="statement not covered" >        reviews: any[];</span>
 <span class="cstat-no" title="statement not covered" >        stats: {</span>
-<span class="cstat-no" title="statement not covered" >          averageRating: number</span>
-<span class="cstat-no" title="statement not covered" >          totalReviews: number</span>
-<span class="cstat-no" title="statement not covered" >          ratingDistribution: Record&lt;number, number&gt;</span>
-<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >          averageRating: number;</span>
+<span class="cstat-no" title="statement not covered" >          totalReviews: number;</span>
+<span class="cstat-no" title="statement not covered" >          ratingDistribution: Record&lt;number, number&gt;;</span>
+<span class="cstat-no" title="statement not covered" >        };</span>
 <span class="cstat-no" title="statement not covered" >        pagination: {</span>
-<span class="cstat-no" title="statement not covered" >          page: number</span>
-<span class="cstat-no" title="statement not covered" >          limit: number</span>
-<span class="cstat-no" title="statement not covered" >          total: number</span>
-<span class="cstat-no" title="statement not covered" >          pages: number</span>
-<span class="cstat-no" title="statement not covered" >        }</span>
-<span class="cstat-no" title="statement not covered" >      }</span>
-<span class="cstat-no" title="statement not covered" >      message: string</span>
-<span class="cstat-no" title="statement not covered" >      errors: any[]</span>
+<span class="cstat-no" title="statement not covered" >          page: number;</span>
+<span class="cstat-no" title="statement not covered" >          limit: number;</span>
+<span class="cstat-no" title="statement not covered" >          total: number;</span>
+<span class="cstat-no" title="statement not covered" >          pages: number;</span>
+<span class="cstat-no" title="statement not covered" >        };</span>
+<span class="cstat-no" title="statement not covered" >      };</span>
+<span class="cstat-no" title="statement not covered" >      message: string;</span>
+<span class="cstat-no" title="statement not covered" >      errors: any[];</span>
 <span class="cstat-no" title="statement not covered" >    }&gt;(`/api/reviews/product/${productId}?page=${page}&amp;limit=${limit}`);</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
   create: <span class="fstat-no" title="function not covered" >async (data: {</span>
-<span class="cstat-no" title="statement not covered" >    productId: string</span>
-<span class="cstat-no" title="statement not covered" >    orderId?: string</span>
-<span class="cstat-no" title="statement not covered" >    rating: number</span>
-<span class="cstat-no" title="statement not covered" >    title?: string</span>
-<span class="cstat-no" title="statement not covered" >    content: string</span>
+<span class="cstat-no" title="statement not covered" >    productId: string;</span>
+<span class="cstat-no" title="statement not covered" >    orderId?: string;</span>
+<span class="cstat-no" title="statement not covered" >    rating: number;</span>
+<span class="cstat-no" title="statement not covered" >    title?: string;</span>
+<span class="cstat-no" title="statement not covered" >    content: string;</span>
 <span class="cstat-no" title="statement not covered" >  }) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{</span>
-<span class="cstat-no" title="statement not covered" >      success: boolean</span>
-<span class="cstat-no" title="statement not covered" >      data: any</span>
-<span class="cstat-no" title="statement not covered" >      message: string</span>
-<span class="cstat-no" title="statement not covered" >      errors: any[]</span>
-<span class="cstat-no" title="statement not covered" >    }&gt;("/api/reviews", {</span>
-<span class="cstat-no" title="statement not covered" >      method: "POST",</span>
+<span class="cstat-no" title="statement not covered" >      success: boolean;</span>
+<span class="cstat-no" title="statement not covered" >      data: any;</span>
+<span class="cstat-no" title="statement not covered" >      message: string;</span>
+<span class="cstat-no" title="statement not covered" >      errors: any[];</span>
+<span class="cstat-no" title="statement not covered" >    }&gt;('/api/reviews', {</span>
+<span class="cstat-no" title="statement not covered" >      method: 'POST',</span>
 <span class="cstat-no" title="statement not covered" >      body: data,</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
-  update: <span class="fstat-no" title="function not covered" >async (id: string, data: {</span>
-<span class="cstat-no" title="statement not covered" >    rating?: number</span>
-<span class="cstat-no" title="statement not covered" >    title?: string</span>
-<span class="cstat-no" title="statement not covered" >    content?: string</span>
-<span class="cstat-no" title="statement not covered" >  }) =&gt; {</span>
+  update: <span class="fstat-no" title="function not covered" >async (</span>
+<span class="cstat-no" title="statement not covered" >    id: string,</span>
+<span class="cstat-no" title="statement not covered" >    data: {</span>
+<span class="cstat-no" title="statement not covered" >      rating?: number;</span>
+<span class="cstat-no" title="statement not covered" >      title?: string;</span>
+<span class="cstat-no" title="statement not covered" >      content?: string;</span>
+<span class="cstat-no" title="statement not covered" >    },</span>
+<span class="cstat-no" title="statement not covered" >  ) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{</span>
-<span class="cstat-no" title="statement not covered" >      success: boolean</span>
-<span class="cstat-no" title="statement not covered" >      data: any</span>
-<span class="cstat-no" title="statement not covered" >      message: string</span>
-<span class="cstat-no" title="statement not covered" >      errors: any[]</span>
+<span class="cstat-no" title="statement not covered" >      success: boolean;</span>
+<span class="cstat-no" title="statement not covered" >      data: any;</span>
+<span class="cstat-no" title="statement not covered" >      message: string;</span>
+<span class="cstat-no" title="statement not covered" >      errors: any[];</span>
 <span class="cstat-no" title="statement not covered" >    }&gt;(`/api/reviews/${id}`, {</span>
-<span class="cstat-no" title="statement not covered" >      method: "PUT",</span>
+<span class="cstat-no" title="statement not covered" >      method: 'PUT',</span>
 <span class="cstat-no" title="statement not covered" >      body: data,</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
   delete: <span class="fstat-no" title="function not covered" >async (id: string) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{</span>
-<span class="cstat-no" title="statement not covered" >      success: boolean</span>
-<span class="cstat-no" title="statement not covered" >      data: null</span>
-<span class="cstat-no" title="statement not covered" >      message: string</span>
-<span class="cstat-no" title="statement not covered" >      errors: any[]</span>
+<span class="cstat-no" title="statement not covered" >      success: boolean;</span>
+<span class="cstat-no" title="statement not covered" >      data: null;</span>
+<span class="cstat-no" title="statement not covered" >      message: string;</span>
+<span class="cstat-no" title="statement not covered" >      errors: any[];</span>
 <span class="cstat-no" title="statement not covered" >    }&gt;(`/api/reviews/${id}`, {</span>
-<span class="cstat-no" title="statement not covered" >      method: "DELETE",</span>
+<span class="cstat-no" title="statement not covered" >      method: 'DELETE',</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
-}
+};
 &nbsp;
 // Admin Review API functions
 export const adminReviewApi = {
   getAll: <span class="fstat-no" title="function not covered" >async (params?: {</span>
-<span class="cstat-no" title="statement not covered" >    page?: number</span>
-<span class="cstat-no" title="statement not covered" >    limit?: number</span>
-<span class="cstat-no" title="statement not covered" >    productId?: string</span>
-<span class="cstat-no" title="statement not covered" >    userId?: string</span>
-<span class="cstat-no" title="statement not covered" >    rating?: number</span>
-<span class="cstat-no" title="statement not covered" >    isActive?: string</span>
-<span class="cstat-no" title="statement not covered" >    search?: string</span>
+<span class="cstat-no" title="statement not covered" >    page?: number;</span>
+<span class="cstat-no" title="statement not covered" >    limit?: number;</span>
+<span class="cstat-no" title="statement not covered" >    productId?: string;</span>
+<span class="cstat-no" title="statement not covered" >    userId?: string;</span>
+<span class="cstat-no" title="statement not covered" >    rating?: number;</span>
+<span class="cstat-no" title="statement not covered" >    isActive?: string;</span>
+<span class="cstat-no" title="statement not covered" >    search?: string;</span>
 <span class="cstat-no" title="statement not covered" >  }) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    const query = new URLSearchParams()</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.page) query.set("page", String(params.page))</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.limit) query.set("limit", String(params.limit))</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.productId) query.set("productId", params.productId)</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.userId) query.set("userId", params.userId)</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.rating) query.set("rating", String(params.rating))</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.isActive) query.set("isActive", params.isActive)</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.search) query.set("search", params.search)</span>
-<span class="cstat-no" title="statement not covered" >    const qs = query.toString()</span>
+<span class="cstat-no" title="statement not covered" >    const query = new URLSearchParams();</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.page) query.set('page', String(params.page));</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.limit) query.set('limit', String(params.limit));</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.productId) query.set('productId', params.productId);</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.userId) query.set('userId', params.userId);</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.rating) query.set('rating', String(params.rating));</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.isActive) query.set('isActive', params.isActive);</span>
+<span class="cstat-no" title="statement not covered" >    if (params?.search) query.set('search', params.search);</span>
+<span class="cstat-no" title="statement not covered" >    const qs = query.toString();</span>
 <span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{</span>
-<span class="cstat-no" title="statement not covered" >      success: boolean</span>
+<span class="cstat-no" title="statement not covered" >      success: boolean;</span>
 <span class="cstat-no" title="statement not covered" >      data: {</span>
-<span class="cstat-no" title="statement not covered" >        reviews: any[]</span>
-<span class="cstat-no" title="statement not covered" >        pagination: { page: number; limit: number; total: number; pages: number }</span>
-<span class="cstat-no" title="statement not covered" >      }</span>
-<span class="cstat-no" title="statement not covered" >      message: string</span>
-<span class="cstat-no" title="statement not covered" >      errors: any[]</span>
-<span class="cstat-no" title="statement not covered" >    }&gt;(`/api/admin/reviews${qs ? `?${qs}` : ""}`);</span>
+<span class="cstat-no" title="statement not covered" >        reviews: any[];</span>
+<span class="cstat-no" title="statement not covered" >        pagination: {</span>
+<span class="cstat-no" title="statement not covered" >          page: number;</span>
+<span class="cstat-no" title="statement not covered" >          limit: number;</span>
+<span class="cstat-no" title="statement not covered" >          total: number;</span>
+<span class="cstat-no" title="statement not covered" >          pages: number;</span>
+<span class="cstat-no" title="statement not covered" >        };</span>
+<span class="cstat-no" title="statement not covered" >      };</span>
+<span class="cstat-no" title="statement not covered" >      message: string;</span>
+<span class="cstat-no" title="statement not covered" >      errors: any[];</span>
+<span class="cstat-no" title="statement not covered" >    }&gt;(`/api/admin/reviews${qs ? `?${qs}` : ''}`);</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
   getById: <span class="fstat-no" title="function not covered" >async (id: string) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{</span>
-<span class="cstat-no" title="statement not covered" >      success: boolean</span>
-<span class="cstat-no" title="statement not covered" >      data: any</span>
-<span class="cstat-no" title="statement not covered" >      message: string</span>
-<span class="cstat-no" title="statement not covered" >      errors: any[]</span>
+<span class="cstat-no" title="statement not covered" >      success: boolean;</span>
+<span class="cstat-no" title="statement not covered" >      data: any;</span>
+<span class="cstat-no" title="statement not covered" >      message: string;</span>
+<span class="cstat-no" title="statement not covered" >      errors: any[];</span>
 <span class="cstat-no" title="statement not covered" >    }&gt;(`/api/admin/reviews/${id}`);</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
   toggleActive: <span class="fstat-no" title="function not covered" >async (id: string) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{</span>
-<span class="cstat-no" title="statement not covered" >      success: boolean</span>
-<span class="cstat-no" title="statement not covered" >      data: any</span>
-<span class="cstat-no" title="statement not covered" >      message: string</span>
-<span class="cstat-no" title="statement not covered" >      errors: any[]</span>
+<span class="cstat-no" title="statement not covered" >      success: boolean;</span>
+<span class="cstat-no" title="statement not covered" >      data: any;</span>
+<span class="cstat-no" title="statement not covered" >      message: string;</span>
+<span class="cstat-no" title="statement not covered" >      errors: any[];</span>
 <span class="cstat-no" title="statement not covered" >    }&gt;(`/api/admin/reviews/${id}/toggle-active`, {</span>
-<span class="cstat-no" title="statement not covered" >      method: "PUT",</span>
+<span class="cstat-no" title="statement not covered" >      method: 'PUT',</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
   delete: <span class="fstat-no" title="function not covered" >async (id: string) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{</span>
-<span class="cstat-no" title="statement not covered" >      success: boolean</span>
-<span class="cstat-no" title="statement not covered" >      data: null</span>
-<span class="cstat-no" title="statement not covered" >      message: string</span>
-<span class="cstat-no" title="statement not covered" >      errors: any[]</span>
+<span class="cstat-no" title="statement not covered" >      success: boolean;</span>
+<span class="cstat-no" title="statement not covered" >      data: null;</span>
+<span class="cstat-no" title="statement not covered" >      message: string;</span>
+<span class="cstat-no" title="statement not covered" >      errors: any[];</span>
 <span class="cstat-no" title="statement not covered" >    }&gt;(`/api/admin/reviews/${id}`, {</span>
-<span class="cstat-no" title="statement not covered" >      method: "DELETE",</span>
+<span class="cstat-no" title="statement not covered" >      method: 'DELETE',</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
-}
+};
 &nbsp;
 // Payment API functions
 export const paymentApi = {
@@ -3121,8 +3263,8 @@ export const paymentApi = {
 <span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{</span>
 <span class="cstat-no" title="statement not covered" >      success: boolean;</span>
 <span class="cstat-no" title="statement not covered" >      data: { clientSecret: string; paymentIntentId: string };</span>
-<span class="cstat-no" title="statement not covered" >    }&gt;("/api/payments/create-intent", {</span>
-<span class="cstat-no" title="statement not covered" >      method: "POST",</span>
+<span class="cstat-no" title="statement not covered" >    }&gt;('/api/payments/create-intent', {</span>
+<span class="cstat-no" title="statement not covered" >      method: 'POST',</span>
 <span class="cstat-no" title="statement not covered" >      body: { orderId },</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
@@ -3132,7 +3274,7 @@ export const paymentApi = {
 <span class="cstat-no" title="statement not covered" >      success: boolean;</span>
 <span class="cstat-no" title="statement not covered" >      message: string;</span>
 <span class="cstat-no" title="statement not covered" >    }&gt;(`/api/payments/confirm/${orderId}`, {</span>
-<span class="cstat-no" title="statement not covered" >      method: "POST",</span>
+<span class="cstat-no" title="statement not covered" >      method: 'POST',</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
 &nbsp;
@@ -3140,8 +3282,8 @@ export const paymentApi = {
 <span class="cstat-no" title="statement not covered" >    return apiRequest&lt;{</span>
 <span class="cstat-no" title="statement not covered" >      success: boolean;</span>
 <span class="cstat-no" title="statement not covered" >      message: string;</span>
-<span class="cstat-no" title="statement not covered" >    }&gt;("/api/payments/confirm", {</span>
-<span class="cstat-no" title="statement not covered" >      method: "POST",</span>
+<span class="cstat-no" title="statement not covered" >    }&gt;('/api/payments/confirm', {</span>
+<span class="cstat-no" title="statement not covered" >      method: 'POST',</span>
 <span class="cstat-no" title="statement not covered" >      body: { orderId, paymentIntentId },</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" >  },</span>
@@ -3151,27 +3293,21 @@ export const paymentApi = {
 export { ApiError };
 &nbsp;</pre></td></tr></table></pre>
 
-      <div class="push"></div>
-      <!-- for sticky footer -->
-    </div>
-    <!-- /wrapper -->
-    <div class="footer quiet pad2 space-top1 center small">
-      Code coverage generated by
-      <a
-        href="https://istanbul.js.org/"
-        target="_blank"
-        rel="noopener noreferrer"
-        >istanbul</a
-      >
-      at 2026-10-06T08:55:24.044Z
-    </div>
-    <script src="../prettify.js"></script>
-    <script>
-      window.onload = function () {
-        prettyPrint();
-      };
-    </script>
-    <script src="../sorter.js"></script>
-    <script src="../block-navigation.js"></script>
-  </body>
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-11-01T10:28:03.598Z
+            </div>
+        <script src="../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../sorter.js"></script>
+        <script src="../block-navigation.js"></script>
+    </body>
 </html>
+    
