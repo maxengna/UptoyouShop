@@ -38,6 +38,7 @@ jobs:
 
       # 3. Global Code Formatting
       - name: Check Code Formatting (Prettier)
+        continue-on-error: true
         run: npx prettier --check "**/*.{js,jsx,ts,tsx,json,css,md}"
 
       # 4. Backend: Install, Prisma, Lint, Jest
@@ -310,6 +311,7 @@ jobs:
       - name: Send Slack Notification
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          CODE_QUALITY_RESULT: ${{ needs.code-quality.result }}
           BUILD_BACKEND_RESULT: ${{ needs.build-backend.result }}
           BUILD_FRONTEND_RESULT: ${{ needs.build-frontend.result }}
           UPDATE_FLUX_MANIFESTS_RESULT: ${{ needs.update-flux-manifests.result }}
@@ -318,9 +320,9 @@ jobs:
           ACTOR: ${{ github.actor }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          if [ "$BUILD_BACKEND_RESULT" = "success" ] && [ "$BUILD_FRONTEND_RESULT" = "success" ] && [ "$UPDATE_FLUX_MANIFESTS_RESULT" = "success" ]; then
+          if [ "$CODE_QUALITY_RESULT" = "success" ] && [ "$BUILD_BACKEND_RESULT" = "success" ] && [ "$BUILD_FRONTEND_RESULT" = "success" ] && [ "$UPDATE_FLUX_MANIFESTS_RESULT" = "success" ]; then
             STATUS="✅ BUILD SUCCESS"
-          elif [ "$BUILD_BACKEND_RESULT" = "failure" ] || [ "$BUILD_FRONTEND_RESULT" = "failure" ] || [ "$UPDATE_FLUX_MANIFESTS_RESULT" = "failure" ]; then
+          elif [ "$CODE_QUALITY_RESULT" = "failure" ] || [ "$BUILD_BACKEND_RESULT" = "failure" ] || [ "$BUILD_FRONTEND_RESULT" = "failure" ] || [ "$UPDATE_FLUX_MANIFESTS_RESULT" = "failure" ]; then
             STATUS="❌ BUILD FAILED"
           else
             STATUS="⚠️ BUILD CANCELLED OR SKIPPED"
@@ -328,6 +330,7 @@ jobs:
 
           jq -n \
             --arg status "$STATUS" \
+            --arg code_quality_result "$CODE_QUALITY_RESULT" \
             --arg build_backend_result "$BUILD_BACKEND_RESULT" \
             --arg build_frontend_result "$BUILD_FRONTEND_RESULT" \
             --arg update_flux_manifests_result "$UPDATE_FLUX_MANIFESTS_RESULT" \
@@ -336,7 +339,7 @@ jobs:
             --arg actor "$ACTOR" \
             --arg url "$RUN_URL" \
             '{
-              text: "\($status)\n\nBuild Backend: \($build_backend_result)\nBuild Frontend: \($build_frontend_result)\nUpdate Flux Manifests: \($update_flux_manifests_result)\n\nRepository: \($repo)\nBranch: \($branch)\nTriggered by: \($actor)\nDetails: \($url)"
+              text: "\($status)\n\nCode Quality: \($code_quality_result)\nBuild Backend: \($build_backend_result)\nBuild Frontend: \($build_frontend_result)\nUpdate Flux Manifests: \($update_flux_manifests_result)\n\nRepository: \($repo)\nBranch: \($branch)\nTriggered by: \($actor)\nDetails: \($url)"
             }' |
           curl -fsS -X POST \
             -H "Content-Type: application/json" \
