@@ -162,7 +162,7 @@ export default function HomePage() {
           <div className="text-center">
             <h2 className="text-3xl font-bold mb-4">Special Offers</h2>
             <p className="text-muted-foreground mb-8">
-              Limited time deals you don't want to miss
+              Limited time deals you don&apos;t want to miss
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -130,12 +130,12 @@ export default function AboutPage() {
             </p>
             <p className="mb-6">
               We believe that shopping should be a delightful experience, not a
-              chore. That's why we've carefully curated our product selection,
+              chore. That&apos;s why we&apos;ve carefully curated our product selection,
               streamlined our checkout process, and built a customer service
-              team that's always ready to help.
+              team that&apos;s always ready to help.
             </p>
             <p>
-              Today, we're proud to be your go-to destination for quality
+              Today, we&apos;re proud to be your go-to destination for quality
               products at great prices, with a commitment to excellence that
               drives everything we do.
             </p>

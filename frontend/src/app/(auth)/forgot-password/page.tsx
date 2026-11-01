@@ -120,7 +120,7 @@ export default function ForgotPasswordPage() {
                       Check your email
                     </h3>
                     <p className="mt-2 text-sm text-gray-600">
-                      We've sent a password reset link to:
+                      We&apos;ve sent a password reset link to:
                     </p>
                     <p className="mt-1 text-sm font-medium text-gray-900">
                       {email}
@@ -129,7 +129,7 @@ export default function ForgotPasswordPage() {
 
                   <div className="space-y-2">
                     <p className="text-xs text-gray-500">
-                      Didn't receive the email? Check your spam folder or
+                      Didn&apos;t receive the email? Check your spam folder or
                     </p>
                     <Button
                       variant="outline"

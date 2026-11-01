@@ -49,7 +49,7 @@ export default function ContactPage() {
               Message Sent!
             </h3>
             <p className="text-gray-600 mb-6">
-              Thank you for contacting us. We'll get back to you within 24
+              Thank you for contacting us. We&apos;ll get back to you within 24
               hours.
             </p>
             <Button onClick={() => setIsSubmitted(false)} className="w-full">
@@ -69,7 +69,7 @@ export default function ContactPage() {
           <div className="text-center">
             <h1 className="text-4xl font-bold mb-4">Contact Us</h1>
             <p className="text-xl">
-              We're here to help! Get in touch with our friendly team.
+              We&apos;re here to help! Get in touch with our friendly team.
             </p>
           </div>
         </div>
@@ -283,7 +283,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">
-                      What's your return policy?
+                      What&apos;s your return policy?
                     </h4>
                     <p className="text-gray-600 text-sm">
                       We offer 30-day returns for most items. Products must be
